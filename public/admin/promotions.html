@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý khuyến mãi - Casa Decor Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=20260518">
+</head>
+<body class="admin-page">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay về trang chủ Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Admin</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a href="/admin/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a href="/admin/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/admin/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/admin/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/admin/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/admin/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/admin/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung & Marketing</p>
+            <a href="/admin/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a class="active" href="/admin/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/admin/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/admin/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a href="/admin/index.html#inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a href="/admin/index.html#schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+
+            <p>Báo cáo & Thống kê</p>
+            <a href="/admin/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/admin/index.html#settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+
+        <div class="sidebar-decor">
+            <img src="/images/lohoa_decor/lohoa01.jpg" alt="Casa Decor">
+            <b>Casa Decor</b>
+            <span>Elevate your space, Elevate your life.</span>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng...">
+                <kbd>⌘K</kbd>
+            </label>
+            <div class="date-filter">
+                <input id="dateFrom" type="date" aria-label="Từ ngày">
+                <span>-</span>
+                <input id="dateTo" type="date" aria-label="Đến ngày">
+                <button id="reloadDashboard" type="button" aria-label="Tải lại"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <button class="icon-btn" type="button" aria-label="Thông báo" data-admin-session><i class="fa-regular fa-bell"></i><span data-notify-count>0</span></button>
+            <a class="admin-profile" href="/admin/profile.html" title="Mở hồ sơ quản trị" data-view="profile" data-admin-session>
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
+            </a>
+            <button id="quickAddBtn" class="quick-add" type="button" data-admin-session><i class="fa-solid fa-plus"></i> Thêm nhanh</button>
+            <div id="quickAddMenu" class="quick-menu" hidden></div>
+        </header>
+
+        <section id="authGate" class="auth-gate" hidden>
+            <div>
+                <i class="fa-solid fa-lock"></i>
+                <h1>Cần đăng nhập tài khoản admin</h1>
+                <p>Đăng nhập bằng tài khoản có quyền admin để xem Dashboard Casa Decor.</p>
+                <a id="adminLoginLink" href="/customers/login.html?redirect=/admin/promotions.html">Đăng nhập</a>
+            </div>
+        </section>
+
+        <section id="promotionManagerView" class="promo-manager-page" hidden>
+            <!-- Header Section -->
+            <div class="promo-header">
+                <div>
+                    <h1>Quản lý khuyến mãi</h1>
+                    <p>Tạo, theo dõi và tối ưu các chương trình giảm giá, mã ưu đãi và flash sale.</p>
+                </div>
+            </div>
+
+            <!-- KPI Cards Section -->
+            <section class="promo-kpi-grid" id="promotionKpiGrid">
+                <article class="promo-kpi-card">
+                    <div class="kpi-icon"><i class="fa-solid fa-layer-group"></i></div>
+                    <div>
+                        <h3>Tổng chiến dịch</h3>
+                        <strong id="kpiTotalCampaigns">0</strong>
+                    </div>
+                </article>
+                <article class="promo-kpi-card">
+                    <div class="kpi-icon" style="background: #e8f5e9; color: #43a56d;"><i class="fa-solid fa-play"></i></div>
+                    <div>
+                        <h3>Đang diễn ra</h3>
+                        <strong id="kpiActiveCampaigns">0</strong>
+                    </div>
+                </article>
+                <article class="promo-kpi-card">
+                    <div class="kpi-icon" style="background: #fff4e6; color: #dda943;"><i class="fa-regular fa-clock"></i></div>
+                    <div>
+                        <h3>Sắp bắt đầu</h3>
+                        <strong id="kpiUpcomingCampaigns">0</strong>
+                    </div>
+                </article>
+                <article class="promo-kpi-card">
+                    <div class="kpi-icon" style="background: #fce4ec; color: #cf5148;"><i class="fa-solid fa-flag-checkered"></i></div>
+                    <div>
+                        <h3>Đã kết thúc</h3>
+                        <strong id="kpiEndedCampaigns">0</strong>
+                    </div>
+                </article>
+                <article class="promo-kpi-card">
+                    <div class="kpi-icon" style="background: #f3e5f5; color: #8b6ac8;"><i class="fa-solid fa-ticket"></i></div>
+                    <div>
+                        <h3>Mã giảm giá đang hoạt động</h3>
+                        <strong id="kpiActiveVouchers">0</strong>
+                    </div>
+                </article>
+            </section>
+
+            <!-- Filter Section -->
+            <section class="promo-filters-section">
+                <div class="promo-filter-row">
+                    <div class="promo-search-bar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input id="promotionSearchInput" type="search" placeholder="Tìm theo tên chiến dịch / mã voucher">
+                    </div>
+                    <div class="promo-filter-group">
+                        <label>
+                            Loại khuyến mãi
+                            <select id="promotionTypeFilter">
+                                <option value="all">Tất cả</option>
+                                <option value="percentage">Giảm %</option>
+                                <option value="fixed">Giảm cố định</option>
+                            </select>
+                        </label>
+                        <label>
+                            Trạng thái
+                            <select id="promotionStatusFilter">
+                                <option value="all">Tất cả</option>
+                                <option value="active">Đang diễn ra</option>
+                                <option value="upcoming">Sắp bắt đầu</option>
+                                <option value="ended">Đã kết thúc</option>
+                            </select>
+                        </label>
+                        <label>
+                            Kênh áp dụng
+                            <select id="promotionChannelFilter">
+                                <option value="all">Tất cả kênh</option>
+                                <option value="web">Web</option>
+                                <option value="app">App</option>
+                                <option value="mobile">Mobile</option>
+                            </select>
+                        </label>
+                        <label>
+                            Thời gian
+                            <select id="promotionTimeFilter">
+                                <option value="all">Tất cả thời gian</option>
+                                <option value="today">Hôm nay</option>
+                                <option value="week">Tuần này</option>
+                                <option value="month">Tháng này</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="promo-filter-actions">
+                        <button class="promo-filter-btn" type="button" data-action="promotion-filter">
+                            <i class="fa-solid fa-filter"></i> Lọc
+                        </button>
+                        <button class="promo-reset-btn" type="button" data-action="promotion-reset">
+                            <i class="fa-solid fa-rotate-left"></i> Đặt lại
+                        </button>
+                        <button class="promo-create-btn" type="button" data-action="promotion-add">
+                            <i class="fa-solid fa-plus"></i> Tạo khuyến mãi mới
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Content Layout -->
+            <section class="promo-main-layout">
+                <!-- Main Table -->
+                <article class="promo-table-container">
+                    <div class="promo-table-wrap">
+                        <table class="promo-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="selectAllPromos"></th>
+                                    <th style="width: 300px;">Chiến dịch</th>
+                                    <th style="width: 100px;">Loại</th>
+                                    <th style="width: 130px;">Mã áp dụng</th>
+                                    <th style="width: 140px;">Giá trị ưu đãi</th>
+                                    <th style="width: 200px;">Thời gian chạy</th>
+                                    <th style="width: 120px;">Trạng thái</th>
+                                    <th style="width: 100px;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="promotionRows"></tbody>
+                        </table>
+                    </div>
+                    <div class="promo-pagination">
+                        <div class="pagination-info">
+                            <span id="promotionPageText">Hiển thị 1 - 6 trong số 0 chiến dịch</span>
+                        </div>
+                        <div class="pagination-controls" id="promotionPager"></div>
+                    </div>
+                </article>
+
+                <!-- Right Sidebar -->
+                <aside class="promo-sidebar">
+                    <!-- Featured Campaigns -->
+                    <article class="panel promo-sidebar-section">
+                        <div class="panel-head">
+                            <div><h2>Chiến dịch nổi bật</h2></div>
+                            <a href="#" class="link-text">Xem tất cả</a>
+                        </div>
+                        <div id="featuredCampaigns" class="promo-featured-list"></div>
+                    </article>
+
+                    <!-- Today's Schedule -->
+                    <article class="panel promo-sidebar-section">
+                        <div class="panel-head">
+                            <div><h2>Lịch chạy hôm nay</h2></div>
+                            <a href="#" class="link-text">Xem lịch đầy đủ</a>
+                        </div>
+                        <div id="todaySchedule" class="promo-schedule-list"></div>
+                    </article>
+                </aside>
+            </section>
+        </section>
+
+        <section id="promotionFormView" class="product-form-page" hidden>
+            <div class="form-header">
+                <div class="breadcrumbs">
+                    <a href="#" data-action="back-dashboard">Trang chủ</a> <i class="fa-solid fa-chevron-right"></i>
+                    <a href="#" data-action="back-promotions">Quản lý khuyến mãi</a> <i class="fa-solid fa-chevron-right"></i>
+                    <span id="formTitleBreadcrumb">Tạo khuyến mãi</span>
+                </div>
+                <div class="header-actions-row">
+                    <h1 id="formTitleText">Tạo khuyến mãi mới</h1>
+                </div>
+            </div>
+
+            <form id="promotionMainForm" class="product-form-grid">
+                <input type="hidden" name="promotionId" id="promotionId">
+                <div class="form-main-col">
+                    <article class="panel">
+                        <div class="panel-head"><h2><i class="fa-regular fa-file-lines"></i> Thông tin khuyến mãi</h2></div>
+                        <label class="required">Tên chương trình<input type="text" name="name" placeholder="VD: Giảm giá mùa hè 2026" required></label>
+                        <label>Mã giảm giá<input type="text" name="code" placeholder="VD: SUMMER2026 (để trống nếu tự động áp dụng)" style="text-transform: uppercase;"><small>Khách hàng nhập mã này khi thanh toán. Để trống nếu muốn áp dụng tự động cho tất cả đơn hàng.</small></label>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-head"><h2><i class="fa-solid fa-percent"></i> Giá trị giảm giá</h2></div>
+                        <div class="form-row">
+                            <label class="required">Loại giảm giá
+                                <select name="discountType" id="discountTypeSelect" required>
+                                    <option value="percentage">Phần trăm (%)</option>
+                                    <option value="fixed">Số tiền cố định (VNĐ)</option>
+                                </select>
+                            </label>
+                            <label class="required">Giá trị<input type="number" name="discountValue" placeholder="VD: 10 hoặc 50000" min="0" step="0.01" required><small id="discountValueHint">Nhập % giảm giá (VD: 10 = giảm 10%)</small></label>
+                        </div>
+                        <label>Giá trị đơn hàng tối thiểu<input type="number" name="minOrderValue" placeholder="VD: 500000" min="0" value="0"><small>Đơn hàng phải đạt giá trị tối thiểu này để áp dụng khuyến mãi. Nhập 0 nếu không giới hạn.</small></label>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-head"><h2><i class="fa-regular fa-calendar"></i> Thời gian áp dụng</h2></div>
+                        <div class="form-row">
+                            <label class="required">Ngày bắt đầu<input type="datetime-local" name="startDate" required></label>
+                            <label class="required">Ngày kết thúc<input type="datetime-local" name="endDate" required></label>
+                        </div>
+                        <small style="display: block; margin-top: -8px; color: #666;">Khuyến mãi chỉ có hiệu lực trong khoảng thời gian này.</small>
+                    </article>
+                </div>
+
+                <div class="form-side-col">
+                    <article class="panel">
+                        <div class="panel-head"><h2><i class="fa-solid fa-gear"></i> Cài đặt</h2></div>
+                        <label>Giới hạn số lần sử dụng<input type="number" name="maxUsage" placeholder="VD: 100" min="0"><small>Số lần tối đa mã có thể được sử dụng. Để trống nếu không giới hạn.</small></label>
+                        <label class="required">Trạng thái
+                            <select name="status" required>
+                                <option value="active" selected>Đang hoạt động</option>
+                                <option value="disabled">Tạm tắt</option>
+                            </select>
+                        </label>
+                    </article>
+
+                    <article class="panel" style="background: linear-gradient(135deg, #f8f4ef 0%, #f4ebe2 100%); border: 1px solid #e8d5c4;">
+                        <div style="padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <i class="fa-solid fa-lightbulb" style="font-size: 24px; color: #c48c71;"></i>
+                                <strong style="color: #2e2926;">Mẹo tạo khuyến mãi hiệu quả</strong>
+                            </div>
+                            <ul style="margin-left: 20px; font-size: 13px; line-height: 1.6; color: #666;">
+                                <li style="margin-bottom: 8px;">Đặt tên rõ ràng, dễ nhớ</li>
+                                <li style="margin-bottom: 8px;">Mã giảm giá ngắn gọn, dễ nhập</li>
+                                <li style="margin-bottom: 8px;">Giới hạn thời gian tạo cảm giác khan hiếm</li>
+                                <li style="margin-bottom: 8px;">Đặt giá trị đơn hàng tối thiểu hợp lý</li>
+                            </ul>
+                        </div>
+                    </article>
+                </div>
+            </form>
+
+            <div class="form-footer-actions">
+                <button class="secondary-action" type="button" data-action="back-promotions">Hủy</button>
+                <div class="right-actions">
+                    <button class="primary-action" type="button" data-action="save-promotion"><i class="fa-solid fa-floppy-disk"></i> <span id="savePromotionBtnText">Lưu khuyến mãi</span></button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    
+    <div id="deletePromotionModal" class="custom-modal-overlay" hidden>
+        <div class="custom-modal-card">
+            <button class="modal-close" data-action="close-delete-modal"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title">Xóa khuyến mãi</h2>
+            <div class="warning-alert">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <b>Bạn có chắc chắn muốn xóa khuyến mãi này không?</b>
+                    <p>Hành động này không thể hoàn tác. Khuyến mãi sẽ bị xóa vĩnh viễn khỏi hệ thống.</p>
+                </div>
+            </div>
+            <div class="product-delete-preview">
+                <div class="del-prod-info" style="width: 100%;">
+                    <h3 id="delPromoName">Giảm giá mùa hè</h3>
+                    <p><span><i class="fa-solid fa-tag"></i> Mã</span> <strong id="delPromoCode">SUMMER2026</strong></p>
+                    <p><span><i class="fa-solid fa-percent"></i> Giảm giá</span> <strong id="delPromoValue">10%</strong></p>
+                    <p><span><i class="fa-solid fa-users"></i> Đã sử dụng</span> <strong id="delPromoUsed">0 lần</strong></p>
+                </div>
+            </div>
+            <div class="modal-actions-right">
+                <button class="secondary-action" data-action="close-delete-modal">Hủy</button>
+                <button class="danger-action" id="confirmDeletePromoBtn" data-action="confirm-delete-promotion"><i class="fa-regular fa-trash-can"></i> Xác nhận xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/admin.js?v=20260518"></script>
+</body>
+</html>

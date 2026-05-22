@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý nhân viên - Casa Decor Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=20260516-1">
+</head>
+<body class="admin-page staff-page">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay về trang chủ Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Admin</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a href="/admin/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a href="/admin/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/admin/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/admin/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/admin/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a class="active" href="/admin/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/admin/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung & Marketing</p>
+            <a href="/admin/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/admin/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/admin/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/admin/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a href="/admin/index.html#inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a href="/admin/index.html#schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+
+            <p>Báo cáo & Thống kê</p>
+            <a href="/admin/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/admin/index.html#settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+
+        <div class="sidebar-decor">
+            <img src="/images/lohoa_decor/lohoa01.jpg" alt="Casa Decor">
+            <b>Casa Decor</b>
+            <span>Elevate your space, Elevate your life.</span>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng...">
+                <kbd>⌘K</kbd>
+            </label>
+            <div class="date-filter">
+                <input id="dateFrom" type="date" aria-label="Từ ngày">
+                <span>-</span>
+                <input id="dateTo" type="date" aria-label="Đến ngày">
+                <button id="reloadDashboard" type="button" aria-label="Tải lại"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <div style="position:relative; display:inline-block;" id="adminNotifWrapper">
+                <button id="adminNotifBtn" class="icon-btn" type="button" aria-label="Thông báo" data-admin-session><i class="fa-regular fa-bell"></i><span data-notify-count>0</span></button>
+                <div id="adminNotifDropdown" class="notif-dropdown" hidden style="position:absolute; top:120%; right:0; width:300px; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,0.1); border-radius:12px; border:1px solid #eee; z-index:1000; text-align:left;">
+                    <div style="padding:12px 16px; border-bottom:1px solid #eee; background:#fafafa; border-radius:12px 12px 0 0;">
+                        <strong>Thông báo gần đây</strong>
+                    </div>
+                    <div id="adminNotifList" style="max-height:300px; overflow-y:auto; background:#fff; border-radius:0 0 12px 12px;">
+                        <div style="padding:15px;text-align:center;color:#666;">Đang tải...</div>
+                    </div>
+                </div>
+            </div>
+            <a class="admin-profile" href="/admin/profile.html" title="Hồ sơ quản trị" data-view="profile" data-admin-session>
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
+            </a>
+            <button id="quickAddBtn" class="quick-add" type="button" data-admin-session><i class="fa-solid fa-plus"></i> Thêm nhanh</button>
+            <div id="quickAddMenu" class="quick-menu" hidden></div>
+        </header>
+
+        <section id="staffManagerView" class="staff-dashboard-page">
+            <div class="manager-title-row">
+                <div>
+                    <h1>Nhân viên bán hàng & lịch chia ca</h1>
+                    <p>Quản lý nhân viên, lịch chia ca, chấm công và hiệu suất làm việc.</p>
+                </div>
+            </div>
+
+            <!-- Header KPIs -->
+            <div class="staff-header-kpis">
+                <article class="kpi-card kpi-card-custom">
+                    <div class="kpi-icon" style="background:#fbebe2; color:#cf6a4d;"><i class="fa-solid fa-users"></i></div>
+                    <div>
+                        <h3>Tổng nhân viên</h3>
+                        <strong id="kpiTotalStaff">0</strong>
+                        <small class="up">+2 so với tuần trước</small>
+                    </div>
+                </article>
+                <article class="kpi-card kpi-card-custom">
+                    <div class="kpi-icon" style="background:#e6f7ef; color:#16a34a;"><i class="fa-solid fa-user-check"></i></div>
+                    <div>
+                        <h3>Đang làm việc</h3>
+                        <strong id="kpiActiveStaff">0</strong>
+                        <small class="up" id="kpiActivePercent">0% tổng nhân viên</small>
+                    </div>
+                </article>
+                <article class="kpi-card kpi-card-custom">
+                    <div class="kpi-icon" style="background:#fff4e6; color:#f39c12;"><i class="fa-regular fa-calendar-check"></i></div>
+                    <div>
+                        <h3>Ca hôm nay</h3>
+                        <strong id="kpiTodayShifts">0</strong>
+                        <small class="up">08:00 - 22:00</small>
+                    </div>
+                </article>
+                <article class="kpi-card kpi-card-custom">
+                    <div class="kpi-icon" style="background:#eff0fb; color:#8b6ac8;"><i class="fa-solid fa-user-plus"></i></div>
+                    <div>
+                        <h3>Cần bổ sung ca</h3>
+                        <strong id="kpiMissingShifts">3</strong>
+                        <small class="info">2 ca chiều, 1 ca tối</small>
+                    </div>
+                </article>
+            </div>
+
+            <div class="staff-main-grid">
+                <!-- Cột trái (70%) -->
+                <div class="staff-left-column">
+                    <!-- Danh sách nhân viên -->
+                    <article class="panel staff-list-panel">
+                        <div class="panel-head staff-list-head">
+                            <h2>Danh sách nhân viên</h2>
+                            <div class="staff-filters">
+                                <label class="search-input"><i class="fa-solid fa-magnifying-glass"></i><input id="staffSearchInput" type="search" placeholder="Tìm theo tên nhân viên..." oninput="filterStaffTable()"></label>
+                                <label>Vai trò <select id="staffRoleFilter" onchange="filterStaffTable()"><option value="all">Tất cả</option><option value="admin">Quản lý</option><option value="staff">Nhân viên</option></select></label>
+                                <label>Ca làm <select id="staffShiftFilter" onchange="filterStaffTable()"><option value="all">Tất cả</option><option value="morning">Sáng</option><option value="afternoon">Chiều</option><option value="evening">Tối</option><option value="off">Nghỉ</option></select></label>
+                                <label>Trạng thái <select id="staffStatusFilter" onchange="filterStaffTable()"><option value="all">Tất cả</option><option value="active">Đang làm việc</option><option value="locked">Nghỉ phép / khóa</option></select></label>
+                                <button class="primary-action btn-add-staff" type="button" onclick="openStaffModal()"><i class="fa-solid fa-plus"></i> Thêm nhân viên</button>
+                            </div>
+                        </div>
+                        <div class="table-wrap" style="overflow-x: auto;">
+                            <table class="staff-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nhân viên</th>
+                                        <th>Mã NV</th>
+                                        <th>Vai trò</th>
+                                        <th>Liên hệ</th>
+                                        <th>Ca hiện tại</th>
+                                        <th>Giờ/tuần</th>
+                                        <th>Hiệu suất</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="staffRows">
+                                    <tr><td colspan="9" class="empty-state">Đang tải dữ liệu...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <!-- Lịch chia ca tuần này -->
+                    <article class="panel staff-schedule-panel">
+                        <div class="panel-head">
+                            <h2>Lịch chia ca tuần này</h2>
+                            <div class="schedule-controls" style="display:flex; gap:10px; align-items:center;">
+                                <button id="staffPrevWeek" class="icon-btn" type="button"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button id="staffThisWeek" class="icon-btn" type="button"><i class="fa-solid fa-calendar"></i></button>
+                                <select id="staffWeekSelect" aria-label="Tuần làm việc"></select>
+                                <div class="segmented">
+                                    <button id="staffViewWeek" class="active" type="button">Tuần</button>
+                                    <button id="staffViewMonth" type="button">Tháng</button>
+                                </div>
+                                <button id="exportStaffSchedule" class="secondary-action" type="button"><i class="fa-solid fa-file-export"></i> Xuất lịch</button>
+                            </div>
+                        </div>
+                        <div class="schedule-matrix-wrap" style="overflow-x: auto; margin-top:15px;">
+                            <table class="schedule-matrix">
+                                <thead>
+                                    <tr>
+                                        <th>Nhân viên</th>
+                                        <th>T2<br><small>13/05</small></th>
+                                        <th>T3<br><small>14/05</small></th>
+                                        <th>T4<br><small>15/05</small></th>
+                                        <th>T5<br><small>16/05</small></th>
+                                        <th>T6<br><small>17/05</small></th>
+                                        <th>T7<br><small>18/05</small></th>
+                                        <th>CN<br><small>19/05</small></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scheduleRows">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- Cột phải (30%) -->
+                <div class="staff-right-column">
+                    <!-- Nhân viên nổi bật -->
+                    <article class="panel">
+                        <div class="panel-head">
+                            <h2><i class="fa-solid fa-star" style="color:#d9534f; margin-right:6px;"></i> Nhân viên nổi bật</h2>
+                            <a href="#" class="view-all">Xem tất cả</a>
+                        </div>
+                        <div id="topStaffList" class="top-staff-list" style="margin-top:15px;">
+                            <!-- Rendered dynamically -->
+                        </div>
+                    </article>
+
+                    <!-- Ca cần lấp -->
+                    <article class="panel">
+                        <div class="panel-head">
+                            <h2><i class="fa-solid fa-user-plus" style="color:#f39c12; margin-right:6px;"></i> Ca cần lấp</h2>
+                            <a href="#" class="view-all">Xem tất cả</a>
+                        </div>
+                        <div id="openShiftList" class="open-shifts-list" style="margin-top:15px; display:flex; flex-direction:column; gap:12px;"></div>
+                    </article>
+
+                    <!-- Hiệu suất tuần này -->
+                    <article class="panel">
+                        <div class="panel-head">
+                            <h2>Hiệu suất tuần này</h2>
+                        </div>
+                        <div class="performance-chart-wrap">
+                            <div class="perf-donut">
+                                <div class="donut-circle">
+                                    <b id="staffPerfOnTime">92%</b>
+                                    <small>Đúng giờ</small>
+                                </div>
+                            </div>
+                            <div class="perf-stats">
+                                <p class="perf-title" style="margin:0 0 10px 0; font-weight:600; font-size:13px; color:#666;">Chỉ số chi tiết</p>
+                                <div class="perf-stat-row">
+                                    <span><i class="fa-solid fa-circle" style="color:#16a34a; font-size:10px; margin-right:5px;"></i> Đúng giờ</span>
+                                    <b id="staffPerfOnTimeDetail" style="color:#16a34a;">92%</b>
+                                </div>
+                                <div class="perf-stat-row">
+                                    <span><i class="fa-solid fa-circle" style="color:#f39c12; font-size:10px; margin-right:5px;"></i> Muộn < 15p</span>
+                                    <b id="staffPerfLateSmall" style="color:#f39c12;">6%</b>
+                                </div>
+                                <div class="perf-stat-row">
+                                    <span><i class="fa-solid fa-circle" style="color:#dc3545; font-size:10px; margin-right:5px;"></i> Muộn > 15p</span>
+                                    <b id="staffPerfLateLarge" style="color:#dc3545;">2%</b>
+                                </div>
+                            </div>
+                        </div>
+                        <p id="staffPerfTrend" class="perf-trend" style="margin-top:15px; font-size:13px; color:#16a34a;"><i class="fa-solid fa-arrow-trend-up"></i> Tăng 4% so với tuần trước</p>
+                        <div class="perf-line-chart" style="margin-top:15px;">
+                            <!-- CSS pure line chart representation -->
+                            <svg viewBox="0 0 100 30" class="sparkline" style="width:100%; height:40px;">
+                                <polyline points="0,25 20,20 40,22 60,15 80,5 100,10" fill="none" stroke="#16a34a" stroke-width="2"/>
+                                <circle cx="80" cy="5" r="2" fill="#16a34a"/>
+                                <circle cx="100" cy="10" r="2" fill="#16a34a"/>
+                                <circle cx="60" cy="15" r="2" fill="#16a34a"/>
+                                <circle cx="40" cy="22" r="2" fill="#16a34a"/>
+                                <circle cx="20" cy="20" r="2" fill="#16a34a"/>
+                                <circle cx="0" cy="25" r="2" fill="#16a34a"/>
+                            </svg>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Staff Form Modal -->
+    <dialog id="staffFormModal" class="modal">
+        <div class="modal-content" style="max-width: 500px; padding: 0;">
+            <header class="modal-header" style="padding: 20px; border-bottom: 1px solid var(--admin-line);">
+                <h3 id="staffModalTitle">Thêm nhân viên mới</h3>
+                <button type="button" class="close-btn" onclick="document.getElementById('staffFormModal').close()"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <form onsubmit="event.preventDefault(); submitStaffForm();" style="padding: 20px;">
+                <input type="hidden" id="staffId">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Họ và tên</label>
+                    <input type="text" id="staffName" required placeholder="Nguyễn Văn A" style="width: 100%; padding: 10px; border: 1px solid var(--admin-line); border-radius: 6px;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Email đăng nhập</label>
+                    <input type="email" id="staffEmail" required placeholder="nhanvien@casadecor.vn" style="width: 100%; padding: 10px; border: 1px solid var(--admin-line); border-radius: 6px;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Mật khẩu <span id="staffPasswordRequired" style="color: red;">*</span></label>
+                    <input type="password" id="staffPassword" placeholder="Nhập mật khẩu" style="width: 100%; padding: 10px; border: 1px solid var(--admin-line); border-radius: 6px;">
+                    <small id="staffPasswordHint" style="display: none; color: var(--admin-muted); margin-top: 4px;">Để trống nếu không muốn đổi mật khẩu.</small>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 500;">Số điện thoại</label>
+                        <input type="tel" id="staffPhone" placeholder="033..." style="width: 100%; padding: 10px; border: 1px solid var(--admin-line); border-radius: 6px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 500;">Vai trò</label>
+                        <select id="staffRole" style="width: 100%; padding: 10px; border: 1px solid var(--admin-line); border-radius: 6px;">
+                            <option value="staff">Nhân viên bán hàng</option>
+                            <option value="admin">Quản trị viên</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="staffStatusGroup" style="margin-bottom: 24px; display: none;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Trạng thái tài khoản</label>
+                    <select id="staffStatus" style="width: 100%; padding: 10px; border: 1px solid var(--admin-line); border-radius: 6px;">
+                        <option value="active">Đang hoạt động</option>
+                        <option value="locked">Đã bị khóa</option>
+                    </select>
+                </div>
+                <footer style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--admin-line); padding-top: 20px; margin-top: 10px;">
+                    <button type="button" class="secondary-action" onclick="document.getElementById('staffFormModal').close()" style="padding: 10px 20px;">Hủy</button>
+                    <button type="submit" class="primary-action" style="padding: 10px 20px;">Lưu thông tin</button>
+                </footer>
+            </form>
+        </div>
+    </dialog>
+
+    <dialog id="shiftFormModal" class="modal staff-shift-modal">
+        <div class="modal-content" style="max-width: 560px; padding: 0;">
+            <header class="modal-header" style="padding: 20px; border-bottom: 1px solid var(--admin-line);">
+                <h3>Phân công ca làm</h3>
+                <button type="button" class="close-btn" onclick="document.getElementById('shiftFormModal').close()"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <form onsubmit="event.preventDefault(); submitShiftForm();" style="padding: 20px;">
+                <input type="hidden" id="shiftId">
+                <div class="shift-form-grid">
+                    <label>Nhân viên
+                        <select id="shiftStaff" required></select>
+                    </label>
+                    <label>Ngày làm
+                        <input id="shiftDate" type="date" required>
+                    </label>
+                    <label>Giờ bắt đầu
+                        <input id="shiftStartTime" type="time" required>
+                    </label>
+                    <label>Thời lượng
+                        <select id="shiftDuration" required>
+                            <option value="4">4 giờ</option>
+                            <option value="8">8 giờ</option>
+                        </select>
+                    </label>
+                    <label class="full">Ghi chú
+                        <textarea id="shiftNote" rows="3" placeholder="Ví dụ: ưu tiên quầy thanh toán, hỗ trợ tư vấn..."></textarea>
+                    </label>
+                </div>
+                <p class="shift-rule-note"><i class="fa-regular fa-circle-check"></i> Mỗi nhân viên chỉ có một ca trong cùng một ngày. Ca làm được lưu trực tiếp vào database.</p>
+                <footer style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--admin-line); padding-top: 20px; margin-top: 10px;">
+                    <button type="button" class="secondary-action" onclick="document.getElementById('shiftFormModal').close()" style="padding: 10px 20px;">Hủy</button>
+                    <button type="submit" class="primary-action" style="padding: 10px 20px;">Lưu ca làm</button>
+                </footer>
+            </form>
+        </div>
+    </dialog>
+
+    <div id="toast" class="toast" hidden></div>
+    
+    <section id="authGate" class="auth-gate" hidden>
+        <div>
+            <i class="fa-solid fa-lock"></i>
+            <h1>Cần đăng nhập tài khoản admin</h1>
+            <p>Đăng nhập bằng tài khoản có quyền admin để xem Dashboard Casa Decor.</p>
+            <a id="adminLoginLink" href="/customers/login.html?redirect=/admin/staff.html">Đăng nhập</a>
+        </div>
+    </section>
+
+    <div id="adminModal" class="admin-modal" hidden>
+        <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+            <button class="modal-close" type="button" data-action="modal-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            <h2 id="adminModalTitle"></h2>
+            <div id="adminModalBody"></div>
+        </div>
+    </div>
+
+    <div id="aiChatboxFloat" style="position:fixed; bottom:30px; right:30px; z-index:9999; cursor:pointer;" aria-label="AI Assistant" title="Trợ lý AI (Sắp ra mắt)">
+        <div style="width:55px; height:55px; background:linear-gradient(135deg, #c48c71 0%, #9e6b50 100%); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 15px rgba(158, 107, 80, 0.4); transition:transform 0.3s; animation: pulseBot 2s infinite;">
+            <i class="fa-solid fa-robot" style="color:#fff; font-size:1.6rem;"></i>
+        </div>
+    </div>
+    <style>
+        @keyframes pulseBot {
+            0% { box-shadow: 0 0 0 0 rgba(158, 107, 80, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(158, 107, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(158, 107, 80, 0); }
+        }
+        #aiChatboxFloat:hover div { transform: scale(1.1) translateY(-5px); }
+    </style>
+
+    <script src="/js/auth.js?v=20260516"></script>
+    <script src="/js/admin.js?v=20260516-4"></script>
+</body>
+</html>

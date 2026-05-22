@@ -1,0 +1,334 @@
+/* Premium Effects for Casa Decor */
+
+/* --- Reveal Animations --- */
+[data-reveal] {
+    opacity: 0;
+    transition: transform 0.72s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.72s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: transform, opacity;
+}
+
+[data-reveal="slide-up"] {
+    transform: translateY(40px);
+}
+
+[data-reveal="slide-down"] {
+    transform: translateY(-40px);
+}
+
+[data-reveal="slide-left"] {
+    transform: translateX(40px);
+}
+
+[data-reveal="slide-right"] {
+    transform: translateX(-40px);
+}
+
+[data-reveal="zoom-in"] {
+    transform: scale(0.92);
+}
+
+[data-reveal].revealed {
+    opacity: 1;
+    transform: translate(0) scale(1);
+}
+
+/* Stagger delays */
+[data-reveal-delay="100"] { transition-delay: 0.1s; }
+[data-reveal-delay="200"] { transition-delay: 0.2s; }
+[data-reveal-delay="300"] { transition-delay: 0.3s; }
+[data-reveal-delay="400"] { transition-delay: 0.4s; }
+[data-reveal-delay="500"] { transition-delay: 0.5s; }
+
+/* --- Premium Hover Effects --- */
+
+/* Product Cards */
+.pcard {
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.pcard:hover {
+    transform: translateY(-10px) !important;
+    box-shadow: 0 25px 50px rgba(92, 58, 37, 0.15) !important;
+}
+
+.pimg img {
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.pcard:hover .pimg img {
+    transform: scale(1.08) !important;
+}
+
+/* Buttons */
+.hbtn, .auth-submit, .padd, .nw-form button {
+    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.hbtn:hover, .auth-submit:hover, .padd:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(158, 107, 80, 0.3) !important;
+}
+
+.hbtn:active, .auth-submit:active, .padd:active, .nw-form button:active {
+    transform: translateY(0) scale(0.98) !important;
+}
+
+/* Category Items */
+.cat {
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.cat:hover {
+    background: #fff !important;
+    border-color: var(--brown-soft) !important;
+    transform: translateY(-5px) scale(1.02) !important;
+}
+
+/* --- Glassmorphism Enhancements --- */
+.header {
+    backdrop-filter: blur(15px) !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+}
+
+.contact-map div {
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--sand);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--brown-soft);
+}
+
+/* Parallax Container */
+.hero {
+    perspective: 1000px;
+}
+
+.hbg {
+    transition: transform 0.1s ease-out;
+}
+
+/* --- Page Transitions --- */
+.page-transition-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #fff;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.page-transition-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Entrance Animation for Body */
+body {
+    animation: bodyFadeIn 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* --- Smaller Google Map --- */
+.contact-showroom {
+    grid-template-columns: 0.7fr 1.3fr 300px !important;
+    max-height: 400px;
+}
+
+.contact-map {
+    height: 320px !important;
+    min-height: 200px !important;
+}
+
+/* --- Section Transitions & Staggered Reveal --- */
+.refined-reveal-group > * {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: transform 0.56s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.56s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.refined-reveal-group.revealed > * {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.refined-reveal-group.revealed > *:nth-child(1) { transition-delay: 0.1s; }
+.refined-reveal-group.revealed > *:nth-child(2) { transition-delay: 0.2s; }
+.refined-reveal-group.revealed > *:nth-child(3) { transition-delay: 0.3s; }
+.refined-reveal-group.revealed > *:nth-child(4) { transition-delay: 0.4s; }
+.refined-reveal-group.revealed > *:nth-child(5) { transition-delay: 0.5s; }
+
+/* Special Curtain Effect for Sections */
+.section-curtain {
+    position: relative;
+    overflow: hidden;
+}
+
+.section-curtain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--sand);
+    z-index: 5;
+    transform: scaleY(1);
+    transform-origin: bottom;
+    transition: transform 1s cubic-bezier(0.7, 0, 0.3, 1);
+}
+
+.section-curtain.revealed::after {
+    transform: scaleY(0);
+}
+
+/* --- Focused hover polish for promotions, blog, and contact pages --- */
+.promo-card,
+.promo-benefits article,
+.coupon-strip article,
+.promo-chips button,
+.blog-featured,
+.blog-card,
+.blog-aside a,
+.blog-tabs button,
+.load-more,
+.contact-cards article,
+.contact-form,
+.contact-showroom > *,
+.profile-trust .ti {
+    transform: translateZ(0);
+    transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.promo-card:hover,
+.blog-card:hover,
+.contact-cards article:hover,
+.contact-showroom > *:hover,
+.profile-trust .ti:hover {
+    border-color: rgba(189, 114, 75, 0.45);
+    box-shadow: 0 18px 38px rgba(84, 54, 36, 0.12);
+    transform: translateY(-6px);
+}
+
+.promo-card:hover .promo-card-top i,
+.contact-cards article:hover i,
+.profile-trust .ti:hover i {
+    transform: scale(1.08) rotate(-6deg);
+}
+
+.promo-card-top i,
+.contact-cards i,
+.profile-trust .ti i {
+    transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.promo-benefits article:hover,
+.coupon-strip article:hover,
+.blog-tabs button:hover,
+.promo-chips button:hover,
+.load-more:hover,
+.blog-aside a:hover {
+    background: #fffaf6;
+    border-color: rgba(189, 114, 75, 0.4);
+    transform: translateY(-3px);
+}
+
+.coupon-strip article:hover b,
+.promo-benefits article:hover i,
+.blog-aside a:hover span {
+    color: var(--brown-dark);
+}
+
+.blog-featured:hover {
+    box-shadow: 0 22px 46px rgba(84, 54, 36, 0.14);
+    transform: translateY(-4px);
+}
+
+.blog-featured img,
+.blog-card img,
+.blog-aside img,
+.contact-showroom > img {
+    transition: transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: transform;
+}
+
+.blog-featured:hover img,
+.blog-card:hover img,
+.blog-aside a:hover img,
+.contact-showroom > img:hover {
+    filter: saturate(1.04) contrast(1.03);
+    transform: scale(1.045);
+}
+
+.blog-featured a,
+.contact-showroom article a {
+    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.blog-featured a:hover,
+.contact-showroom article a:hover {
+    box-shadow: 0 10px 22px rgba(158, 107, 80, 0.22);
+    transform: translateY(-2px);
+}
+
+.contact-map {
+    position: relative;
+    overflow: hidden;
+}
+
+.contact-map iframe {
+    transition: filter 0.24s ease, transform 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.contact-map:hover iframe {
+    filter: saturate(1.05);
+    transform: scale(1.015);
+}
+
+.contact-form:focus-within {
+    border-color: rgba(189, 114, 75, 0.45);
+    box-shadow: 0 18px 38px rgba(84, 54, 36, 0.1);
+    transform: translateY(-3px);
+}
+
+.promo-card,
+.blog-card,
+.blog-aside section,
+.contact-layout,
+.contact-showroom,
+.profile-trust {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 360px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    [data-reveal],
+    .refined-reveal-group > * {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}

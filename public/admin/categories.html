@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý danh mục - Casa Decor Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=20260518-1">
+</head>
+<body class="admin-page">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay về trang chủ Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Admin</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a href="/admin/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a href="/admin/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a class="active" href="/admin/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/admin/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/admin/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/admin/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/admin/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung & Marketing</p>
+            <a href="/admin/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/admin/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/admin/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/admin/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a href="/admin/index.html#inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a href="/admin/index.html#schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+
+            <p>Báo cáo & Thống kê</p>
+            <a href="/admin/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/admin/index.html#settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+
+        <div class="sidebar-decor">
+            <img src="/images/lohoa_decor/lohoa01.jpg" alt="Casa Decor">
+            <b>Casa Decor</b>
+            <span>Elevate your space, Elevate your life.</span>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, danh mục...">
+                <kbd>⌘K</kbd>
+            </label>
+            <div class="date-filter">
+                <input id="dateFrom" type="date" aria-label="Từ ngày">
+                <span>-</span>
+                <input id="dateTo" type="date" aria-label="Đến ngày">
+                <button id="reloadDashboard" type="button" aria-label="Tải lại"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <button class="icon-btn" type="button" aria-label="Thông báo" data-admin-session><i class="fa-regular fa-bell"></i><span data-notify-count>0</span></button>
+            <a class="admin-profile" href="/admin/profile.html" title="Hồ sơ quản trị" data-view="profile" data-admin-session>
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
+            </a>
+            <button id="quickAddBtn" class="quick-add" type="button" data-admin-session><i class="fa-solid fa-plus"></i> Thêm nhanh</button>
+            <div id="quickAddMenu" class="quick-menu" hidden></div>
+        </header>
+
+        <section id="authGate" class="auth-gate" hidden>
+            <div>
+                <i class="fa-solid fa-lock"></i>
+                <h1>Cần đăng nhập tài khoản admin</h1>
+                <p>Đăng nhập bằng tài khoản có quyền admin để xem Dashboard Casa Decor.</p>
+                <a id="adminLoginLink" href="/customers/login.html?redirect=/admin/index.html">Đăng nhập</a>
+            </div>
+        </section>
+
+        <section id="categoryManagerView" class="product-manager-page" hidden>
+            <div class="manager-title-row">
+                <div>
+                    <h1>Quản lý danh mục</h1>
+                    <p>Thêm, sửa và quản lý danh mục sản phẩm của cửa hàng</p>
+                </div>
+                <div class="manager-actions">
+                    <button class="primary-action" type="button" data-action="category-add"><i class="fa-solid fa-plus"></i> Thêm danh mục</button>
+                    <button class="secondary-action" type="button" data-action="category-export"><i class="fa-solid fa-download"></i> Xuất danh sách</button>
+                </div>
+            </div>
+            
+            <section class="product-stats-grid" id="categoryStatsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fff0e6; color: #ff784b;"><i class="fa-regular fa-folder-open"></i></div>
+                    <div class="stat-info">
+                        <h3>Tổng danh mục</h3>
+                        <b id="statTotalCategories">0</b>
+                        <span class="trend neutral">Tất cả danh mục</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #e6f7ef; color: #00a65a;"><i class="fa-regular fa-eye"></i></div>
+                    <div class="stat-info">
+                        <h3>Đang hiển thị</h3>
+                        <b id="statActiveCategories">0</b>
+                        <span class="trend positive">Danh mục đang hoạt động</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fff4e6; color: #f39c12;"><i class="fa-solid fa-star"></i></div>
+                    <div class="stat-info">
+                        <h3>Danh mục nổi bật</h3>
+                        <b id="statFeaturedCategories">0</b>
+                        <span class="trend warning">Đang được đánh dấu</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #f0f0ff; color: #6e6eff;"><i class="fa-regular fa-eye-slash"></i></div>
+                    <div class="stat-info">
+                        <h3>Danh mục ẩn</h3>
+                        <b id="statHiddenCategories">0</b>
+                        <span class="trend danger">Không hiển thị</span>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="product-manager-layout">
+                <article class="panel product-table-panel">
+                    <div class="product-filters">
+                        <label>Tên danh mục<input id="categorySearchInput" type="search" placeholder="Nhập tên danh mục..."></label>
+                        <label>Trạng thái
+                            <select id="categoryStatusFilter">
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="active">Đang hiển thị</option>
+                                <option value="hidden">Đã ẩn</option>
+                            </select>
+                        </label>
+                        <label>Kiểu hiển thị
+                            <select id="categoryTypeFilter">
+                                <option value="all">Tất cả</option>
+                                <option value="featured">Nổi bật</option>
+                            </select>
+                        </label>
+                        <div class="filter-actions">
+                            <button class="secondary-action" type="button" data-action="category-reset"><i class="fa-solid fa-rotate-left"></i> Đặt lại</button>
+                            <button class="primary-action" type="button" data-action="category-load"><i class="fa-solid fa-filter"></i> Lọc</button>
+                        </div>
+                    </div>
+                    <div class="product-table-wrap">
+                        <table id="categoryTable" class="product-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" aria-label="Chọn tất cả"></th>
+                                    <th>Danh mục</th>
+                                    <th>Slug</th>
+                                    <th>Mô tả</th>
+                                    <th style="text-align: center;">Số sản phẩm</th>
+                                    <th>Trạng thái</th>
+                                    <th>Cập nhật gần nhất</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoryRows"></tbody>
+                        </table>
+                    </div>
+                    <div class="product-pagination">
+                        <span id="categoryPageText">1 - 10 của 0 danh mục</span>
+                        <div id="categoryPager"></div>
+                    </div>
+                </article>
+                <aside class="product-side">
+                    <article class="panel">
+                        <div class="panel-head">
+                            <div><h2><i class="fa-solid fa-star" style="color:#f39c12"></i> Danh mục nổi bật</h2></div>
+                        </div>
+                        <div id="featuredCategoryList" class="category-mini-list"></div>
+                        <button class="wide-outline" type="button" data-action="category-view-featured">Xem tất cả danh mục nổi bật <i class="fa-solid fa-chevron-right"></i></button>
+                    </article>
+                    
+                    <article class="panel">
+                        <div class="panel-head">
+                            <div><h2><i class="fa-solid fa-filter" style="color:#8b5a2b"></i> Bộ lọc nhanh</h2></div>
+                        </div>
+                        <div class="quick-filter-list">
+                            <label class="radio-label">
+                                <input type="radio" name="quickFilterCat" value="all" checked>
+                                <span>Tất cả sản phẩm</span>
+                            </label>
+                            <div id="quickFilterCategoryItems"></div>
+                        </div>
+                    </article>
+                    
+                    <article class="panel stock-warning" style="background: #f0fdf4; border-color: #bbf7d0;">
+                        <i class="fa-regular fa-circle-check" style="color: #16a34a;"></i>
+                        <b id="categoryActiveText" style="color: #166534;">0 danh mục đang hoạt động</b>
+                        <p style="color: #15803d;">Tất cả danh mục đều hiển thị công khai và hoạt động bình thường.</p>
+                        <div style="text-align: right; color: #86efac; font-size: 2rem; opacity: 0.5;"><i class="fa-regular fa-folder-open"></i></div>
+                    </article>
+                    <style>
+                        .quick-filter-list {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 12px;
+                            padding: 4px 8px;
+                        }
+                        .radio-label {
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            cursor: pointer;
+                            color: var(--admin-text);
+                            font-size: 0.95rem;
+                            transition: color 0.2s;
+                        }
+                        .radio-label:hover {
+                            color: var(--admin-clay);
+                        }
+                        .radio-label input[type="radio"] {
+                            margin: 0;
+                            width: 16px;
+                            height: 16px;
+                            accent-color: var(--admin-clay);
+                            cursor: pointer;
+                        }
+                        #quickFilterCategoryItems {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 12px;
+                        }
+                    </style>
+                </aside>
+            </section>
+        </section>
+
+        <!-- Category Form Modal -->
+        <div id="categoryFormModal" class="custom-modal-overlay" hidden>
+            <div class="custom-modal-card" style="max-width: 600px;">
+                <button class="modal-close" data-action="close-category-form"><i class="fa-solid fa-xmark"></i></button>
+                <h2 class="modal-title" id="categoryFormTitle">Thêm danh mục mới</h2>
+                <form id="categoryMainForm" class="product-form-grid" style="display: block;">
+                    <input type="hidden" name="categoryId" id="categoryId">
+                    <div class="form-row">
+                        <label class="required">Tên danh mục<input type="text" name="name" placeholder="Nhập tên danh mục" required></label>
+                        <label>Slug (Đường dẫn)<input type="text" name="slug" placeholder="VD: goi-tua"></label>
+                    </div>
+                    <label>Mô tả
+                        <textarea name="description" rows="3" placeholder="Nhập mô tả cho danh mục (tối đa 500 ký tự)..."></textarea>
+                    </label>
+                    
+                    <div class="form-row">
+                        <label>Hình ảnh (URL)<input type="text" name="image" placeholder="/images/default.jpg"></label>
+                        <label class="required">Trạng thái
+                            <select name="status" required>
+                                <option value="active" selected>Đang hiển thị</option>
+                                <option value="hidden">Đã ẩn</option>
+                            </select>
+                        </label>
+                    </div>
+                    
+                    <label class="checkbox-box">
+                        <input type="checkbox" name="isFeatured">
+                        <div class="checkbox-content">
+                            <b><i class="fa-solid fa-star" style="color:#f39c12"></i> Đánh dấu nổi bật</b>
+                            <span>Hiển thị danh mục này trên trang chủ hoặc mục nổi bật</span>
+                        </div>
+                    </label>
+                    
+                    <div class="modal-actions-right" style="margin-top: 1.5rem;">
+                        <button type="button" class="secondary-action" data-action="close-category-form">Hủy</button>
+                        <button type="submit" class="primary-action"><i class="fa-solid fa-floppy-disk"></i> Lưu danh mục</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    
+    <div id="deleteCategoryModal" class="custom-modal-overlay" hidden>
+        <div class="custom-modal-card">
+            <button class="modal-close" data-action="close-delete-cat-modal"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title">Xóa danh mục</h2>
+            <div class="warning-alert">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <b>Bạn có chắc chắn muốn xóa danh mục này không?</b>
+                    <p>Các sản phẩm thuộc danh mục này sẽ không bị xóa, nhưng chúng sẽ cần được cập nhật lại danh mục khác. Danh mục sẽ chuyển sang trạng thái đã ẩn.</p>
+                </div>
+            </div>
+            <div class="product-delete-preview" style="align-items: center;">
+                <img id="delCatImage" src="" alt="Category" style="border-radius: 8px;">
+                <div class="del-prod-info">
+                    <h3 id="delCatName">Gối tựa</h3>
+                    <p><span><i class="fa-solid fa-link"></i> Slug</span> <strong id="delCatSlug">goi-tua</strong></p>
+                    <p><span><i class="fa-solid fa-cube"></i> Số sản phẩm</span> <strong id="delCatProducts">0</strong></p>
+                </div>
+            </div>
+            <div class="modal-actions-right">
+                <button class="secondary-action" data-action="close-delete-cat-modal">Hủy</button>
+                <button class="danger-action" id="confirmDeleteCatBtn" data-action="confirm-delete-category"><i class="fa-regular fa-trash-can"></i> Xác nhận xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/admin.js?v=20260518-1"></script>
+</body>
+</html>

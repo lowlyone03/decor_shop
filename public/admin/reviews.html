@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý đánh giá - Casa Decor Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=20260516-1">
+</head>
+<body class="admin-page">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay về trang chủ Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Admin</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a href="/admin/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a href="/admin/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/admin/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/admin/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/admin/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/admin/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a class="active" href="/admin/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung & Marketing</p>
+            <a href="/admin/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/admin/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/admin/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/admin/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a href="/admin/index.html#inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a href="/admin/index.html#schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+
+            <p>Báo cáo & Thống kê</p>
+            <a href="/admin/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/admin/index.html#settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+
+        <div class="sidebar-decor">
+            <img src="/images/lohoa_decor/lohoa01.jpg" alt="Casa Decor">
+            <b>Casa Decor</b>
+            <span>Elevate your space, Elevate your life.</span>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng...">
+                <kbd>⌘K</kbd>
+            </label>
+            <div class="date-filter">
+                <input id="dateFrom" type="date" aria-label="Từ ngày">
+                <span>-</span>
+                <input id="dateTo" type="date" aria-label="Đến ngày">
+                <button id="reloadDashboard" type="button" aria-label="Tải lại"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <div style="position:relative; display:inline-block;" id="adminNotifWrapper">
+                <button id="adminNotifBtn" class="icon-btn" type="button" aria-label="Thông báo" data-admin-session><i class="fa-regular fa-bell"></i><span data-notify-count>0</span></button>
+                <div id="adminNotifDropdown" class="notif-dropdown" hidden style="position:absolute; top:120%; right:0; width:300px; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,0.1); border-radius:12px; border:1px solid #eee; z-index:1000; text-align:left;">
+                    <div style="padding:12px 16px; border-bottom:1px solid #eee; background:#fafafa; border-radius:12px 12px 0 0;">
+                        <strong>Thông báo gần đây</strong>
+                    </div>
+                    <div id="adminNotifList" style="max-height:300px; overflow-y:auto; background:#fff; border-radius:0 0 12px 12px;">
+                        <div style="padding:15px;text-align:center;color:#666;">Đang tải...</div>
+                    </div>
+                </div>
+            </div>
+            <a class="admin-profile" href="/admin/profile.html" title="Hồ sơ quản trị" data-view="profile" data-admin-session>
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
+            </a>
+            <button id="quickAddBtn" class="quick-add" type="button" data-admin-session><i class="fa-solid fa-plus"></i> Thêm nhanh</button>
+            <div id="quickAddMenu" class="quick-menu" hidden></div>
+        </header>
+
+        <section id="reviewManagerView" class="product-manager-page">
+            <div class="manager-title-row">
+                <div>
+                    <h1>Quản lý đánh giá</h1>
+                    <p>Kiểm duyệt nội dung và phản hồi đánh giá từ khách hàng.</p>
+                </div>
+                <div class="view-actions">
+                    <button class="secondary-action" type="button"><i class="fa-solid fa-chart-line"></i> Báo cáo</button>
+                </div>
+            </div>
+
+            <section class="kpi-grid" id="reviewKpiGrid" style="margin-bottom: 24px;">
+                <article class="kpi-card">
+                    <span class="kpi-icon" style="background: #eef2ff; color: #4f46e5;"><i class="fa-solid fa-star-half-stroke"></i></span>
+                    <div>
+                        <h3>Tổng đánh giá</h3>
+                        <strong id="statTotalReviews">0</strong>
+                        <small>Từ khách hàng</small>
+                    </div>
+                </article>
+                <article class="kpi-card">
+                    <span class="kpi-icon" style="background: #fffbeb; color: #f59e0b;"><i class="fa-solid fa-star"></i></span>
+                    <div>
+                        <h3>Trung bình</h3>
+                        <strong id="statAvgRating">0</strong>
+                        <small>Xếp hạng sao</small>
+                    </div>
+                </article>
+                <article class="kpi-card">
+                    <span class="kpi-icon" style="background: #fff1f2; color: #e11d48;"><i class="fa-solid fa-hourglass-half"></i></span>
+                    <div>
+                        <h3>Chờ duyệt</h3>
+                        <strong id="statPendingReviews">0</strong>
+                        <small>Cần kiểm duyệt</small>
+                    </div>
+                </article>
+                <article class="kpi-card">
+                    <span class="kpi-icon" style="background: #f8fafc; color: #64748b;"><i class="fa-solid fa-eye-slash"></i></span>
+                    <div>
+                        <h3>Đã ẩn</h3>
+                        <strong id="statHiddenReviews">0</strong>
+                        <small>Nội dung nhạy cảm</small>
+                    </div>
+                </article>
+            </section>
+
+            <article class="panel product-table-panel">
+                <div class="product-filters">
+                    <label>Trạng thái
+                        <select id="reviewStatusFilter" onchange="state.reviews.filter.status=this.value; loadReviewManager(1);">
+                            <option value="all">Tất cả đánh giá</option>
+                            <option value="pending">Chờ kiểm duyệt</option>
+                            <option value="active">Đang hiển thị</option>
+                            <option value="hidden">Đã ẩn</option>
+                        </select>
+                    </label>
+                    <div class="filter-actions">
+                        <button class="secondary-action" type="button" onclick="document.getElementById('reviewStatusFilter').value='all'; state.reviews.filter.status='all'; loadReviewManager(1);"><i class="fa-solid fa-rotate-left"></i> Đặt lại</button>
+                    </div>
+                </div>
+                <div class="product-table-wrap">
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox"></th>
+                                <th>Sản phẩm</th>
+                                <th>Khách hàng</th>
+                                <th>Nội dung đánh giá</th>
+                                <th>Ngày gửi</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviewRows">
+                            <tr><td colspan="7" class="empty-state">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="product-pagination">
+                    <span id="reviewPageText">0 đánh giá</span>
+                    <div id="reviewPager" class="pagination-controls"></div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <!-- Review Detail Modal -->
+    <dialog id="reviewDetailModal" class="modal" style="border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 0; max-width: 650px; width: 100%; margin: auto;">
+        <div class="modal-content" style="padding: 0; background: #fff;">
+            <header class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #eee; background: #fdfdfd; display: flex; justify-content: space-between; align-items: center; border-radius: 16px 16px 0 0;">
+                <h3 style="margin: 0; font-size: 1.15rem; color: #333; font-weight: 600;">Chi tiết đánh giá</h3>
+                <button type="button" class="close-btn" onclick="document.getElementById('reviewDetailModal').close()" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #999; padding: 4px; transition: color 0.2s;" onmouseover="this.style.color='#ff4d4f'" onmouseout="this.style.color='#999'"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <div class="modal-body" style="padding: 24px;" id="reviewModalBody">
+                <!-- Content injected via JS -->
+            </div>
+            <footer class="modal-footer" style="padding: 20px 24px; border-top: 1px solid #eee; background: #fafafa; display: flex; justify-content: flex-end; gap: 12px; align-items: center; border-radius: 0 0 16px 16px;">
+                <input type="hidden" id="reviewModalId">
+                <select id="reviewModalStatusUpdate" class="outline" style="padding: 10px 16px; border-radius: 8px; border: 1px solid #ddd; outline: none; background: #fff; cursor: pointer; color: var(--admin-text); font-weight: 500;">
+                    <option value="pending">Chờ duyệt</option>
+                    <option value="active">Hiển thị</option>
+                    <option value="hidden">Ẩn đánh giá</option>
+                </select>
+                <button type="button" class="secondary-action" onclick="document.getElementById('reviewDetailModal').close()" style="padding: 10px 20px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; color: #555; font-weight: 500; transition: all 0.2s;">Đóng</button>
+                <button type="button" class="primary-action" onclick="submitReviewStatus()" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--admin-clay); color: #fff; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(189, 118, 84, 0.2);">Cập nhật</button>
+            </footer>
+        </div>
+    </dialog>
+
+    <div id="toast" class="toast" hidden></div>
+    
+    <section id="authGate" class="auth-gate" hidden>
+        <div>
+            <i class="fa-solid fa-lock"></i>
+            <h1>Cần đăng nhập tài khoản admin</h1>
+            <p>Đăng nhập bằng tài khoản có quyền admin để xem Dashboard Casa Decor.</p>
+            <a id="adminLoginLink" href="/customers/login.html?redirect=/admin/reviews.html">Đăng nhập</a>
+        </div>
+    </section>
+
+    <div id="adminModal" class="admin-modal" hidden>
+        <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+            <button class="modal-close" type="button" data-action="modal-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            <h2 id="adminModalTitle"></h2>
+            <div id="adminModalBody"></div>
+        </div>
+    </div>
+
+    <div id="aiChatboxFloat" style="position:fixed; bottom:30px; right:30px; z-index:9999; cursor:pointer;" aria-label="AI Assistant" title="Trợ lý AI (Sắp ra mắt)">
+        <div style="width:55px; height:55px; background:linear-gradient(135deg, #c48c71 0%, #9e6b50 100%); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 15px rgba(158, 107, 80, 0.4); transition:transform 0.3s; animation: pulseBot 2s infinite;">
+            <i class="fa-solid fa-robot" style="color:#fff; font-size:1.6rem;"></i>
+        </div>
+    </div>
+    <style>
+        @keyframes pulseBot {
+            0% { box-shadow: 0 0 0 0 rgba(158, 107, 80, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(158, 107, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(158, 107, 80, 0); }
+        }
+        #aiChatboxFloat:hover div { transform: scale(1.1) translateY(-5px); }
+
+        /* Modal Smooth Animation */
+        dialog#reviewDetailModal {
+            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        dialog#reviewDetailModal[open] {
+            opacity: 1;
+            transform: scale(1);
+        }
+        dialog#reviewDetailModal::backdrop {
+            background: rgba(47, 41, 37, 0.6);
+            backdrop-filter: blur(4px);
+            animation: fadeInBackdrop 0.3s ease forwards;
+        }
+        @keyframes fadeInBackdrop {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+
+    <script src="/js/auth.js?v=20260516"></script>
+    <script src="/js/admin.js?v=20260516-4"></script>
+</body>
+</html>

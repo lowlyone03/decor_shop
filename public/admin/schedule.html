@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch chia ca nhân viên - Casa Decor Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=20260514-7">
+    <style>
+        /* Add basic inline styles to match the provided image closely before updating CSS file */
+        .schedule-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #eee;
+        }
+        .stat-card.active { border-color: #e5f5f0; background: #fafdfc; }
+        .stat-icon {
+            width: 40px; height: 40px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+        .icon-green { background: #e5f5f0; color: #059669; }
+        .icon-orange { background: #fff5eb; color: #f97316; }
+        .icon-purple { background: #f3f0ff; color: #8b5cf6; }
+        .icon-red { background: #fef2f2; color: #dc2626; }
+        .icon-yellow { background: #fefce8; color: #eab308; }
+        
+        .stat-info h3 { font-size: 0.8rem; color: #666; margin: 0; font-weight: 500; }
+        .stat-info .stat-value { font-size: 1.2rem; font-weight: 600; color: #222; margin: 2px 0; }
+        .stat-info small { font-size: 0.75rem; color: #888; }
+        
+        .schedule-filters {
+            display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;
+            background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #eee;
+        }
+        .schedule-filters label { display: flex; flex-direction: column; gap: 5px; font-size: 0.85rem; color: #555; }
+        .schedule-filters select, .schedule-filters input {
+            padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem;
+        }
+        
+        .schedule-table-wrap {
+            overflow-x: auto;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        .schedule-table {
+            width: 100%; border-collapse: collapse; min-width: 1000px;
+        }
+        .schedule-table th, .schedule-table td {
+            padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee;
+            border-right: 1px solid #eee;
+        }
+        .schedule-table th { background: #fafafa; font-weight: 600; font-size: 0.85rem; color: #444; }
+        .schedule-table td.staff-col {
+            display: flex; align-items: center; gap: 10px; border-right: none;
+        }
+        .schedule-table td.staff-col img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+        .schedule-table td.staff-col .staff-info b { display: block; font-size: 0.9rem; color: #222; }
+        .schedule-table td.staff-col .staff-info small { font-size: 0.75rem; color: #d97706; }
+        
+        .shift-badge {
+            display: flex; flex-direction: column;
+            padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; margin-bottom: 5px;
+        }
+        .shift-badge b { font-weight: 600; }
+        .shift-badge small { font-size: 0.7rem; margin-top: 2px; }
+        .shift-morning { background: #e5f5f0; color: #059669; }
+        .shift-afternoon { background: #eff6ff; color: #2563eb; }
+        .shift-evening { background: #f3f0ff; color: #8b5cf6; }
+        .shift-off { background: #fef2f2; color: #dc2626; justify-content: center; align-items: center; padding: 12px 10px;}
+        
+        .schedule-layout { display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
+        
+        @media (max-width: 1200px) {
+            .schedule-layout { grid-template-columns: 1fr; }
+            .schedule-stats-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .schedule-stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body class="admin-page">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay về trang chủ Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Admin</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a href="/admin/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a href="/admin/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/admin/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/admin/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/admin/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/admin/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/admin/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung & Marketing</p>
+            <a href="/admin/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/admin/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/admin/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/admin/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a href="/admin/inventory.html" data-view="inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a class="active" href="/admin/schedule.html" data-view="schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+
+            <p>Báo cáo & Thống kê</p>
+            <a href="/admin/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/admin/index.html#settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng...">
+            </label>
+            <div class="date-filter">
+                <input id="dateFrom" type="date">
+                <span>-</span>
+                <input id="dateTo" type="date">
+                <button id="reloadDashboard" type="button"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <a class="admin-profile" href="/admin/profile.html">
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
+            </a>
+            <button id="quickAddBtn" class="quick-add" type="button"><i class="fa-solid fa-plus"></i> Thêm nhanh</button>
+        </header>
+
+        <section class="schedule-manager-page" style="padding: 20px;">
+            <div class="manager-title-row" style="display:flex; justify-content:space-between; margin-bottom: 20px;">
+                <div>
+                    <h1>Lịch chia ca nhân viên</h1>
+                    <p style="color:#666;">Quản lý và phân bổ ca làm việc cho nhân viên theo tuần.</p>
+                </div>
+                <div class="manager-actions">
+                    <button class="primary-action" type="button" style="background:#c48c71; color:#fff; border:none; padding:10px 15px; border-radius:6px; font-weight:600;"><i class="fa-solid fa-plus"></i> Tạo ca làm</button>
+                    <button class="secondary-action" type="button" style="background:#fff; border:1px solid #ddd; padding:10px 15px; border-radius:6px;"><i class="fa-solid fa-wand-magic-sparkles"></i> Phân ca tự động</button>
+                    <button class="secondary-action" type="button" style="background:#fff; border:1px solid #ddd; padding:10px 15px; border-radius:6px;"><i class="fa-solid fa-download"></i> Xuất lịch</button>
+                </div>
+            </div>
+
+            <div class="schedule-stats-grid">
+                <div class="stat-card active">
+                    <div class="stat-icon icon-green"><i class="fa-regular fa-user"></i></div>
+                    <div class="stat-info">
+                        <h3>Nhân viên hôm nay</h3>
+                        <div class="stat-value" id="statStaffToday">0 / 0</div>
+                        <small id="statStaffPercent">0% có lịch</small>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-orange"><i class="fa-regular fa-sun"></i></div>
+                    <div class="stat-info">
+                        <h3>Ca sáng</h3>
+                        <div class="stat-value" id="statMorning">0</div>
+                        <small>08:00 - 12:00</small>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-orange"><i class="fa-solid fa-sun"></i></div>
+                    <div class="stat-info">
+                        <h3>Ca chiều</h3>
+                        <div class="stat-value" id="statAfternoon">0</div>
+                        <small>13:00 - 17:00</small>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-purple"><i class="fa-regular fa-moon"></i></div>
+                    <div class="stat-info">
+                        <h3>Ca tối</h3>
+                        <div class="stat-value" id="statEvening">0</div>
+                        <small>17:00 - 21:00</small>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-red"><i class="fa-regular fa-calendar-xmark"></i></div>
+                    <div class="stat-info">
+                        <h3>Nghỉ phép</h3>
+                        <div class="stat-value" id="statOff">0</div>
+                        <small>Đã duyệt</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="schedule-layout">
+                <div class="schedule-main">
+                    <div class="schedule-filters">
+                        <label>Chi nhánh<select><option>Tất cả chi nhánh</option></select></label>
+                        <label>Bộ phận<select><option>Tất cả bộ phận</option></select></label>
+                        <label>Vai trò<select><option>Tất cả vai trò</option></select></label>
+                        <label>Tìm kiếm<input type="text" id="scheduleSearch" placeholder="Tìm nhân viên..."></label>
+                        <div style="margin-top:auto; display:flex; gap:10px;">
+                            <button class="secondary-action" type="button" style="background:#fff; border:1px solid #ddd; padding:8px 15px; border-radius:6px;"><i class="fa-solid fa-filter"></i> Bộ lọc</button>
+                            <button class="secondary-action" type="button" style="background:#fff; border:1px solid #ddd; padding:8px 15px; border-radius:6px;"><i class="fa-solid fa-rotate-left"></i> Đặt lại</button>
+                        </div>
+                    </div>
+
+                    <div class="schedule-table-wrap">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr id="scheduleTableHeader">
+                                    <th>Nhân viên</th>
+                                    <th>T2 - 18/05</th>
+                                    <th>T3 - 19/05</th>
+                                    <th>T4 - 20/05</th>
+                                    <th>T5 - 21/05</th>
+                                    <th>T6 - 22/05</th>
+                                    <th>T7 - 23/05</th>
+                                    <th>CN - 24/05</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduleRows">
+                                <tr><td colspan="8" style="text-align:center; padding: 20px;">Đang tải dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <aside class="schedule-side">
+                    <article class="panel" style="background:#fff; border-radius:8px; border:1px solid #eee; padding:15px; margin-bottom: 20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h2 style="font-size:1rem; margin:0;">Yêu cầu nghỉ phép</h2>
+                            <a href="#" style="color:#c48c71; font-size:0.85rem; text-decoration:none;">Xem tất cả</a>
+                        </div>
+                        <div style="font-size:0.85rem; color:#666; text-align:center; padding:10px;">Không có yêu cầu nào</div>
+                    </article>
+
+                    <article class="panel" style="background:#fff; border-radius:8px; border:1px solid #eee; padding:15px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h2 style="font-size:1rem; margin:0;">Nhân sự cần bổ sung</h2>
+                            <a href="#" style="color:#c48c71; font-size:0.85rem; text-decoration:none;">Xem tất cả</a>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <div style="color:#dc2626;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                <div><b style="font-size:0.85rem; display:block; color:#222;">Ca sáng (08:00 - 12:00)</b><small style="color:#888; font-size:0.75rem;">Thiếu 2 người</small></div>
+                            </div>
+                            <b style="color:#dc2626;">2</b>
+                        </div>
+                    </article>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/admin.js?v=20260514-7"></script>
+    <script>
+        // Inline script to render schedule, it will be executed if admin.js is not modified for this route yet.
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.location.pathname === '/admin/schedule.html') {
+                try {
+                    const today = new Date();
+                    const fromStr = today.toISOString().split('T')[0];
+                    const to = new Date(today);
+                    to.setDate(to.getDate() + 6);
+                    const toStr = to.toISOString().split('T')[0];
+                    
+                    const data = await api(`/admin/staff?from=${fromStr}&to=${toStr}`);
+                    
+                    document.getElementById('statStaffToday').innerText = `${data.stats.scheduledToday} / ${data.stats.total}`;
+                    document.getElementById('statStaffPercent').innerText = `${((data.stats.scheduledToday / data.stats.total)*100).toFixed(1)}% có lịch`;
+                    
+                    // Count shifts
+                    let m=0, a=0, e=0;
+                    data.shifts.forEach(s => {
+                        if (s.startMinute < 780) m++; // before 13:00 -> morning
+                        else if (s.startMinute < 1020) a++; // before 17:00 -> afternoon
+                        else e++;
+                    });
+                    document.getElementById('statMorning').innerText = m;
+                    document.getElementById('statAfternoon').innerText = a;
+                    document.getElementById('statEvening').innerText = e;
+                    
+                    // Render headers
+                    let headHtml = '<th>Nhân viên</th>';
+                    for(let i=0; i<7; i++) {
+                        let d = new Date(today); d.setDate(d.getDate() + i);
+                        let dayName = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()];
+                        headHtml += `<th>${dayName} - ${d.getDate()}/${d.getMonth()+1}</th>`;
+                    }
+                    document.getElementById('scheduleTableHeader').innerHTML = headHtml;
+                    
+                    // Render rows
+                    const rowsObj = {};
+                    data.staff.forEach(st => {
+                        rowsObj[st._id] = { info: st, days: Array(7).fill(null) };
+                    });
+                    data.shifts.forEach(s => {
+                        if (!rowsObj[s.staff._id]) return;
+                        let sDate = new Date(s.shiftDate);
+                        let diffTime = sDate - today;
+                        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        if (diffDays >= 0 && diffDays < 7) {
+                            rowsObj[s.staff._id].days[diffDays] = s;
+                        }
+                    });
+                    
+                    let html = '';
+                    for (let k in rowsObj) {
+                        let st = rowsObj[k].info;
+                        html += `<tr>
+                            <td class="staff-col">
+                                <img src="${st.avatar || '/images/default-avatar.png'}" alt="">
+                                <div class="staff-info"><b>${st.name}</b><small>${st.role === 'admin' ? 'Quản lý' : 'Nhân viên bán hàng'}</small></div>
+                            </td>`;
+                        for(let i=0; i<7; i++) {
+                            let shift = rowsObj[k].days[i];
+                            if (shift) {
+                                let cls = shift.startMinute < 780 ? 'shift-morning' : (shift.startMinute < 1020 ? 'shift-afternoon' : 'shift-evening');
+                                let name = shift.startMinute < 780 ? 'Ca sáng' : (shift.startMinute < 1020 ? 'Ca chiều' : 'Ca tối');
+                                html += `<td><div class="shift-badge ${cls}"><b>${name}</b><small>${shift.startTime} - ${shift.endTime}</small></div></td>`;
+                            } else {
+                                html += `<td><div class="shift-badge shift-off"><b>Nghỉ</b></div></td>`;
+                            }
+                        }
+                        html += `</tr>`;
+                    }
+                    if(!html) html = '<tr><td colspan="8" style="text-align:center;">Không có dữ liệu ca làm</td></tr>';
+                    document.getElementById('scheduleRows').innerHTML = html;
+                } catch(e) {
+                    document.getElementById('scheduleRows').innerHTML = `<tr><td colspan="8" style="text-align:center; color:red;">${e.message}</td></tr>`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

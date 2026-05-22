@@ -1,0 +1,13 @@
+node_modules/
+.kilo/
+.vscode/
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+public/uploads/
+coverage/
+chrome-codex*/
+admin-*.png
+casa-header.png

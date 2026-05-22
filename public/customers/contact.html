@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liên hệ - Casa Decor</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/effects.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body class="soft-page">
+    <header class="page-header wrap">
+        <a class="logo" href="/customers/index.html"><span class="logo-mark"><i class="fa-solid fa-house-chimney-window"></i></span><span><span class="lg-name">Casa Decor</span><span class="lg-sub">DECOR FOR YOUR HOME</span></span></a>
+        <nav class="nav"><a href="/customers/index.html">Trang chủ</a><a href="/customers/products.html">Sản phẩm</a><a href="/customers/collections.html">Bộ sưu tập</a><a href="/customers/promotions.html">Khuyến mãi</a><a href="/customers/blog.html">Blog</a><a class="on" href="/customers/contact.html">Liên hệ</a></nav>
+        <div class="hd-icons compact-icons"><a href="/customers/wishlist.html"><i class="fa-regular fa-heart"></i><span class="cbadge" data-wish-count>0</span></a><a href="/customers/cart.html"><i class="fa-solid fa-cart-shopping"></i><span class="cbadge" data-cart-count>0</span></a></div>
+        <div class="mini-actions" data-user-slot></div>
+    </header>
+
+    <main class="wrap page-main contact-main support-main">
+        <section class="support-heading" data-reveal="slide-up">
+            <div>
+                <h1>Chăm sóc khách hàng Casa Decor</h1>
+                <p>Gửi yêu cầu hỗ trợ, trò chuyện với nhân viên và theo dõi quá trình xử lý nhanh chóng.</p>
+            </div>
+        </section>
+
+        <section class="support-kpis" aria-label="Tổng quan chăm sóc khách hàng">
+            <article><span><i class="fa-regular fa-comment-dots"></i></span><small>Yêu cầu đang mở</small><b id="supportOpenCount">0</b></article>
+            <article><span><i class="fa-regular fa-circle-check"></i></span><small>Đã phản hồi</small><b id="supportRepliedCount">0</b></article>
+            <article><span><i class="fa-regular fa-clock"></i></span><small>Thời gian phản hồi TB</small><b id="supportAvgTime">15 phút</b></article>
+            <article><span><i class="fa-regular fa-star"></i></span><small>Mức hài lòng</small><b>4.9/5</b></article>
+        </section>
+
+        <section class="support-layout" data-support-root>
+            <aside class="support-left">
+                <div class="support-tabs" aria-label="Bộ lọc yêu cầu">
+                    <button class="on" type="button" data-support-filter="all">Tất cả</button>
+                    <button type="button" data-support-filter="processing">Đang xử lý</button>
+                    <button type="button" data-support-filter="pending">Chờ phản hồi</button>
+                    <button type="button" data-support-filter="resolved">Đã giải quyết</button>
+                    <button type="button" data-support-filter="high">Ưu tiên cao</button>
+                </div>
+                <div class="support-searchbar">
+                    <label><i class="fa-solid fa-magnifying-glass"></i><input id="supportSearch" type="search" placeholder="Tìm theo mã yêu cầu, chủ đề..."></label>
+                    <button type="button" id="supportReloadBtn"><i class="fa-solid fa-sliders"></i> Bộ lọc</button>
+                </div>
+                <div id="supportTicketList" class="support-ticket-list">
+                    <div class="support-empty"><i class="fa-solid fa-inbox"></i><p>Đang tải yêu cầu hỗ trợ...</p></div>
+                </div>
+                <div class="support-recent">
+                    <div class="support-section-title">
+                        <b>Lịch sử yêu cầu gần đây</b>
+                        <span>Mã yêu cầu</span>
+                    </div>
+                    <div id="supportRecentRows" class="support-recent-rows"></div>
+                </div>
+            </aside>
+
+            <section class="support-chat" id="supportDetail">
+                <div class="support-empty chat-empty">
+                    <i class="fa-regular fa-comments"></i>
+                    <h2>Tạo yêu cầu hỗ trợ mới</h2>
+                    <p>Gửi thông tin thật từ tài khoản hoặc email của bạn để Casa Decor theo dõi và phản hồi tại đây.</p>
+                    <form id="contactForm" class="support-inline-form">
+                        <div class="form-pair"><input name="fullName" placeholder="Họ tên" required><input name="phone" placeholder="Số điện thoại"></div>
+                        <input name="email" type="email" placeholder="Email" required>
+                        <select name="category" aria-label="Loại yêu cầu">
+                            <option value="consulting">Tư vấn mua hàng</option>
+                            <option value="order">Hỗ trợ đơn hàng</option>
+                            <option value="warranty">Bảo hành / đổi trả</option>
+                            <option value="complaint">Khiếu nại</option>
+                            <option value="feedback">Góp ý</option>
+                        </select>
+                        <input name="subject" placeholder="Tiêu đề yêu cầu">
+                        <textarea name="message" placeholder="Nội dung cần hỗ trợ" required></textarea>
+                        <input type="hidden" name="source" value="website">
+                        <button class="auth-submit" type="submit"><i class="fa-regular fa-paper-plane"></i> Gửi yêu cầu</button>
+                    </form>
+                </div>
+            </section>
+
+            <aside class="support-right">
+                <article class="support-side-card">
+                    <h2>Thông tin liên hệ</h2>
+                    <p><i class="fa-solid fa-phone"></i><span>Hotline</span><b>1900 1234</b><small>8:00 - 21:00</small></p>
+                    <p><i class="fa-regular fa-envelope"></i><span>Email</span><b>support@casadecor.vn</b></p>
+                    <p><i class="fa-brands fa-facebook-f"></i><span>Facebook</span><b>fb.com/casadecor.vn</b></p>
+                    <p><i class="fa-solid fa-location-dot"></i><span>Showroom</span><b>GS1 VinhomeSmartCity Tây Mỗ</b></p>
+                </article>
+
+                <article class="support-side-card">
+                    <h2>Hỗ trợ nhanh</h2>
+                    <div class="support-quick-grid">
+                        <button type="button" data-support-template="consulting"><i class="fa-regular fa-message"></i><span>Chat với tư vấn viên</span></button>
+                        <a href="tel:0336881795"><i class="fa-solid fa-phone"></i><span>Gọi hotline</span></a>
+                        <button type="button" data-support-template="order"><i class="fa-solid fa-box-open"></i><span>Tra cứu đơn hàng</span></button>
+                        <button type="button" data-support-template="warranty"><i class="fa-solid fa-rotate"></i><span>Yêu cầu đổi trả</span></button>
+                    </div>
+                </article>
+
+                <article class="support-side-card support-faq">
+                    <h2>Câu hỏi thường gặp</h2>
+                    <a href="/customers/orders.html">Thời gian giao hàng của Casa Decor là bao lâu? <i class="fa-solid fa-chevron-right"></i></a>
+                    <a href="/customers/return-request.html">Chính sách đổi trả và hoàn tiền như thế nào? <i class="fa-solid fa-chevron-right"></i></a>
+                    <a href="/customers/products.html">Sản phẩm được bảo hành ra sao? <i class="fa-solid fa-chevron-right"></i></a>
+                    <a href="/customers/cart.html">Hướng dẫn thanh toán khi mua hàng? <i class="fa-solid fa-chevron-right"></i></a>
+                </article>
+
+                <article class="support-promo">
+                    <img src="/images/hero-banner.png" alt="Casa Decor hỗ trợ khách hàng">
+                    <div><b>Casa Decor</b><span>Luôn sẵn sàng lắng nghe bạn</span></div>
+                </article>
+            </aside>
+        </section>
+
+        <section class="contact-showroom" data-reveal="zoom-in">
+            <div class="contact-map">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.3941!2d105.7410!3d21.0170!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31345389657697cb%3A0xc665c71a3962649a!2zVMOyYSBHUzEgVGhlIE1pYW1p!5e0!3m2!1svi!2s!4v1715162400000!5m2!1svi!2s" 
+                    width="100%" height="100%" style="border:0; position: absolute; top: 0; left: 0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <div style="position: relative; z-index: 1;">
+                    <b>Casa Decor Showroom</b>
+                    <span>GS1 VinhomeSmartCity Tây Mỗ</span>
+                    <a href="https://maps.app.goo.gl/3f6hZ1S5j5K5f3wV8" target="_blank">Xem bản đồ lớn <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                </div>
+            </div>
+            <img src="/images/hero-banner.png" alt="Casa Decor showroom">
+            <article><h3>Ghé thăm showroom</h3><p>Trải nghiệm không gian sống đầy cảm hứng và nhận tư vấn miễn phí từ đội ngũ Casa Decor.</p><a href="/customers/contact.html">Chỉ đường ngay</a></article>
+        </section>
+        <section class="profile-trust trust" data-reveal="slide-up"><div class="ti"><i class="fa-solid fa-headset"></i><div><b>Hỗ trợ nhanh chóng</b><small>Tư vấn tận tâm 24/7</small></div></div><div class="ti"><i class="fa-solid fa-truck-fast"></i><div><b>Giao hàng toàn quốc</b><small>Miễn phí đơn từ 1.000.000đ</small></div></div><div class="ti"><i class="fa-solid fa-rotate-left"></i><div><b>Đổi trả dễ dàng</b><small>Trong vòng 7 ngày</small></div></div><div class="ti"><i class="fa-solid fa-shield-heart"></i><div><b>Sản phẩm chất lượng</b><small>Cam kết chính hãng</small></div></div><div class="ti"><i class="fa-regular fa-credit-card"></i><div><b>Thanh toán an toàn</b><small>Đa dạng phương thức</small></div></div></section>
+    </main>
+
+    
+    <!-- Zalo floating button -->
+    <a href="https://zalo.me/0336881795" id="zaloFloatBtn" class="zalo-float" target="_blank" rel="noopener" aria-label="Liên hệ Zalo">
+        <span class="zalo-float-label">Nhắn tin Zalo</span>
+        <span class="zalo-float-core">Zalo</span>
+    </a>
+    <script src="/js/shop.js"></script>
+    <script src="/js/effects.js" defer></script>
+</body>
+
+</html>

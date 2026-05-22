@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Casa Decor</title>
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body class="auth-page login-page">
+    <a class="menu-link" href="/customers/index.html" aria-label="Về trang chủ"><i class="fa-solid fa-bars"></i></a>
+    <main class="auth-shell">
+        <a class="auth-brand" href="/customers/index.html" aria-label="Về trang chủ Casa Decor">
+            <span class="auth-logo-mark"><i class="fa-solid fa-house-chimney-window"></i></span>
+            <div>
+                <h1>Casa Decor</h1>
+                <p>DECOR FOR YOUR HOME</p>
+            </div>
+        </a>
+
+        <h2>Đăng nhập</h2>
+        <p class="auth-sub">Chào mừng bạn trở lại với Casa Decor <i class="fa-solid fa-heart"></i></p>
+
+        <form id="loginForm" class="auth-form">
+            <label>Email</label>
+            <div class="field">
+                <i class="fa-regular fa-envelope"></i>
+                <input name="email" type="email" placeholder="Nhập email của bạn" required>
+            </div>
+
+            <label>Mật khẩu</label>
+            <div class="field">
+                <i class="fa-solid fa-lock"></i>
+                <input name="password" type="password" placeholder="Nhập mật khẩu" required>
+                <button class="toggle-pass" type="button" aria-label="Hiện mật khẩu"><i class="fa-regular fa-eye"></i></button>
+            </div>
+
+            <div class="auth-row">
+                <label class="remember"><input name="remember" type="checkbox"> <span>Ghi nhớ đăng nhập</span></label>
+                <a href="/customers/forgot-password.html">Quên mật khẩu?</a>
+            </div>
+
+            <p id="authMessage" class="auth-message"></p>
+            <button class="auth-submit" type="submit"><i class="fa-solid fa-lock"></i> Đăng nhập</button>
+        </form>
+
+        <div class="divider"><span>hoặc</span></div>
+        <div class="socials-auth">
+            <button type="button"><i class="fa-brands fa-google"></i></button>
+            <button type="button"><i class="fa-brands fa-facebook-f"></i></button>
+            <button type="button"><i class="fa-brands fa-apple"></i></button>
+        </div>
+
+        <div class="auth-footer"><a href="/customers/register.html">Đăng ký <i class="fa-solid fa-arrow-right"></i></a></div>
+    </main>
+    <script src="/js/auth.js"></script>
+
+    <!-- Zalo floating button -->
+    <a href="https://zalo.me/0336881795" id="zaloFloatBtn" class="zalo-float" target="_blank" rel="noopener" aria-label="Liên hệ Zalo">
+        <span class="zalo-float-label">Nhắn tin Zalo</span>
+        <span class="zalo-float-core">Zalo</span>
+    </a>
+</body>
+
+</html>

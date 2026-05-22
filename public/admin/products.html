@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sản phẩm - Casa Decor Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=20260514-7">
+</head>
+<body class="admin-page">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay v? trang ch? Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Admin</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a href="/admin/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a class="active" href="/admin/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/admin/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/admin/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/admin/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/admin/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/admin/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung & Marketing</p>
+            <a href="/admin/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/admin/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/admin/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/admin/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a href="/admin/index.html#inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a href="/admin/index.html#schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+
+            <p>Báo cáo & Thống kê</p>
+            <a href="/admin/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/admin/index.html#settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+
+        <div class="sidebar-decor">
+            <img src="/images/lohoa_decor/lohoa01.jpg" alt="Casa Decor">
+            <b>Casa Decor</b>
+            <span>Elevate your space, Elevate your life.</span>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng...">
+                <kbd>⌘K</kbd>
+            </label>
+            <div class="date-filter">
+                <input id="dateFrom" type="date" aria-label="Từ ngày">
+                <span>-</span>
+                <input id="dateTo" type="date" aria-label="Đến ngày">
+                <button id="reloadDashboard" type="button" aria-label="Tải lại"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <button class="icon-btn" type="button" aria-label="Thông báo" data-admin-session><i class="fa-regular fa-bell"></i><span data-notify-count>0</span></button>
+            <a class="admin-profile" href="/admin/profile.html" title="M? h? so qu?n tr?" data-view="profile" data-admin-session>
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
+            </a>
+            <button id="quickAddBtn" class="quick-add" type="button" data-admin-session><i class="fa-solid fa-plus"></i> Thêm nhanh</button>
+            <div id="quickAddMenu" class="quick-menu" hidden></div>
+        </header>
+
+        <section id="authGate" class="auth-gate" hidden>
+            <div>
+                <i class="fa-solid fa-lock"></i>
+                <h1>Cần đăng nhập tài khoản admin</h1>
+                <p>Đăng nhập bằng tài khoản có quyền admin để xem Dashboard Casa Decor.</p>
+                <a id="adminLoginLink" href="/customers/login.html?redirect=/admin/index.html">Đăng nhập</a>
+            </div>
+        </section>
+
+        <section id="productManagerView" class="product-manager-page" hidden>
+            <div class="manager-title-row">
+                <div>
+                    <h1>Quản lý sản phẩm</h1>
+                    <p>Quản lý toàn bộ sản phẩm decor trong cửa hàng</p>
+                </div>
+                <div class="manager-actions">
+                    <button class="primary-action" type="button" data-action="product-add"><i class="fa-solid fa-plus"></i> Thêm sản phẩm</button>
+                    <button class="secondary-action" type="button" data-action="product-export"><i class="fa-solid fa-download"></i> Xuất danh sách</button>
+                    <button class="secondary-action" type="button" data-action="product-filter"><i class="fa-solid fa-filter"></i> Bộ lọc</button>
+                </div>
+            </div>
+            <section class="product-stats-grid" id="productStatsGrid"></section>
+            <section class="product-manager-layout">
+                <article class="panel product-table-panel">
+                    <div class="product-filters">
+                        <label>Tên sản phẩm<input id="productSearchInput" type="search" placeholder="Nhập tên sản phẩm..."></label>
+                        <label>Danh mục<select id="productCategoryFilter"><option value="">Tất cả danh mục</option></select></label>
+                        <label>Trạng thái<select id="productStatusFilter"><option value="all">Tất cả trạng thái</option><option value="active">Đang bán</option><option value="hidden">Đã ẩn</option><option value="out_of_stock">Đã hết</option></select></label>
+                        <label>Tồn kho<select id="productStockFilter"><option value="">Tất cả</option><option value="low">Sắp hết</option><option value="out">Hết hàng</option></select></label>
+                        <div class="filter-actions"><button class="secondary-action" type="button" data-action="product-reset"><i class="fa-solid fa-rotate-left"></i> Đặt lại</button><button class="primary-action" type="button" data-action="product-load"><i class="fa-solid fa-filter"></i> Lọc</button></div>
+                    </div>
+                    <div class="product-table-wrap">
+                        <table class="product-table">
+                            <thead><tr><th><input type="checkbox" aria-label="Chọn tất cả"></th><th>Sản phẩm</th><th>SKU</th><th>Danh mục</th><th>Giá bán</th><th>Tồn kho</th><th>Trạng thái</th><th>Cập nhật gần nhất</th><th>Thao tác</th></tr></thead>
+                            <tbody id="productRows"></tbody>
+                        </table>
+                    </div>
+                    <div class="product-pagination"><span id="productPageText">1 - 10 của 0 sản phẩm</span><div id="productPager"></div></div>
+                </article>
+                <aside class="product-side">
+                    <article class="panel"><div class="panel-head"><div><h2>Danh mục nổi bật</h2></div></div><div id="productCategoryList" class="category-mini-list"></div><button class="wide-outline" type="button" data-action="product-categories">Xem tất cả danh mục</button></article>
+                    <article class="panel"><div class="panel-head"><div><h2>Sản phẩm sắp hết hàng</h2></div><button class="link-btn" type="button" data-action="product-low">Xem tất cả</button></div><div id="productLowList" class="item-list"></div></article>
+                    <article class="panel stock-warning"><i class="fa-solid fa-triangle-exclamation"></i><b id="productWarningText">0 sản phẩm đã hết hàng</b><p>Cần kiểm tra nhập kho hoặc tạm ẩn sản phẩm.</p><button class="wide-outline" type="button" data-action="product-low">Xem danh sách</button></article>
+                </aside>
+            </section>
+        </section>
+        
+        <section id="productFormView" class="product-form-page" hidden>
+            <div class="form-header">
+                <div class="breadcrumbs">
+                    <a href="#" data-action="back-dashboard">Trang chủ</a> <i class="fa-solid fa-chevron-right"></i>
+                    <a href="#" data-action="back-products">Quản lý sản phẩm</a> <i class="fa-solid fa-chevron-right"></i>
+                    <span id="formTitleBreadcrumb">Thêm sản phẩm</span>
+                </div>
+                <div class="header-actions-row">
+                    <h1 id="formTitleText">Thêm sản phẩm</h1>
+                    <button class="secondary-action" type="button"><i class="fa-regular fa-eye"></i> Xem trước sản phẩm</button>
+                </div>
+            </div>
+            <form id="productMainForm" class="product-form-grid">
+                <input type="hidden" name="productId" id="productId">
+                <div class="form-main-col">
+                    <article class="panel">
+                        <div class="panel-head"><h2><i class="fa-regular fa-file-lines"></i> Thông tin cơ bản</h2></div>
+                        <div class="form-row">
+                            <label class="required">Tên sản phẩm<input type="text" name="name" placeholder="Nhập tên sản phẩm" required></label>
+                            <label class="required">Mã SKU<input type="text" name="sku" placeholder="Nhập mã SKU (VD: LAMP-WHT-001)" required></label>
+                        </div>
+                        <div class="form-row">
+                            <label class="required">Danh mục<select name="category" id="formCategorySelect" required><option value="">Chọn danh mục</option></select></label>
+                            <label>Thương hiệu<input type="text" name="brand" placeholder="Nhập thương hiệu (nếu có)"></label>
+                        </div>
+                        <label>Tags<input type="text" name="tags" placeholder="Nhập tag và nhấn Enter (VD: decor, gốm sứ, handmade...)"></label>
+                        <label class="required">Trạng thái hiển thị
+                            <select name="status" required>
+                                <option value="active" selected>Hiển thị</option>
+                                <option value="hidden">Đã ẩn</option>
+                            </select>
+                        </label>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-head"><h2><i class="fa-regular fa-file"></i> Mô tả</h2></div>
+                        <label class="required">Mô tả ngắn<input type="text" name="shortDescription" placeholder="Nhập mô tả ngắn (tối đa 160 ký tự)" maxlength="160" required><span class="char-count">0/160</span></label>
+                        <label>Mô tả chi tiết
+                            <div class="rich-text-editor">
+                                <div class="rte-toolbar">
+                                    <select><option>Đoạn văn</option></select>
+                                    <button type="button"><i class="fa-solid fa-bold"></i></button>
+                                    <button type="button"><i class="fa-solid fa-italic"></i></button>
+                                    <button type="button"><i class="fa-solid fa-underline"></i></button>
+                                    <button type="button"><i class="fa-solid fa-list-ul"></i></button>
+                                    <button type="button"><i class="fa-solid fa-list-ol"></i></button>
+                                    <button type="button"><i class="fa-solid fa-link"></i></button>
+                                    <button type="button"><i class="fa-regular fa-image"></i></button>
+                                </div>
+                                <textarea name="description" rows="6" placeholder="Nhập mô tả chi tiết về sản phẩm..."></textarea>
+                            </div>
+                        </label>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-head"><h2><i class="fa-solid fa-layer-group"></i> Thuộc tính sản phẩm</h2></div>
+                        <div class="form-row three-cols">
+                            <label>Chất liệu
+                                <select name="material">
+                                    <option value="">Chọn chất liệu</option>
+                                    <option value="Gốm sứ">Gốm sứ</option>
+                                    <option value="Gỗ">Gỗ</option>
+                                    <option value="Kim loại">Kim loại</option>
+                                    <option value="Vải linen">Vải linen</option>
+                                    <option value="Gốm sứ, vải linen">Gốm sứ, vải linen</option>
+                                </select>
+                            </label>
+                            <label>Kích thước<input type="text" name="dimensions" placeholder="VD: Ø 20cm x H 36cm"></label>
+                            <label>Màu sắc<input type="text" name="color" placeholder="VD: Trắng, Beige"></label>
+                        </div>
+                        <div class="form-row">
+                            <label class="checkbox-box">
+                                <input type="checkbox" name="isFeatured">
+                                <div class="checkbox-content">
+                                    <b><i class="fa-regular fa-star"></i> Nổi bật</b>
+                                    <span>Hiển thị trong mục nổi bật</span>
+                                </div>
+                            </label>
+                            <label class="checkbox-box">
+                                <input type="checkbox" name="isNewProduct">
+                                <div class="checkbox-content">
+                                    <b><i class="fa-solid fa-tag"></i> Sản phẩm mới</b>
+                                    <span>Hiển thị nhãn sản phẩm mới</span>
+                                </div>
+                            </label>
+                        </div>
+                    </article>
+                </div>
+                <div class="form-side-col">
+                    <article class="panel">
+                        <div class="panel-head"><h2><i class="fa-solid fa-box"></i> Giá & tồn kho</h2></div>
+                        <label class="required">Giá gốc (VNĐ)<input type="number" name="price" placeholder="Nhập giá gốc" required></label>
+                        <label>Giá khuyến mãi (VNĐ)<input type="number" name="salePrice" placeholder="Nhập giá khuyến mãi"><small>Để trống nếu không có khuyến mãi</small></label>
+                        <div class="form-row">
+                            <label class="required">Số lượng tồn kho<input type="number" name="stock" value="0" required></label>
+                            <label>Đơn vị tính<select name="unit"><option value="Cái">Cái</option><option value="Bộ">Bộ</option><option value="Chiếc">Chiếc</option><option value="Sản phẩm">Sản phẩm</option></select></label>
+                        </div>
+                        <label class="required">Trạng thái hàng hóa
+                            <select name="inventoryStatus" required>
+                                <option value="in_stock" selected>Còn hàng</option>
+                                <option value="out_of_stock">Hết hàng</option>
+                            </select>
+                        </label>
+                    </article>
+                    <article class="panel">
+                        <div class="panel-head"><h2><i class="fa-regular fa-image"></i> Hình ảnh sản phẩm</h2></div>
+                        <p class="img-label-text">Ảnh đại diện *</p>
+                        <div class="image-upload-box primary-upload" id="primaryImageUploadBox" onclick="document.getElementById('primaryImageFile').click()">
+                            <img id="primaryImagePreview" src="" hidden>
+                            <div class="upload-placeholder" id="primaryImagePlaceholder">
+                                <i class="fa-solid fa-upload"></i><br>Tải lên ảnh đại diện
+                            </div>
+                            <button type="button" class="replace-btn" id="replacePrimaryBtn" hidden><i class="fa-solid fa-upload"></i> Thay ảnh đại diện</button>
+                        </div>
+                        <input type="hidden" name="primaryImage" id="primaryImageInput">
+                        <input type="file" id="primaryImageFile" accept="image/*" hidden>
+                        
+                        <p class="img-label-text">Thư viện ảnh <span id="galleryCount">(0/10)</span></p>
+                        <div class="gallery-grid" id="galleryGrid">
+                            <div class="gallery-upload-btn" onclick="document.getElementById('galleryImageFile').click()">
+                                <i class="fa-solid fa-upload"></i><br>Tải lên ảnh<br><small>Hỗ trợ JPG, PNG. Tối đa 5MB</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="galleryImages" id="galleryImagesInput">
+                        <input type="file" id="galleryImageFile" accept="image/*" multiple hidden>
+                    </article>
+                </div>
+            </form>
+            <div class="form-footer-actions">
+                <button class="secondary-action" type="button" data-action="back-products">Hủy</button>
+                <div class="right-actions">
+                    <button class="outline-action" type="button" data-action="save-draft"><i class="fa-regular fa-eye"></i> Xem trước</button>
+                    <button class="primary-action" type="button" data-action="save-product"><i class="fa-solid fa-floppy-disk"></i> <span id="saveProductBtnText">Lưu sản phẩm</span></button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    
+    <div id="deleteProductModal" class="custom-modal-overlay" hidden>
+        <div class="custom-modal-card">
+            <button class="modal-close" data-action="close-delete-modal"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title">Xóa sản phẩm</h2>
+            <div class="warning-alert">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <b>Bạn có chắc chắn muốn xóa sản phẩm này không?</b>
+                    <p>Hành động này không thể hoàn tác. Sản phẩm sẽ bị xóa vĩnh viễn khỏi hệ thống.</p>
+                </div>
+            </div>
+            <div class="product-delete-preview">
+                <img id="delProdImage" src="" alt="Product">
+                <div class="del-prod-info">
+                    <h3 id="delProdName">Đèn bàn gốm Scandinavian</h3>
+                    <p><span><i class="fa-solid fa-barcode"></i> Mã SKU</span> <strong id="delProdSku">LAMP-SCAN-001</strong></p>
+                    <p><span><i class="fa-regular fa-folder"></i> Danh mục</span> <strong id="delProdCat">Đèn decor</strong></p>
+                    <p><span><i class="fa-solid fa-tag"></i> Giá bán</span> <strong id="delProdPrice">1.280.000đ</strong></p>
+                    <p><span><i class="fa-solid fa-box"></i> Tồn kho</span> <strong id="delProdStock">28</strong></p>
+                </div>
+            </div>
+            <div class="modal-actions-right">
+                <button class="secondary-action" data-action="close-delete-modal">Hủy</button>
+                <button class="danger-action" id="confirmDeleteProdBtn" data-action="confirm-delete-product"><i class="fa-regular fa-trash-can"></i> Xác nhận xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminModal" class="admin-modal" hidden>
+        <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+            <button class="modal-close" type="button" data-action="modal-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            <h2 id="adminModalTitle"></h2>
+            <div id="adminModalBody"></div>
+        </div>
+    </div>
+    <script src="/js/admin.js?v=20260514-7"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý tồn kho - Casa Decor Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=20260514-7">
+    <style>
+        /* ===== STATS GRID ===== */
+        .inv-stats-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 22px;
+        }
+        .inv-stat-card {
+            background: #fff; padding: 16px 14px; border-radius: 10px; border: 1px solid #f0f0f0;
+            display: flex; align-items: center; gap: 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: box-shadow .2s;
+        }
+        .inv-stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+        .inv-icon {
+            width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+        }
+        .inv-info h3 { font-size: 0.75rem; color: #888; margin: 0; font-weight: 500; text-transform: uppercase; letter-spacing: .3px; }
+        .inv-info .val { font-size: 1.4rem; font-weight: 700; color: #1a1a1a; margin: 3px 0 2px; line-height: 1; }
+        .inv-info small { font-size: 0.72rem; }
+        .inv-info small.up { color: #059669; }
+        .inv-info small.down { color: #dc2626; }
+        
+        /* ===== ACTION BUTTONS ===== */
+        .inv-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .btn-inv {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 18px; border-radius: 8px; font-size: 0.88rem;
+            font-weight: 600; cursor: pointer; border: none; transition: all .2s;
+            font-family: inherit; white-space: nowrap;
+        }
+        .btn-inv:active { transform: scale(.97); }
+        .btn-inv-primary { background: linear-gradient(135deg, #c48c71, #a8705a); color: #fff; box-shadow: 0 2px 8px rgba(196,140,113,.35); }
+        .btn-inv-primary:hover { background: linear-gradient(135deg, #b87d62, #9a6550); box-shadow: 0 4px 14px rgba(196,140,113,.45); }
+        .btn-inv-secondary { background: #fff; color: #444; border: 1px solid #dde1e7; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+        .btn-inv-secondary:hover { background: #f8f9fa; border-color: #bec5ce; }
+        .btn-inv-danger { background: #fff; color: #dc2626; border: 1px solid #fecaca; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+        .btn-inv-danger:hover { background: #fef2f2; border-color: #f87171; }
+        .btn-inv-export { background: #fff; color: #059669; border: 1px solid #a7f3d0; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+        .btn-inv-export:hover { background: #f0fdf4; border-color: #6ee7b7; }
+        .btn-divider { width: 1px; height: 32px; background: #e5e7eb; margin: 0 2px; }
+
+        /* ===== FILTERS ===== */
+        .inv-filters {
+            display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+            background: #fff; padding: 14px 16px; border-radius: 10px;
+            border: 1px solid #f0f0f0; box-shadow: 0 1px 4px rgba(0,0,0,.04);
+            align-items: flex-end;
+        }
+        .inv-filters label { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: #666; font-weight: 500; }
+        .inv-filters select, .inv-filters input {
+            padding: 8px 11px; border: 1px solid #e2e8f0; border-radius: 6px;
+            font-size: 0.88rem; color: #333; outline: none; transition: border .2s;
+            font-family: inherit;
+        }
+        .inv-filters select:focus, .inv-filters input:focus { border-color: #c48c71; }
+
+        /* ===== TABLE ===== */
+        .inv-table-wrap {
+            overflow-x: auto; background: #fff; border-radius: 10px;
+            border: 1px solid #f0f0f0; box-shadow: 0 1px 4px rgba(0,0,0,.04);
+        }
+        .inv-table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        .inv-table th, .inv-table td { padding: 11px 14px; text-align: left; border-bottom: 1px solid #f3f4f6; }
+        .inv-table th { background: #fafbfc; font-weight: 600; font-size: 0.78rem; color: #6b7280; text-transform: uppercase; letter-spacing: .4px; }
+        .inv-table tbody tr { transition: background .15s; }
+        .inv-table tbody tr:hover { background: #fdf8f6; }
+        .inv-table tbody tr:last-child td { border-bottom: none; }
+
+        /* ===== STATUS BADGES ===== */
+        .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 0.73rem; font-weight: 600; }
+        .status-ok { background: #dcfce7; color: #16a34a; }
+        .status-warn { background: #fff7ed; color: #ea580c; }
+        .status-danger { background: #fee2e2; color: #dc2626; }
+        .status-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+        .status-ok::before { background: #16a34a; }
+        .status-warn::before { background: #ea580c; }
+        .status-danger::before { background: #dc2626; }
+
+        /* ===== LOWER PANELS ===== */
+        .inv-lower { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-top: 18px; }
+        .inv-panel { background: #fff; border: 1px solid #f0f0f0; border-radius: 10px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+        .inv-panel h2 { font-size: 0.95rem; margin: 0 0 14px 0; color: #1a1a1a; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+        .inv-panel h2 a { font-size: 0.78rem; color: #c48c71; font-weight: 400; text-decoration: none; }
+        .inv-panel h2 a:hover { text-decoration: underline; }
+        
+        .alert-item { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #f3f4f6; align-items: center; }
+        .alert-item:last-child { border: none; }
+        .alert-item b { font-size: 0.83rem; display: block; color: #1a1a1a; }
+        .alert-item small { font-size: 0.73rem; color: #9ca3af; }
+        
+        .history-item { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #f3f4f6; align-items: center; }
+        .history-item:last-child { border: none; }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(15,20,30,.5); backdrop-filter: blur(3px);
+            z-index: 9999; justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #fff; width: 520px; max-width: 96vw; border-radius: 14px;
+            overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+            animation: modalIn .25s cubic-bezier(.34,1.56,.64,1);
+        }
+        @keyframes modalIn { from { transform: scale(.92) translateY(20px); opacity:0; } to { transform: scale(1) translateY(0); opacity:1; } }
+        .modal-header {
+            padding: 18px 22px; border-bottom: 1px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(135deg, #fdf6f3 0%, #f9f1ed 100%);
+        }
+        .modal-header h3 { margin: 0; font-size: 1.05rem; color: #1a1a1a; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .modal-header h3 .modal-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .modal-close {
+            width: 30px; height: 30px; border-radius: 6px; border: none; cursor: pointer;
+            background: rgba(0,0,0,.06); color: #555; font-size: 1rem;
+            display: flex; align-items: center; justify-content: center; transition: background .2s;
+        }
+        .modal-close:hover { background: rgba(0,0,0,.12); color: #1a1a1a; }
+        .modal-body { padding: 22px; }
+        .modal-footer { padding: 14px 22px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 10px; background: #fafbfc; }
+        
+        .form-field { margin-bottom: 16px; }
+        .form-field label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.84rem; color: #374151; }
+        .form-field input, .form-field select, .form-field textarea {
+            width: 100%; padding: 10px 13px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+            font-size: 0.9rem; font-family: inherit; color: #1a1a1a; outline: none;
+            transition: border .2s, box-shadow .2s; background: #fff; box-sizing: border-box;
+        }
+        .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+            border-color: #c48c71; box-shadow: 0 0 0 3px rgba(196,140,113,.12);
+        }
+        .form-field .field-hint { font-size: 0.76rem; color: #9ca3af; margin-top: 4px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-total { background: #f8f4f2; border-radius: 8px; padding: 12px 16px; text-align: right; margin-top: 4px; }
+        .form-total span { font-size: 0.82rem; color: #666; }
+        .form-total strong { font-size: 1.1rem; color: #c48c71; display: block; margin-top: 2px; }
+
+        .btn-modal {
+            padding: 10px 20px; border-radius: 8px; font-size: 0.88rem; font-weight: 600;
+            cursor: pointer; border: none; font-family: inherit; transition: all .2s;
+        }
+        .btn-modal-cancel { background: #fff; border: 1.5px solid #e5e7eb; color: #555; }
+        .btn-modal-cancel:hover { background: #f3f4f6; }
+        .btn-modal-submit { background: linear-gradient(135deg, #c48c71, #a8705a); color: #fff; box-shadow: 0 2px 8px rgba(196,140,113,.35); }
+        .btn-modal-submit:hover { background: linear-gradient(135deg, #b87d62, #9a6550); }
+        .btn-modal-submit:disabled { opacity: .65; cursor: not-allowed; }
+
+        /* ===== ACTION BUTTONS IN TABLE ===== */
+        .tbl-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #6b7280; font-size: .85rem; transition: all .15s; margin: 0 2px; }
+        .tbl-btn:hover { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
+        .tbl-btn.edit:hover { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+        .tbl-btn.view:hover { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
+
+        /* ===== EXPORT DROPDOWN ===== */
+        .export-wrap { position: relative; }
+        .export-dropdown {
+            display: none; position: absolute; right: 0; top: calc(100% + 6px);
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,.12); min-width: 200px; z-index: 500;
+            overflow: hidden;
+        }
+        .export-dropdown.open { display: block; }
+        .export-dropdown a {
+            display: flex; align-items: center; gap: 10px; padding: 11px 16px;
+            color: #374151; text-decoration: none; font-size: 0.87rem; transition: background .15s;
+        }
+        .export-dropdown a:hover { background: #fdf6f3; color: #c48c71; }
+        .export-dropdown a .dd-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: .85rem; }
+        .export-dropdown hr { margin: 4px 0; border: none; border-top: 1px solid #f3f4f6; }
+
+        /* ===== PAGINATION ===== */
+        .pager-btn {
+            width: 33px; height: 33px; border-radius: 6px; border: 1px solid #e5e7eb;
+            background: #fff; cursor: pointer; font-size: 0.85rem; color: #555;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: all .15s; font-family: inherit; font-weight: 500;
+        }
+        .pager-btn:hover { background: #fdf6f3; border-color: #c48c71; color: #c48c71; }
+        .pager-btn.active { background: #c48c71; border-color: #c48c71; color: #fff; font-weight: 700; }
+
+        @media (max-width: 1400px) { .inv-stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 900px) { .inv-lower { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body class="admin-page">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay về trang chủ Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Admin</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a href="/admin/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a href="/admin/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/admin/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/admin/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/admin/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/admin/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/admin/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung & Marketing</p>
+            <a href="/admin/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/admin/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/admin/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/admin/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a class="active" href="/admin/inventory.html" data-view="inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a href="/admin/schedule.html" data-view="schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+
+            <p>Báo cáo & Thống kê</p>
+            <a href="/admin/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/admin/index.html#settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng...">
+            </label>
+            <div class="date-filter">
+                <input id="dateFrom" type="date">
+                <span>-</span>
+                <input id="dateTo" type="date">
+                <button id="reloadDashboard" type="button"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <a class="admin-profile" href="/admin/profile.html">
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
+            </a>
+            <button id="quickAddBtn" class="quick-add" type="button"><i class="fa-solid fa-plus"></i> Thêm nhanh</button>
+        </header>
+
+        <section class="schedule-manager-page" style="padding: 20px;">
+            <div class="manager-title-row" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 22px; flex-wrap:wrap; gap:14px;">
+                <div>
+                    <h1 style="margin:0 0 4px; font-size:1.5rem;">Quản lý tồn kho</h1>
+                    <p style="color:#888; margin:0; font-size:0.88rem;">Theo dõi, kiểm soát và tối ưu hóa tồn kho theo thời gian thực</p>
+                </div>
+                <div class="inv-actions">
+                    <!-- Nhập kho -->
+                    <button class="btn-inv btn-inv-primary" type="button" onclick="openModal('import')">
+                        <i class="fa-solid fa-box-open"></i> Nhập kho
+                    </button>
+                    <!-- Xuất kho -->
+                    <button class="btn-inv btn-inv-danger" type="button" onclick="openModal('export')">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Xuất kho
+                    </button>
+                    <!-- Kiểm kê -->
+                    <button class="btn-inv btn-inv-secondary" type="button" onclick="openModal('check')">
+                        <i class="fa-solid fa-clipboard-list"></i> Kiểm kê
+                    </button>
+                    <div class="btn-divider"></div>
+                    <!-- Xuất file -->
+                    <div class="export-wrap">
+                        <button class="btn-inv btn-inv-export" type="button" id="exportToggle" onclick="toggleExportMenu()">
+                            <i class="fa-solid fa-file-export"></i> Xuất file
+                            <i class="fa-solid fa-chevron-down" style="font-size:.7rem; margin-left:2px;"></i>
+                        </button>
+                        <div class="export-dropdown" id="exportMenu">
+                            <a href="#" onclick="exportCSV(); return false;">
+                                <div class="dd-icon" style="background:#dcfce7; color:#16a34a;"><i class="fa-solid fa-file-csv"></i></div>
+                                Xuất Excel / CSV
+                            </a>
+                            <a href="#" onclick="exportPDF(); return false;">
+                                <div class="dd-icon" style="background:#fee2e2; color:#dc2626;"><i class="fa-solid fa-file-pdf"></i></div>
+                                Xuất phiếu kho (PDF)
+                            </a>
+                            <hr>
+                            <a href="#" onclick="exportTransactionsCSV(); return false;">
+                                <div class="dd-icon" style="background:#eff6ff; color:#2563eb;"><i class="fa-regular fa-file-lines"></i></div>
+                                Lịch sử giao dịch
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inv-stats-grid">
+                <div class="inv-stat-card">
+                    <div class="inv-icon" style="background:#f0f9ff; color:#0ea5e9;"><i class="fa-solid fa-file-invoice"></i></div>
+                    <div class="inv-info">
+                        <h3>Tổng SKU</h3>
+                        <div class="val" id="statSKU">0</div>
+                        <small class="up">+0 từ kỳ trước</small>
+                    </div>
+                </div>
+                <div class="inv-stat-card">
+                    <div class="inv-icon" style="background:#fff5eb; color:#f97316;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="inv-info">
+                        <h3>Sắp hết hàng</h3>
+                        <div class="val" id="statLow">0</div>
+                        <small class="down" id="statLowPct">0% tổng SKU</small>
+                    </div>
+                </div>
+                <div class="inv-stat-card">
+                    <div class="inv-icon" style="background:#fef2f2; color:#dc2626;"><i class="fa-solid fa-circle-exclamation"></i></div>
+                    <div class="inv-info">
+                        <h3>Hết hàng</h3>
+                        <div class="val" id="statOut">0</div>
+                        <small class="down" id="statOutPct">0% tổng SKU</small>
+                    </div>
+                </div>
+                <div class="inv-stat-card">
+                    <div class="inv-icon" style="background:#f3f0ff; color:#8b5cf6;"><i class="fa-solid fa-coins"></i></div>
+                    <div class="inv-info">
+                        <h3>Giá trị tồn kho</h3>
+                        <div class="val" id="statValue">0đ</div>
+                        <small style="color:#666;">Giá vốn</small>
+                    </div>
+                </div>
+                <div class="inv-stat-card">
+                    <div class="inv-icon" style="background:#e5f5f0; color:#059669;"><i class="fa-solid fa-box-open"></i></div>
+                    <div class="inv-info">
+                        <h3>Nhập hôm nay</h3>
+                        <div class="val" id="statImportQty">0</div>
+                        <small style="color:#666;" id="statImportValue">0đ</small>
+                    </div>
+                </div>
+                <div class="inv-stat-card">
+                    <div class="inv-icon" style="background:#fef2f2; color:#dc2626;"><i class="fa-solid fa-truck-fast"></i></div>
+                    <div class="inv-info">
+                        <h3>Xuất hôm nay</h3>
+                        <div class="val" id="statExportQty">0</div>
+                        <small style="color:#666;" id="statExportValue">0đ</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inv-filters">
+                <label>Kho
+                    <select disabled style="background:#f9f9f9; color:#666;"><option>Kho Hà Nội</option></select>
+                </label>
+                <label>Trạng thái
+                    <select><option>Tất cả</option><option>Ổn định</option><option>Sắp hết</option><option>Hết hàng</option></select>
+                </label>
+                <label>Nhà cung cấp
+                    <select><option>Tất cả nhà cung cấp</option></select>
+                </label>
+                <label>Tìm kiếm
+                    <input type="text" id="invSearch" placeholder="Nhập SKU hoặc tên sản phẩm...">
+                </label>
+                <div style="margin-top:auto; display:flex; gap:10px;">
+                    <button class="secondary-action" type="button" style="background:#fff; border:1px solid #ddd; padding:8px 15px; border-radius:6px;"><i class="fa-solid fa-filter"></i> Bộ lọc</button>
+                    <button class="secondary-action" type="button" style="background:#fff; border:1px solid #ddd; padding:8px 15px; border-radius:6px;"><i class="fa-solid fa-rotate-left"></i> Đặt lại</button>
+                </div>
+            </div>
+
+            <div class="inv-table-wrap">
+                <table class="inv-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox"></th>
+                            <th>SKU</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Danh mục</th>
+                            <th>Kho</th>
+                            <th>Tồn hiện tại</th>
+                            <th>Ngưỡng tối thiểu</th>
+                            <th>Trạng thái</th>
+                            <th>Giá trị tồn kho</th>
+                            <th>Cập nhật gần nhất</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invRows">
+                        <tr><td colspan="11" style="text-align:center; padding: 20px;">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+                <div id="invPagination" style="display:flex; justify-content:flex-end; padding:15px; gap:5px; border-top:1px solid #eee;"></div>
+            </div>
+
+            <div class="inv-lower">
+                <div class="inv-panel">
+                    <h2>Cảnh báo tồn kho <a href="#" style="font-size:0.85rem; color:#c48c71; font-weight:normal;">Xem tất cả</a></h2>
+                    <div id="alertList">Đang tải...</div>
+                </div>
+                <div class="inv-panel">
+                    <h2>Tình trạng tồn kho</h2>
+                    <div style="display:flex; justify-content:center; align-items:center; height:200px; color:#666; font-size:0.9rem;">
+                        <div style="width:120px; height:120px; border-radius:50%; border:15px solid #059669; border-left-color:#f97316; border-bottom-color:#dc2626; display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center;">
+                            <b id="chartTotalItems2">0</b>
+                            <small>SKU</small>
+                        </div>
+                        <div style="margin-left:20px;">
+                            <p><span style="display:inline-block;width:10px;height:10px;background:#059669;margin-right:5px;"></span>Ổn định (<span id="pctOk">0%</span>)</p>
+                            <p><span style="display:inline-block;width:10px;height:10px;background:#f97316;margin-right:5px;"></span>Sắp hết (<span id="pctLow">0%</span>)</p>
+                            <p><span style="display:inline-block;width:10px;height:10px;background:#dc2626;margin-right:5px;"></span>Hết hàng (<span id="pctOut">0%</span>)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="inv-panel">
+                    <h2>Lịch sử nhập xuất gần đây</h2>
+                    <div id="recentTransactions">
+                        <div style="text-align:center;color:#666;padding:10px;">Đang tải...</div>
+                    </div>
+            <!-- ===== MODAL ===== -->
+            <div class="modal-overlay" id="actionModal" onclick="handleOverlayClick(event)">
+                <div class="modal-box">
+                    <div class="modal-header">
+                        <h3 id="modalTitle">
+                            <span class="modal-icon" id="modalIcon" style="background:#f3f4f6; color:#555;"><i class="fa-solid fa-box"></i></span>
+                            Tiêu đề
+                        </h3>
+                        <button class="modal-close" type="button" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="actionForm" autocomplete="off">
+                            <input type="hidden" id="modalType">
+                            <input type="hidden" id="modalProductId">
+
+                            <!-- Chọn sản phẩm -->
+                            <div class="form-field" id="productSelectWrapper" style="display:none;">
+                                <label>Sản phẩm <span style="color:#dc2626">*</span></label>
+                                <select id="modalProduct">
+                                    <option value="">-- Tìm và chọn sản phẩm --</option>
+                                </select>
+                            </div>
+
+                            <!-- Số lượng + Đơn giá -->
+                            <div class="form-row">
+                                <div class="form-field" id="quantityWrapper">
+                                    <label id="lblQuantity">Số lượng <span style="color:#dc2626">*</span></label>
+                                    <input type="number" id="modalQuantity" min="0" placeholder="0" required>
+                                </div>
+                                <div class="form-field" id="priceWrapper">
+                                    <label id="lblPrice">Đơn giá (VNĐ)</label>
+                                    <input type="number" id="modalPrice" min="0" placeholder="0" oninput="calcTotal()">
+                                </div>
+                            </div>
+
+                            <!-- Tổng tiền -->
+                            <div class="form-total" id="totalWrapper">
+                                <span>Tổng giá trị phiếu</span>
+                                <strong id="totalAmount">0 đ</strong>
+                            </div>
+
+                            <!-- Lý do / Nhà cung cấp -->
+                            <div class="form-field" id="reasonWrapper" style="margin-top:14px;">
+                                <label id="lblReason">Nhà cung cấp / Lý do</label>
+                                <input type="text" id="modalReason" placeholder="Nhập thông tin...">
+                            </div>
+
+                            <!-- Ghi chú -->
+                            <div class="form-field" id="noteWrapper" style="display:none;">
+                                <label>Ghi chú</label>
+                                <textarea id="modalNote" rows="2" placeholder="Ghi chú thêm (tùy chọn)..."></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-modal btn-modal-cancel" type="button" onclick="closeModal()">Hủy</button>
+                        <button class="btn-modal btn-modal-submit" type="button" id="btnSubmitModal" onclick="submitModal()">
+                            <i class="fa-solid fa-check" style="margin-right:6px;"></i>Xác nhận
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/admin.js?v=20260514-7"></script>
+    <script>
+        window.loadTransactions = async () => {
+            try {
+                const trans = await api('/admin/inventory/transactions');
+                let html = '';
+                if(trans.length === 0) {
+                    html = '<div style="text-align:center;color:#666;padding:10px;">Chưa có giao dịch nào</div>';
+                } else {
+                    trans.forEach(t => {
+                        let icon = t.type === 'import' ? '<i class="fa-solid fa-arrow-right-to-bracket"></i>' : (t.type === 'export' ? '<i class="fa-solid fa-arrow-right-from-bracket"></i>' : '<i class="fa-solid fa-clipboard-check"></i>');
+                        let color = t.type === 'import' ? '#059669' : (t.type === 'export' ? '#dc2626' : '#d97706');
+                        let bg = t.type === 'import' ? '#e5f5f0' : (t.type === 'export' ? '#fef2f2' : '#fef3c7');
+                        let sign = t.type === 'import' ? '+' : (t.type === 'export' ? '-' : '');
+                        let reasonLbl = t.type === 'import' ? 'Nhà cung cấp' : (t.type === 'export' ? 'Lý do' : 'Ghi chú');
+                        let codePrefix = t.type === 'check' ? 'Kiểm kê: ' : '';
+                        
+                        let totalQty = t.items.reduce((sum, item) => sum + item.quantityChange, 0);
+                        
+                        html += `<div class="history-item">
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <div style="background:${bg}; color:${color}; padding:5px; border-radius:4px;">${icon}</div>
+                                <div><b style="font-size:0.9rem;">${codePrefix}${t.code}</b><small style="display:block; color:#888;">${reasonLbl}: ${t.reason || 'N/A'}</small></div>
+                            </div>
+                            <div style="text-align:right;">
+                                <b style="color:${color}; font-size:1.1rem;">${sign}${totalQty}</b>
+                                <small style="display:block; color:#888;">${new Date(t.createdAt).toLocaleString('vi-VN')}</small>
+                            </div>
+                        </div>`;
+                    });
+                }
+                document.getElementById('recentTransactions').innerHTML = html;
+            } catch(e) {
+                console.error(e);
+            }
+        };
+
+        window.openModal = async (type, productId = null, currentStock = null) => {
+            document.getElementById('actionModal').style.display = 'flex';
+            document.getElementById('modalType').value = type;
+            document.getElementById('modalProductId').value = productId || '';
+            
+            const title = document.getElementById('modalTitle');
+            const prodSel = document.getElementById('productSelectWrapper');
+            const reasonWr = document.getElementById('reasonWrapper');
+            const lblReason = document.getElementById('lblReason');
+            const lblQty = document.getElementById('lblQuantity');
+            
+            document.getElementById('actionForm').reset();
+            
+            if(type === 'import') {
+                title.innerText = 'Nhập Kho';
+                prodSel.style.display = 'block';
+                reasonWr.style.display = 'block';
+                lblReason.innerText = 'Nhà cung cấp';
+                lblQty.innerText = 'Số lượng nhập';
+                document.getElementById('modalProduct').required = true;
+            } else if (type === 'export') {
+                title.innerText = 'Xuất Kho';
+                prodSel.style.display = 'block';
+                reasonWr.style.display = 'block';
+                lblReason.innerText = 'Lý do xuất (VD: Trả hàng, Hỏng...)';
+                lblQty.innerText = 'Số lượng xuất';
+                document.getElementById('modalProduct').required = true;
+            } else if (type === 'check') {
+                title.innerText = 'Tạo phiếu kiểm kê';
+                prodSel.style.display = 'block';
+                reasonWr.style.display = 'block';
+                lblReason.innerText = 'Ghi chú kiểm kê';
+                lblQty.innerText = 'Tồn kho thực tế';
+                document.getElementById('modalProduct').required = true;
+            } else if (type === 'edit') {
+                title.innerText = 'Chỉnh sửa tồn kho nhanh';
+                prodSel.style.display = 'none';
+                reasonWr.style.display = 'none';
+                lblQty.innerText = 'Tồn kho mới';
+                document.getElementById('modalQuantity').value = currentStock;
+                document.getElementById('modalProduct').required = false;
+            }
+            
+            // Load products if not loaded yet
+            if(type !== 'edit' && document.getElementById('modalProduct').options.length <= 1) {
+                try {
+                    const res = await api('/admin/inventory?limit=500');
+                    if(res && res.products) {
+                        res.products.forEach(p => {
+                            const opt = document.createElement('option');
+                            opt.value = p._id;
+                            opt.text = `${p.sku || p.slug.substring(0,8).toUpperCase()} - ${p.name} (Tồn: ${p.stock})`;
+                            document.getElementById('modalProduct').appendChild(opt);
+                        });
+                    }
+                } catch(e) {}
+            }
+        };
+
+        window.closeModal = () => {
+            document.getElementById('actionModal').style.display = 'none';
+        };
+
+        document.getElementById('actionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const type = document.getElementById('modalType').value;
+            const productId = document.getElementById('modalProductId').value || document.getElementById('modalProduct').value;
+            const qty = document.getElementById('modalQuantity').value;
+            const reason = document.getElementById('modalReason').value;
+            
+            const btn = document.getElementById('btnSubmitModal');
+            btn.disabled = true;
+            btn.innerText = 'Đang xử lý...';
+            
+            try {
+                if(type === 'edit') {
+                    await api(`/admin/inventory/product/${productId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ stock: qty })
+                    });
+                    alert('Cập nhật tồn kho thành công!');
+                } else {
+                    await api('/admin/inventory/transaction', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            type,
+                            reason,
+                            items: [{ product: productId, quantityChange: qty, price: 0 }]
+                        })
+                    });
+                    alert('Tạo phiếu thành công!');
+                }
+                closeModal();
+                loadInventoryPage(1);
+                loadTransactions();
+            } catch(err) {
+                alert(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Xác nhận';
+            }
+        });
+
+        window.loadInventoryPage = async (page = 1) => {
+            try {
+                const data = await api(`/admin/inventory?limit=8&page=${page}`);
+                
+                document.getElementById('statSKU').innerText = data.stats.totalSKU;
+                document.getElementById('statLow').innerText = data.stats.lowStockCount;
+                document.getElementById('statOut').innerText = data.stats.outOfStockCount;
+                document.getElementById('statValue').innerText = data.stats.totalValue.toLocaleString() + 'đ';
+                
+                let pctLow = ((data.stats.lowStockCount / data.stats.totalSKU) * 100 || 0).toFixed(0);
+                let pctOut = ((data.stats.outOfStockCount / data.stats.totalSKU) * 100 || 0).toFixed(0);
+                let pctOk = 100 - pctLow - pctOut;
+                
+                document.getElementById('statLowPct').innerText = pctLow + '% tổng SKU';
+                document.getElementById('statOutPct').innerText = pctOut + '% tổng SKU';
+                document.getElementById('chartTotalItems2').innerText = data.stats.totalSKU;
+                
+                document.getElementById('pctLow').innerText = pctLow + '%';
+                document.getElementById('pctOut').innerText = pctOut + '%';
+                document.getElementById('pctOk').innerText = pctOk + '%';
+
+                // Nhập/Xuất hôm nay từ DB thực
+                document.getElementById('statImportQty').innerText = data.stats.importQty || 0;
+                document.getElementById('statImportValue').innerText = (data.stats.importValue || 0).toLocaleString('vi-VN') + 'đ';
+                document.getElementById('statExportQty').innerText = data.stats.exportQty || 0;
+                document.getElementById('statExportValue').innerText = (data.stats.exportValue || 0).toLocaleString('vi-VN') + 'đ';
+
+                let html = '';
+                let alertHtml = '';
+                let count = 0;
+                data.products.forEach(p => {
+                    let statusCls = 'status-ok';
+                    let statusText = 'Ổn định';
+                    if (p.stock === 0) { statusCls = 'status-danger'; statusText = 'Hết hàng'; }
+                    else if (p.stock <= 20) { statusCls = 'status-warn'; statusText = 'Sắp hết'; }
+                    
+                    let val = p.stock * p.price;
+                    let cat = p.category?.name || 'Không có';
+                    let updated = new Date(p.updatedAt).toLocaleString('vi-VN');
+
+                    html += `<tr>
+                        <td><input type="checkbox"></td>
+                        <td><b style="color:#666;">${p.sku || p.slug.substring(0,8).toUpperCase()}</b></td>
+                        <td style="font-weight:500;">${p.name}</td>
+                        <td>${cat}</td>
+                        <td>Kho Hà Nội</td>
+                        <td><b style="font-size:1.1rem; color:#222;">${p.stock}</b></td>
+                        <td>20</td>
+                        <td><span class="status-badge ${statusCls}">${statusText}</span></td>
+                        <td>${val > 0 ? val.toLocaleString() + 'đ' : '0đ'}</td>
+                        <td style="color:#666; font-size:0.85rem;">${updated}</td>
+                        <td>
+                            <button style="background:none;border:none;cursor:pointer;color:#666;font-size:1.1rem;margin:0 5px;" onclick="openModal('edit', '${p._id}', ${p.stock})" title="Chỉnh sửa tồn kho"><i class="fa-solid fa-pen"></i></button>
+                            <button style="background:none;border:none;cursor:pointer;color:#666;font-size:1.1rem;margin:0 5px;" onclick="window.open('/admin/products.html?search=${p.slug.substring(0,8).toUpperCase()}', '_self')" title="Xem sản phẩm"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
+                        </td>
+                    </tr>`;
+
+                    if(statusCls !== 'status-ok' && count < 5) {
+                        alertHtml += `<div class="alert-item">
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <div style="color:${statusCls==='status-danger'?'#dc2626':'#f97316'};"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                <div><b style="font-size:0.9rem;">${p.name}</b><small>SKU: ${p.sku || p.slug.substring(0,8).toUpperCase()} - Kho Hà Nội</small></div>
+                            </div>
+                            <span class="status-badge ${statusCls}">${statusText} <span style="margin-left:5px;">${p.stock}</span></span>
+                        </div>`;
+                        count++;
+                    }
+                });
+                
+                if(!html) html = '<tr><td colspan="11" style="text-align:center;">Không có sản phẩm nào</td></tr>';
+                if(!alertHtml) alertHtml = '<div style="text-align:center;color:#666;padding:10px;">Không có cảnh báo</div>';
+                
+                document.getElementById('invRows').innerHTML = html;
+                document.getElementById('alertList').innerHTML = alertHtml;
+                
+                let pagerHtml = '';
+                if (data.pages > 1) {
+                    for (let i = 1; i <= data.pages; i++) {
+                        pagerHtml += `<button type="button" onclick="loadInventoryPage(${i})" style="width: 32px; height: 32px; border-radius: 4px; border: 1px solid #ddd; background: ${i === data.page ? '#c48c71' : '#fff'}; color: ${i === data.page ? '#fff' : '#444'}; cursor: pointer;">${i}</button>`;
+                    }
+                }
+                document.getElementById('invPagination').innerHTML = pagerHtml;
+                
+            } catch(e) {
+                document.getElementById('invRows').innerHTML = `<tr><td colspan="11" style="text-align:center; color:red;">${e.message}</td></tr>`;
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.location.pathname === '/admin/inventory.html') {
+                loadInventoryPage(1);
+                loadTransactions();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý liên hệ khách hàng - Casa Decor Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=20260519-contacts">
+</head>
+<body class="admin-page contacts-admin-page">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay về trang chủ Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Admin</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a href="/admin/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a href="/admin/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/admin/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/admin/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/admin/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/admin/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/admin/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung &amp; Marketing</p>
+            <a href="/admin/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/admin/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/admin/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a class="active" href="/admin/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a href="/admin/index.html#inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a href="/admin/index.html#schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+
+            <p>Báo cáo &amp; Thống kê</p>
+            <a href="/admin/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/admin/index.html#settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+
+        <div class="sidebar-decor">
+            <img src="/images/lohoa_decor/lohoa01.jpg" alt="Casa Decor">
+            <b>Casa Decor</b>
+            <span>Elevate your space, Elevate your life.</span>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng...">
+                <kbd>⌘K</kbd>
+            </label>
+            <div class="date-filter">
+                <input id="dateFrom" type="date" aria-label="Từ ngày">
+                <span>-</span>
+                <input id="dateTo" type="date" aria-label="Đến ngày">
+                <button id="reloadDashboard" type="button" aria-label="Tải lại"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <div style="position:relative; display:inline-block;" id="adminNotifWrapper">
+                <button id="adminNotifBtn" class="icon-btn" type="button" aria-label="Thông báo" data-admin-session><i class="fa-regular fa-bell"></i><span data-notify-count>0</span></button>
+                <div id="adminNotifDropdown" class="notif-dropdown" hidden style="position:absolute; top:120%; right:0; width:300px; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,0.1); border-radius:12px; border:1px solid #eee; z-index:1000; text-align:left;">
+                    <div style="padding:12px 16px; border-bottom:1px solid #eee; background:#fafafa; border-radius:12px 12px 0 0;">
+                        <strong>Thông báo gần đây</strong>
+                    </div>
+                    <div id="adminNotifList" style="max-height:300px; overflow-y:auto; background:#fff; border-radius:0 0 12px 12px;">
+                        <div style="padding:15px;text-align:center;color:#666;">Đang tải...</div>
+                    </div>
+                </div>
+            </div>
+            <a class="admin-profile" href="/admin/profile.html" title="Hồ sơ quản trị" data-view="profile" data-admin-session>
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
+            </a>
+            <button id="quickAddBtn" class="quick-add" type="button" data-admin-session><i class="fa-solid fa-plus"></i> Thêm nhanh</button>
+            <div id="quickAddMenu" class="quick-menu" hidden></div>
+        </header>
+
+        <!-- ====== CONTACT MANAGEMENT 3-COLUMN LAYOUT ====== -->
+        <section id="contactManagerView" class="cm-page">
+            <!-- Page Header -->
+            <div class="cm-header">
+                <div>
+                    <h1>Quản lý liên hệ khách hàng</h1>
+                    <p>Theo dõi, phản hồi và xử lý các yêu cầu tư vấn, hỗ trợ và khiếu nại từ khách hàng.</p>
+                </div>
+            </div>
+
+            <!-- KPI Row -->
+            <div class="cm-kpi-row">
+                <div class="cm-kpi-card">
+                    <div class="cm-kpi-icon" style="background:#fff0e6;color:#d4380d;"><i class="fa-solid fa-headset"></i></div>
+                    <div class="cm-kpi-body">
+                        <span class="cm-kpi-label">Tổng liên hệ</span>
+                        <b id="cmStatTotal" class="cm-kpi-value">0</b>
+                        <small class="cm-kpi-change up"><i class="fa-solid fa-arrow-up"></i> so với tuần trước</small>
+                    </div>
+                </div>
+                <div class="cm-kpi-card">
+                    <div class="cm-kpi-icon" style="background:#fff7e6;color:#d46b08;"><i class="fa-regular fa-envelope"></i></div>
+                    <div class="cm-kpi-body">
+                        <span class="cm-kpi-label">Chưa phản hồi</span>
+                        <b id="cmStatPending" class="cm-kpi-value">0</b>
+                        <small class="cm-kpi-change">Cần xử lý sớm</small>
+                    </div>
+                </div>
+                <div class="cm-kpi-card">
+                    <div class="cm-kpi-icon" style="background:#e6f7ff;color:#1890ff;"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div class="cm-kpi-body">
+                        <span class="cm-kpi-label">Đang xử lý</span>
+                        <b id="cmStatProcessing" class="cm-kpi-value">0</b>
+                        <small class="cm-kpi-change">Đang phản hồi</small>
+                    </div>
+                </div>
+                <div class="cm-kpi-card">
+                    <div class="cm-kpi-icon" style="background:#f6ffed;color:#52c41a;"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="cm-kpi-body">
+                        <span class="cm-kpi-label">Hoàn tất hôm nay</span>
+                        <b id="cmStatResolvedToday" class="cm-kpi-value">0</b>
+                        <small class="cm-kpi-change">Đã phản hồi hôm nay</small>
+                    </div>
+                </div>
+                <div class="cm-kpi-card">
+                    <div class="cm-kpi-icon" style="background:#f6ffed;color:#237804;"><i class="fa-solid fa-bullseye"></i></div>
+                    <div class="cm-kpi-body">
+                        <span class="cm-kpi-label">SLA đúng hạn</span>
+                        <b id="cmStatSla" class="cm-kpi-value">0%</b>
+                        <small class="cm-kpi-change">Tỷ lệ xử lý</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3-Column Body -->
+            <div class="cm-body">
+                <!-- LEFT: Contact List -->
+                <div class="cm-col-left">
+                    <!-- Tabs -->
+                    <div class="cm-tabs">
+                        <button class="cm-tab active" data-filter="all" onclick="cmFilterTab(this)">Tất cả <span id="cmTabAll">0</span></button>
+                        <button class="cm-tab" data-filter="pending" onclick="cmFilterTab(this)">Chưa phản hồi <span id="cmTabPending">0</span></button>
+                        <button class="cm-tab" data-filter="processing" onclick="cmFilterTab(this)">Đang xử lý <span id="cmTabProcessing">0</span></button>
+                        <button class="cm-tab" data-filter="resolved" onclick="cmFilterTab(this)">Đã đóng <span id="cmTabResolved">0</span></button>
+                        <button class="cm-tab" data-filter="high" onclick="cmFilterTab(this)">Ưu tiên cao <span id="cmTabHigh">0</span></button>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="cm-search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input id="cmSearchInput" type="search" placeholder="Tìm theo tên khách, email, SĐT, mã ticket...">
+                        <button class="cm-filter-btn" type="button" aria-label="Mở bộ lọc nhanh" title="Bộ lọc nhanh">
+                            <i class="fa-solid fa-sliders"></i>
+                        </button>
+                    </div>
+
+                    <!-- Contact List -->
+                    <div class="cm-contact-list" id="cmContactList">
+                        <div class="cm-list-empty"><i class="fa-solid fa-inbox"></i><p>Đang tải dữ liệu liên hệ...</p></div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="cm-pagination">
+                        <div class="cm-pager-buttons" id="cmPager"></div>
+                        <select id="cmPageSize" onchange="cmChangePageSize(this.value)">
+                            <option value="10">10 / trang</option>
+                            <option value="20" selected>20 / trang</option>
+                            <option value="50">50 / trang</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- CENTER: Conversation Detail -->
+                <div class="cm-col-center" id="cmDetailPanel">
+                    <div class="cm-detail-empty" id="cmDetailEmpty">
+                        <i class="fa-regular fa-comments"></i>
+                        <h3>Chọn một liên hệ để xem chi tiết</h3>
+                        <p>Nhấn vào liên hệ bên trái để xem nội dung và phản hồi</p>
+                    </div>
+
+                    <!-- Detail Header (hidden initially) -->
+                    <div class="cm-detail-content" id="cmDetailContent" style="display:none;">
+                        <div class="cm-detail-header">
+                            <div class="cm-detail-title">
+                                <h2><span id="cmDetailSubject">Yêu cầu đổi địa chỉ giao hàng</span> <span id="cmDetailTicket" class="cm-detail-ticket">#LH2048</span></h2>
+                                <div class="cm-detail-badges">
+                                    <span class="cm-priority-badge high" id="cmDetailPriority">● Ưu tiên cao</span>
+                                    <button class="cm-more-btn" title="Thêm tùy chọn"><i class="fa-solid fa-ellipsis"></i></button>
+                                </div>
+                            </div>
+                            <div class="cm-detail-profile-card">
+                                <div class="cm-detail-customer-info">
+                                    <div class="cm-cust-avatar" id="cmDetailAvatar">NA</div>
+                                    <div class="cm-cust-meta">
+                                        <b id="cmDetailName">Nguyễn Minh Anh</b>
+                                        <div class="cm-cust-chips">
+                                            <span><i class="fa-regular fa-envelope"></i> <span id="cmDetailEmail">email@email.com</span></span>
+                                            <span><i class="fa-solid fa-phone"></i> <span id="cmDetailPhone">0987 654 321</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="cm-info-grid">
+                                    <div class="cm-info-col">
+                                        <span class="cm-info-label">Kênh liên hệ</span>
+                                        <span class="cm-info-value" id="cmDetailSource"><i class="fa-solid fa-globe" style="color:#1890ff"></i> Website</span>
+                                    </div>
+                                    <div class="cm-info-col">
+                                        <span class="cm-info-label">Mức ưu tiên</span>
+                                        <span class="cm-info-value dot-red" id="cmDetailPriorityTag">Ưu tiên cao</span>
+                                    </div>
+                                    <div class="cm-info-col">
+                                        <span class="cm-info-label">Trạng thái</span>
+                                        <span class="cm-info-value dot-orange" id="cmDetailStatusTag">Chưa phản hồi</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conversation Thread -->
+                        <div class="cm-conversation" id="cmConversation">
+                            <!-- Messages rendered by JS -->
+                        </div>
+
+                        <!-- Related Info -->
+                        <div class="cm-related-info" id="cmRelatedInfo" style="display:none;">
+                            <span>Đơn hàng liên quan: <b id="cmRelatedOrder"></b></span>
+                        </div>
+
+                        <!-- Reply Box -->
+                        <div class="cm-reply-section">
+                            <div class="cm-reply-tabs">
+                                <button class="cm-reply-tab active" onclick="cmSwitchReplyTab(this, 'reply')">Trả lời</button>
+                                <button class="cm-reply-tab" onclick="cmSwitchReplyTab(this, 'note')">Ghi chú nội bộ</button>
+                            </div>
+                            <div class="cm-reply-input">
+                                <textarea id="cmReplyText" placeholder="Nhập phản hồi cho khách hàng..." rows="3"></textarea>
+                                <div class="cm-reply-actions">
+                                    <div class="cm-reply-tools">
+                                        <button type="button" title="Đính kèm file" onclick="cmTriggerAttachment()"><i class="fa-solid fa-paperclip"></i></button>
+                                        <button type="button" title="Chèn emoji" onclick="cmInsertEmoji()"><i class="fa-regular fa-face-smile"></i></button>
+                                        <button type="button" title="Mẫu phản hồi nhanh" onclick="cmInsertReplyTemplate()"><i class="fa-solid fa-list-check"></i></button>
+                                        <input id="cmAttachmentInput" type="file" hidden onchange="cmHandleAttachment(this)">
+                                    </div>
+                                    <button class="cm-send-btn" type="button" onclick="cmSendReply()">Gửi phản hồi <i class="fa-solid fa-paper-plane"></i></button>
+                                </div>
+                            </div>
+
+                            <!-- Bottom Actions -->
+                            <div class="cm-bottom-actions">
+                                <button class="cm-action-btn secondary" type="button" onclick="cmTransferContact()"><i class="fa-solid fa-share"></i> Chuyển bộ phận</button>
+                                <button class="cm-action-btn danger" type="button" onclick="cmCloseContact()"><i class="fa-solid fa-lock"></i> Đóng yêu cầu</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Quick Filters & Stats -->
+                <div class="cm-col-right">
+                    <!-- Today's Work -->
+                    <div class="cm-right-card">
+                        <div class="cm-right-card-header">
+                            <b>Việc cần xử lý hôm nay</b>
+                            <a href="#" class="cm-see-all">Xem tất cả</a>
+                        </div>
+                        <div class="cm-today-items">
+                            <div class="cm-today-item">
+                                <div class="cm-today-icon" style="background:#fff7e6;color:#d46b08;"><i class="fa-regular fa-envelope"></i></div>
+                                <div>
+                                    <b id="cmTodayPending">0</b>
+                                    <span>Ticket chưa phản hồi</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </div>
+                            <div class="cm-today-item">
+                                <div class="cm-today-icon" style="background:#fff1f0;color:#cf1322;"><i class="fa-solid fa-flag"></i></div>
+                                <div>
+                                    <b id="cmTodayHighPriority">0</b>
+                                    <span>Ticket ưu tiên cao</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </div>
+                            <div class="cm-today-item">
+                                <div class="cm-today-icon" style="background:#e6f7ff;color:#1890ff;"><i class="fa-regular fa-comment-dots"></i></div>
+                                <div>
+                                    <b id="cmTodayProcessing">0</b>
+                                    <span>Yêu cầu đổi / trả hàng</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Filter by Category -->
+                    <div class="cm-right-card">
+                        <div class="cm-right-card-header">
+                            <b>Bộ lọc nhanh</b>
+                        </div>
+                        <div class="cm-quick-filters" id="cmQuickFilters">
+                            <button class="cm-qf-item active" data-cat="all" onclick="cmQuickFilter(this)">
+                                <span>Tất cả</span>
+                                <b id="cmQfAll">0</b>
+                            </button>
+                            <button class="cm-qf-item" data-cat="pending" onclick="cmQuickFilter(this)">
+                                <span>Chưa phản hồi</span>
+                                <b id="cmQfPending">0</b>
+                            </button>
+                            <button class="cm-qf-item" data-cat="consulting" onclick="cmQuickFilter(this)">
+                                <span>Tư vấn mua hàng</span>
+                                <b id="cmQfConsulting">0</b>
+                            </button>
+                            <button class="cm-qf-item" data-cat="complaint" onclick="cmQuickFilter(this)">
+                                <span>Khiếu nại</span>
+                                <b id="cmQfComplaint">0</b>
+                            </button>
+                            <button class="cm-qf-item" data-cat="warranty" onclick="cmQuickFilter(this)">
+                                <span>Bảo hành</span>
+                                <b id="cmQfWarranty">0</b>
+                            </button>
+                            <button class="cm-qf-item" data-cat="feedback" onclick="cmQuickFilter(this)">
+                                <span>Góp ý</span>
+                                <b id="cmQfFeedback">0</b>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Response Time -->
+                    <div class="cm-right-card">
+                        <div class="cm-right-card-header">
+                            <b>Thời gian phản hồi trung bình</b>
+                        </div>
+                        <div class="cm-response-time">
+                            <small>Hôm nay ▼</small>
+                            <div class="cm-time-big" id="cmAvgTime">12 phút</div>
+                            <small class="cm-time-change up"><i class="fa-solid fa-arrow-down"></i> 3 phút so với hôm qua</small>
+                        </div>
+                        <div class="cm-mini-chart" id="cmMiniChart">
+                            <canvas id="cmChartCanvas" width="260" height="80"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    
+    <section id="authGate" class="auth-gate" hidden>
+        <div>
+            <i class="fa-solid fa-lock"></i>
+            <h1>Cần đăng nhập tài khoản admin</h1>
+            <p>Đăng nhập bằng tài khoản có quyền admin để xem Dashboard Casa Decor.</p>
+            <a id="adminLoginLink" href="/customers/login.html?redirect=/admin/contacts.html">Đăng nhập</a>
+        </div>
+    </section>
+
+    <div id="adminModal" class="admin-modal" hidden>
+        <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+            <button class="modal-close" type="button" data-action="modal-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            <h2 id="adminModalTitle"></h2>
+            <div id="adminModalBody"></div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js?v=20260519-contacts"></script>
+    <script src="/js/admin.js?v=20260519-contacts"></script>
+    <script src="/js/contacts.js?v=20260519-contacts"></script>
+</body>
+</html>

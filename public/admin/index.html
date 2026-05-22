@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa Decor Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=20260516-9">
+</head>
+<body class="admin-page">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay v? trang ch? Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Admin</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a class="active" href="/admin/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a href="/admin/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/admin/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/admin/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/admin/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/admin/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/admin/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung & Marketing</p>
+            <a href="/admin/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/admin/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/admin/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/admin/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a href="/admin/inventory.html" data-view="inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a href="/admin/schedule.html" data-view="schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+
+            <p>Báo cáo & Thống kê</p>
+            <a href="/admin/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/admin/index.html#settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+
+        <div class="sidebar-decor">
+            <img src="/images/lohoa_decor/lohoa01.jpg" alt="Casa Decor">
+            <b>Casa Decor</b>
+            <span>Elevate your space, Elevate your life.</span>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng...">
+                <kbd>⌘K</kbd>
+            </label>
+            <div class="date-filter">
+                <input id="dateFrom" type="date" aria-label="Từ ngày">
+                <span>-</span>
+                <input id="dateTo" type="date" aria-label="Đến ngày">
+                <button id="reloadDashboard" type="button" aria-label="Tải lại"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <div style="position:relative; display:inline-block;" id="adminNotifWrapper">
+                <button id="adminNotifBtn" class="icon-btn" type="button" aria-label="Thông báo" data-admin-session><i class="fa-regular fa-bell"></i><span data-notify-count>0</span></button>
+                <div id="adminNotifDropdown" class="notif-dropdown" hidden style="position:absolute; top:120%; right:0; width:300px; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,0.1); border-radius:12px; border:1px solid #eee; z-index:1000; text-align:left;">
+                    <div style="padding:12px 16px; border-bottom:1px solid #eee; background:#fafafa; border-radius:12px 12px 0 0; display:flex; justify-content:space-between; align-items:center;">
+                        <strong>Thông báo gần đây</strong>
+                        <button type="button" onclick="markAllNotifsRead()" style="background:none; border:none; color:var(--admin-primary); font-size:0.8rem; cursor:pointer;">Đã đọc hết</button>
+                    </div>
+                    <div id="adminNotifList" style="max-height:300px; overflow-y:auto; background:#fff; border-radius:0 0 12px 12px;">
+                        <div style="padding:15px;text-align:center;color:#666;">Đang tải...</div>
+                    </div>
+                </div>
+            </div>
+            <a class="admin-profile" href="/admin/profile.html" title="M? h? so qu?n tr?" data-view="profile" data-admin-session>
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
+            </a>
+            <button id="quickAddBtn" class="quick-add" type="button" data-admin-session><i class="fa-solid fa-plus"></i> Thêm nhanh</button>
+            <div id="quickAddMenu" class="quick-menu" hidden></div>
+        </header>
+
+        <section id="authGate" class="auth-gate" hidden>
+            <div>
+                <i class="fa-solid fa-lock"></i>
+                <h1>Cần đăng nhập tài khoản admin</h1>
+                <p>Đăng nhập bằng tài khoản có quyền admin để xem Dashboard Casa Decor.</p>
+                <a id="adminLoginLink" href="/customers/login.html?redirect=/admin/index.html">Đăng nhập</a>
+            </div>
+        </section>
+
+        <section id="dashboardRoot" class="dashboard-root">
+            <section class="kpi-grid" id="kpiGrid"></section>
+
+            <section class="overview-grid">
+                <article class="panel revenue-panel">
+                    <div class="panel-head">
+                        <div><h2>Doanh thu theo ngày / tháng</h2><p id="chartCaption">Theo khoảng thời gian đã chọn</p></div>
+                        <div class="segmented">
+                            <button class="active" type="button" data-chart-mode="day">Theo ngày</button>
+                            <button type="button" data-chart-mode="month">Theo tháng</button>
+                        </div>
+                    </div>
+                    <canvas id="revenueChart" height="230" aria-label="Biểu đồ doanh thu"></canvas>
+                </article>
+
+                <article class="panel status-panel">
+                    <div class="panel-head">
+                        <div><h2>Tổng quan trạng thái đơn hàng</h2><p id="orderTotalText">0 đơn hàng</p></div>
+                        <select id="statusScope" aria-label="Bộ lọc trạng thái"><option>Tất cả kênh</option></select>
+                    </div>
+                    <div class="status-body">
+                        <div id="orderStatuses" class="status-list"></div>
+                        <div class="status-summary">
+                            <b>Tỷ lệ đơn hoàn thành</b>
+                            <div class="ring" id="completionRing">
+                                <span>0%</span>
+                                <small id="completionText">Trong kỳ đang xem</small>
+                            </div>
+                            <div class="status-total-card">
+                                <span>Tổng đơn hàng</span>
+                                <strong id="orderTotalMetric">0</strong>
+                                <small>↑ Theo dữ liệu thực tế</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="status-insights" id="statusInsights"></div>
+                </article>
+
+                <aside class="panel quick-panel">
+                    <div class="panel-head"><div><h2>Thao tác nhanh</h2><p>Module thường dùng</p></div></div>
+                    <div class="quick-grid" id="quickActions"></div>
+                    <div class="quick-panel-extra" id="quickPanelExtra"></div>
+                </aside>
+            </section>
+
+            <section class="middle-grid">
+                <article class="table-panel panel" id="orders">
+                    <div class="panel-head">
+                        <div><h2>Đơn hàng gần đây</h2><p>Dùng mã đơn thực tế của hệ thống Casa Decor</p></div>
+                        <button class="ghost-btn" type="button" data-action="orders">Xem tất cả đơn hàng <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th>Ngày đặt</th><th>Hành động</th></tr></thead>
+                            <tbody id="recentOrders"></tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="panel" id="inventory">
+                    <div class="panel-head"><div><h2>Tồn kho cần chú ý</h2><p>Sắp xếp theo số lượng tồn thấp</p></div><button class="link-btn" type="button">Xem tất cả</button></div>
+                    <div id="inventoryList" class="item-list"></div>
+                </article>
+            </section>
+
+            <section class="lower-grid">
+                <article class="panel" id="products">
+                    <div class="panel-head"><div><h2>Sản phẩm bán chạy</h2><p>Theo dữ liệu đã bán</p></div><button class="link-btn" type="button">Xem tất cả</button></div>
+                    <div id="bestSellerList" class="item-list"></div>
+                </article>
+
+                <article class="panel" id="reviews">
+                    <div class="panel-head"><div><h2>Đánh giá cần duyệt</h2><p>Ưu tiên đánh giá đang chờ</p></div><button class="link-btn" type="button">Xem tất cả</button></div>
+                    <div id="reviewList" class="review-list"></div>
+                </article>
+
+                <article class="panel" id="contacts">
+                    <div class="panel-head"><div><h2>Liên hệ / phản hồi mới</h2><p>Khách hàng cần hỗ trợ</p></div><button class="link-btn" type="button">Xem tất cả</button></div>
+                    <div id="contactList" class="contact-list"></div>
+                </article>
+
+                <article class="panel promo-panel" id="promotions">
+                    <div class="panel-head"><div><h2>Hiệu quả khuyến mãi</h2><p>Doanh thu từ mã giảm giá</p></div><button class="link-btn" type="button">Xem báo cáo</button></div>
+                    <div id="promoSummary"></div>
+                </article>
+            </section>
+        </section>
+
+            </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <div id="adminModal" class="admin-modal" hidden>
+        <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+            <button class="modal-close" type="button" data-action="modal-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            <h2 id="adminModalTitle"></h2>
+            <div id="adminModalBody"></div>
+        </div>
+    </div>
+    <div id="aiChatboxFloat" style="position:fixed; bottom:30px; right:30px; z-index:9999; cursor:pointer;" aria-label="AI Assistant" title="Trợ lý AI (Sắp ra mắt)">
+        <div style="width:55px; height:55px; background:linear-gradient(135deg, #c48c71 0%, #9e6b50 100%); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 15px rgba(158, 107, 80, 0.4); transition:transform 0.3s; animation: pulseBot 2s infinite;">
+            <i class="fa-solid fa-robot" style="color:#fff; font-size:1.6rem;"></i>
+        </div>
+    </div>
+    <style>
+        @keyframes pulseBot {
+            0% { box-shadow: 0 0 0 0 rgba(158, 107, 80, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(158, 107, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(158, 107, 80, 0); }
+        }
+        #aiChatboxFloat:hover div { transform: scale(1.1) translateY(-5px); }
+    </style>
+    <script src="/js/admin.js?v=20260516-9"></script>
+</body>
+</html>
+
+

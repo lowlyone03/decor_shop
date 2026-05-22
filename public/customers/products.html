@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sản phẩm - Casa Decor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="products-page">
+    <div class="topbar">
+        <div class="wrap topbar-inner">
+            <span><i class="fa-solid fa-truck-fast"></i> Miễn phí vận chuyển cho đơn hàng từ 1.000.000đ</span>
+            <span><i class="fa-solid fa-phone"></i> Hotline: 0336881795 <b></b> <i class="fa-solid fa-location-dot"></i> GS1 VinhomeSmartCity Tây Mỗ</span>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="wrap hd-inner">
+            <a href="/customers/index.html" class="logo">
+                <span class="logo-mark" aria-hidden="true"><i class="fa-solid fa-house-chimney-window"></i></span>
+                <span><span class="lg-name">Casa Decor</span><span class="lg-sub">DECOR FOR YOUR HOME</span></span>
+            </a>
+
+            <nav class="nav" aria-label="Menu chính">
+                <a href="/customers/index.html">Trang chủ</a>
+                <a href="/customers/products.html" class="on">Sản phẩm <i class="fa-solid fa-chevron-down"></i></a>
+                <a href="/customers/collections.html">Bộ sưu tập</a>
+                <a href="/customers/promotions.html">Khuyến mãi</a>
+                <a href="/customers/blog.html">Blog</a>
+                <a href="/customers/contact.html">Liên hệ</a>
+            </nav>
+
+            <div class="hd-right">
+                <label class="srch">
+                    <input id="headerSearch" type="text" placeholder="Tìm kiếm sản phẩm...">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </label>
+                <div class="hd-icons">
+                    <a href="/customers/profile.html" aria-label="Tài khoản"><i class="fa-regular fa-user"></i></a>
+                    <a href="/customers/wishlist.html" aria-label="Yêu thích"><i class="fa-regular fa-heart"></i><span class="cbadge" data-wish-count>0</span></a>
+                    <a href="/customers/cart.html" class="cart-a" aria-label="Giỏ hàng"><i class="fa-solid fa-cart-shopping"></i><span class="cbadge" data-cart-count>0</span></a>
+                </div>
+                <div class="mini-actions" data-user-slot></div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="shop-hero">
+            <img src="/images/den_decor/01-den-ban-gom-aurum-beige.jpg" alt="" fetchpriority="high" decoding="async">
+            <div class="shop-hero-copy">
+                <h1>Đèn decor</h1>
+                <p>Khám phá bộ sưu tập đèn decor tinh tế, mang ánh sáng ấm áp và phong cách cho không gian sống của bạn.</p>
+            </div>
+        </section>
+
+        <section class="wrap shop-shell">
+            <form id="filtersForm" class="shop-sidebar">
+                <input type="hidden" name="page" value="1">
+                <input type="hidden" name="limit" value="10">
+                <input type="hidden" name="q">
+
+                <div class="filter-block">
+                    <button class="filter-head" type="button">Danh mục <i class="fa-solid fa-chevron-up"></i></button>
+                    <div class="filter-options" data-category-filter>
+                        <label><input type="radio" name="category" value="" checked> Tất cả sản phẩm</label>
+                    </div>
+                </div>
+
+                <div class="filter-block">
+                    <button class="filter-head" type="button">Khoảng giá <i class="fa-solid fa-chevron-up"></i></button>
+                    <div class="price-line">
+                        <input name="minPrice" type="number" min="0" placeholder="490.000đ">
+                        <span>-</span>
+                        <input name="maxPrice" type="number" min="0" placeholder="5.000.000đ">
+                    </div>
+                </div>
+
+                <div class="filter-block">
+                    <button class="filter-head" type="button">Đánh giá <i class="fa-solid fa-chevron-up"></i></button>
+                    <div class="rating-filter" aria-hidden="true">
+                        <span>★★★★★ <small>(28)</small></span>
+                        <span>★★★★★ <small>(64)</small></span>
+                        <span>★★★★★ <small>(48)</small></span>
+                        <span>★★★★★ <small>(36)</small></span>
+                        <span>★★★★★ <small>(16)</small></span>
+                    </div>
+                </div>
+
+                <div class="filter-block">
+                    <button class="filter-head" type="button">Chất liệu <i class="fa-solid fa-chevron-up"></i></button>
+                    <label><input type="radio" name="material" value="" checked> Tất cả chất liệu</label>
+                    <label><input type="radio" name="material" value="gốm"> Gốm sứ</label>
+                    <label><input type="radio" name="material" value="gỗ"> Gỗ tự nhiên</label>
+                    <label><input type="radio" name="material" value="thủy tinh"> Thủy tinh</label>
+                    <label><input type="radio" name="material" value="kim loại"> Kim loại</label>
+                </div>
+
+                <div class="filter-block">
+                    <button class="filter-head" type="button">Tình trạng <i class="fa-solid fa-chevron-up"></i></button>
+                    <label><input type="checkbox" checked disabled> Còn hàng <b>110</b></label>
+                    <label><input type="checkbox" disabled> Sắp hết hàng <b>16</b></label>
+                    <label><input type="checkbox" disabled> Hết hàng <b>2</b></label>
+                </div>
+            </form>
+
+            <div class="shop-content">
+                <div class="shop-toolbar">
+                    <p id="resultCount">Đang tải sản phẩm...</p>
+                    <div class="toolbar-actions">
+                        <label>Sắp xếp:
+                            <select name="sort" form="filtersForm">
+                                <option value="newest">Mới nhất</option>
+                                <option value="best_selling">Bán chạy</option>
+                                <option value="price_asc">Giá tăng dần</option>
+                                <option value="price_desc">Giá giảm dần</option>
+                                <option value="rating">Đánh giá cao</option>
+                            </select>
+                        </label>
+                        <span class="view-icon on"><i class="fa-solid fa-grip"></i></span>
+                        <span class="view-icon"><i class="fa-solid fa-list"></i></span>
+                    </div>
+                </div>
+
+                <section id="productsGrid" class="shop-grid refined-grid"></section>
+                <nav id="productsPagination" class="shop-pagination" aria-label="Phân trang sản phẩm"></nav>
+            </div>
+        </section>
+
+        <section class="nwsltr">
+            <div class="wrap nw-inner">
+                <div class="nw-left">
+                    <div class="nw-ico"><i class="fa-regular fa-envelope"></i></div>
+                    <div>
+                        <strong>Đăng ký nhận bản tin</strong>
+                        <small>Nhận ngay ưu đãi độc quyền và cập nhật xu hướng decor mới nhất.</small>
+                    </div>
+                </div>
+                <form class="nw-form"><input type="email" placeholder="Nhập email của bạn..."><button type="submit">Đăng ký</button></form>
+                <div class="trust">
+                    <div class="ti"><i class="fa-solid fa-truck-fast"></i><div><b>Miễn phí vận chuyển</b><small>Cho đơn hàng từ 1.000.000đ</small></div></div>
+                    <div class="ti"><i class="fa-solid fa-rotate-left"></i><div><b>Đổi trả dễ dàng</b><small>Trong vòng 7 ngày</small></div></div>
+                    <div class="ti"><i class="fa-solid fa-award"></i><div><b>Sản phẩm chất lượng</b><small>Cam kết chính hãng</small></div></div>
+                    <div class="ti"><i class="fa-regular fa-credit-card"></i><div><b>Thanh toán an toàn</b><small>Bảo mật & nhanh chóng</small></div></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="wrap ft-inner">
+            <div class="fc brand">
+                <a href="/customers/index.html" class="logo">
+                    <span class="logo-mark"><i class="fa-solid fa-house-chimney-window"></i></span>
+                    <span><span class="lg-name">Casa Decor</span><span class="lg-sub">DECOR FOR YOUR HOME</span></span>
+                </a>
+                <p>Mang đến những sản phẩm decor tinh tế và chất lượng, giúp bạn tạo nên không gian sống đẹp và đầy cảm hứng.</p>
+                <div class="socials"><a href="https://www.facebook.com/TriThucmeimei" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a><a href="https://www.instagram.com/trithuc_pi/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="https://zalo.me/0336881795" target="_blank" rel="noopener" class="zalo-link" aria-label="Zalo"></a></div>
+            </div>
+            <div class="fc"><h5>VỀ CHÚNG TÔI</h5><a href="#">Giới thiệu</a><a href="#">Hệ thống cửa hàng</a><a href="#">Tuyển dụng</a><a href="#">Tin tức</a></div>
+            <div class="fc"><h5>CHÍNH SÁCH</h5><a href="#">Chính sách thanh toán</a><a href="#">Chính sách vận chuyển</a><a href="#">Chính sách đổi trả</a><a href="#">Chính sách bảo mật</a></div>
+            <div class="fc"><h5>HỖ TRỢ KHÁCH HÀNG</h5><a href="#">Hướng dẫn mua hàng</a><a href="#">Câu hỏi thường gặp</a><a href="#">Liên hệ hỗ trợ</a><a href="#">Bảo hành & sửa chữa</a></div>
+            <div class="fc"><h5>KẾT NỐI VỚI CHÚNG TÔI</h5><p><i class="fa-solid fa-phone"></i> Hotline: 0336881795</p><p><i class="fa-solid fa-envelope"></i> Email: nguyentrithuc2703205@gmail.com</p><p><i class="fa-regular fa-clock"></i> Thời gian: 8:00 - 22:00</p></div>
+        </div>
+        <div class="ft-bot wrap"><span>© 2026 For NguyenTriThuc và PhuongAnh</span><span class="pay">VISA · Mastercard · NAPAS247 · ZaloPay</span></div>
+    </footer>
+
+    
+    <!-- Zalo floating button -->
+    <a href="https://zalo.me/0336881795" id="zaloFloatBtn" class="zalo-float" target="_blank" rel="noopener" aria-label="Liên hệ Zalo">
+        <span class="zalo-float-label">Nhắn tin Zalo</span>
+        <span class="zalo-float-core">Zalo</span>
+    </a>
+    <script src="/js/shop.js"></script>
+</body>
+
+</html>
