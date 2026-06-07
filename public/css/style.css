@@ -1357,6 +1357,10 @@ nav,
     letter-spacing: 1px;
 }
 
+.fc {
+    min-width: 0;
+}
+
 .fc h5 {
     margin-bottom: 7px;
     color: #332d29;
@@ -1371,6 +1375,8 @@ nav,
     color: #746961;
     font-size: 11px;
     line-height: 1.35;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .brand p {

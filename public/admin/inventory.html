@@ -6,7 +6,7 @@
     <title>Quản lý tồn kho - Casa Decor Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/admin.css?v=20260514-7">
+    <link rel="stylesheet" href="/css/admin.css?v=1780630161582">
     <style>
         /* ===== STATS GRID ===== */
         .inv-stats-grid {
@@ -231,11 +231,11 @@
             <a href="/admin/schedule.html" data-view="schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
 
             <p>Báo cáo & Thống kê</p>
-            <a href="/admin/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+            <a href="/admin/reports.html"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
 
             <p>Hệ thống</p>
             <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
-            <a href="/admin/index.html#settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+            <a href="/admin/settings.html"><i class="fa-solid fa-gear"></i> Cài đặt</a>
         </nav>
     </aside>
 
@@ -486,7 +486,7 @@
         </section>
     </main>
 
-    <script src="/js/admin.js?v=20260514-7"></script>
+    <script src="/js/admin.js?v=1780630161582"></script>
     <script>
         window.loadTransactions = async () => {
             try {
@@ -720,6 +720,102 @@
                 loadTransactions();
             }
         });
+
+        // ===== EXPORT FUNCTIONS =====
+        window.toggleExportMenu = () => {
+            const menu = document.getElementById('exportMenu');
+            if (menu) menu.classList.toggle('open');
+        };
+
+        // Đóng dropdown khi click ra ngoài
+        document.addEventListener('click', (e) => {
+            const wrap = e.target.closest('.export-wrap');
+            if (!wrap) {
+                const menu = document.getElementById('exportMenu');
+                if (menu) menu.classList.remove('open');
+            }
+        });
+
+        function downloadCSV(rows, filename) {
+            const csv = '\uFEFF' + rows.map(r => r.map(v => {
+                const s = String(v ?? '');
+                return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+            }).join(',')).join('\r\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        window.exportCSV = async () => {
+            try {
+                document.getElementById('exportMenu')?.classList.remove('open');
+                const data = await api('/admin/inventory?limit=500');
+                if (!data.products || !data.products.length) {
+                    alert('Không có dữ liệu tồn kho để xuất.');
+                    return;
+                }
+                const rows = [['STT', 'Mã SP', 'Tên sản phẩm', 'Danh mục', 'Tồn kho', 'Đơn giá (VND)', 'Giá trị (VND)', 'Trạng thái', 'Cập nhật']];
+                data.products.forEach((p, i) => {
+                    const status = p.stock === 0 ? 'Hết hàng' : (p.stock <= 20 ? 'Sắp hết' : 'Ổn định');
+                    rows.push([
+                        i + 1,
+                        p.sku || (p.slug ? p.slug.substring(0, 8).toUpperCase() : ''),
+                        p.name,
+                        p.category?.name || 'Không có',
+                        p.stock,
+                        p.price || 0,
+                        (p.stock || 0) * (p.price || 0),
+                        status,
+                        new Date(p.updatedAt).toLocaleString('vi-VN')
+                    ]);
+                });
+                const ts = new Date().toISOString().slice(0, 10);
+                downloadCSV(rows, `casa-ton-kho-${ts}.csv`);
+            } catch (e) {
+                alert('Lỗi khi xuất CSV: ' + e.message);
+            }
+        };
+
+        window.exportTransactionsCSV = async () => {
+            try {
+                document.getElementById('exportMenu')?.classList.remove('open');
+                const trans = await api('/admin/inventory/transactions');
+                if (!trans || !trans.length) {
+                    alert('Chưa có giao dịch nào để xuất.');
+                    return;
+                }
+                const typeLabel = { import: 'Nhập kho', export: 'Xuất kho', check: 'Kiểm kê' };
+                const rows = [['STT', 'Mã phiếu', 'Loại', 'Lý do / Ghi chú', 'Tổng số lượng', 'Số mặt hàng', 'Thời gian']];
+                trans.forEach((t, i) => {
+                    const totalQty = (t.items || []).reduce((sum, it) => sum + (it.quantityChange || 0), 0);
+                    rows.push([
+                        i + 1,
+                        t.code || '',
+                        typeLabel[t.type] || t.type,
+                        t.reason || '',
+                        totalQty,
+                        (t.items || []).length,
+                        new Date(t.createdAt).toLocaleString('vi-VN')
+                    ]);
+                });
+                const ts = new Date().toISOString().slice(0, 10);
+                downloadCSV(rows, `casa-giao-dich-kho-${ts}.csv`);
+            } catch (e) {
+                alert('Lỗi khi xuất CSV: ' + e.message);
+            }
+        };
+
+        window.exportPDF = () => {
+            document.getElementById('exportMenu')?.classList.remove('open');
+            // Dùng print dialog của trình duyệt → user có thể chọn "Save as PDF"
+            window.print();
+        };
     </script>
 </body>
 </html>

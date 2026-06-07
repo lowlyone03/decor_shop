@@ -6,7 +6,7 @@
     <title>Lịch chia ca nhân viên - Casa Decor Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/admin.css?v=20260514-7">
+    <link rel="stylesheet" href="/css/admin.css?v=1780630161587">
     <style>
         /* Add basic inline styles to match the provided image closely before updating CSS file */
         .schedule-stats-grid {
@@ -133,11 +133,11 @@
             <a class="active" href="/admin/schedule.html" data-view="schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
 
             <p>Báo cáo & Thống kê</p>
-            <a href="/admin/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+            <a href="/admin/reports.html"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
 
             <p>Hệ thống</p>
             <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
-            <a href="/admin/index.html#settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+            <a href="/admin/settings.html"><i class="fa-solid fa-gear"></i> Cài đặt</a>
         </nav>
     </aside>
 
@@ -167,9 +167,9 @@
                     <p style="color:#666;">Quản lý và phân bổ ca làm việc cho nhân viên theo tuần.</p>
                 </div>
                 <div class="manager-actions">
-                    <button class="primary-action" type="button" style="background:#c48c71; color:#fff; border:none; padding:10px 15px; border-radius:6px; font-weight:600;"><i class="fa-solid fa-plus"></i> Tạo ca làm</button>
-                    <button class="secondary-action" type="button" style="background:#fff; border:1px solid #ddd; padding:10px 15px; border-radius:6px;"><i class="fa-solid fa-wand-magic-sparkles"></i> Phân ca tự động</button>
-                    <button class="secondary-action" type="button" style="background:#fff; border:1px solid #ddd; padding:10px 15px; border-radius:6px;"><i class="fa-solid fa-download"></i> Xuất lịch</button>
+                    <button id="btnCreateShift" class="primary-action" type="button" style="background:#c48c71; color:#fff; border:none; padding:10px 15px; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fa-solid fa-plus"></i> Tạo ca làm</button>
+                    <button id="btnAutoAssign" class="secondary-action" type="button" style="background:#fff; border:1px solid #ddd; padding:10px 15px; border-radius:6px; cursor:pointer;"><i class="fa-solid fa-wand-magic-sparkles"></i> Phân ca tự động</button>
+                    <button id="btnExportSchedule" class="secondary-action" type="button" style="background:#fff; border:1px solid #ddd; padding:10px 15px; border-radius:6px; cursor:pointer;"><i class="fa-solid fa-download"></i> Xuất lịch</button>
                 </div>
             </div>
 
@@ -277,7 +277,91 @@
         </section>
     </main>
 
-    <script src="/js/admin.js?v=20260514-7"></script>
+    <!-- Modal Tạo / Sửa ca làm -->
+    <dialog id="shiftModal" style="border:none; border-radius:12px; padding:0; width:480px; max-width:95vw; box-shadow:0 8px 40px rgba(0,0,0,0.18);">
+        <form id="shiftForm" method="dialog" style="padding:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 id="shiftModalTitle" style="margin:0; font-size:1.1rem;">Tạo ca làm</h2>
+                <button type="button" id="shiftModalClose" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color:#666;">&times;</button>
+            </div>
+
+            <input type="hidden" id="shiftEditId">
+
+            <div style="display:flex; flex-direction:column; gap:14px;">
+                <label style="font-size:0.88rem; color:#555; display:flex; flex-direction:column; gap:5px;">
+                    Nhân viên <span style="color:#dc2626;">*</span>
+                    <select id="shiftStaff" required style="padding:9px 12px; border:1px solid #ddd; border-radius:6px; font-size:0.9rem;">
+                        <option value="">-- Chọn nhân viên --</option>
+                    </select>
+                </label>
+
+                <label style="font-size:0.88rem; color:#555; display:flex; flex-direction:column; gap:5px;">
+                    Ngày làm việc <span style="color:#dc2626;">*</span>
+                    <input id="shiftDate" type="date" required style="padding:9px 12px; border:1px solid #ddd; border-radius:6px; font-size:0.9rem;">
+                </label>
+
+                <label style="font-size:0.88rem; color:#555; display:flex; flex-direction:column; gap:5px;">
+                    Giờ bắt đầu <span style="color:#dc2626;">*</span>
+                    <select id="shiftStart" required style="padding:9px 12px; border:1px solid #ddd; border-radius:6px; font-size:0.9rem;">
+                        <option value="08:00">08:00 — Ca sáng</option>
+                        <option value="13:00">13:00 — Ca chiều</option>
+                        <option value="17:00">17:00 — Ca tối</option>
+                    </select>
+                </label>
+
+                <label style="font-size:0.88rem; color:#555; display:flex; flex-direction:column; gap:5px;">
+                    Số giờ làm <span style="color:#dc2626;">*</span>
+                    <select id="shiftDuration" required style="padding:9px 12px; border:1px solid #ddd; border-radius:6px; font-size:0.9rem;">
+                        <option value="4">4 giờ</option>
+                        <option value="8">8 giờ</option>
+                    </select>
+                </label>
+
+                <label style="font-size:0.88rem; color:#555; display:flex; flex-direction:column; gap:5px;">
+                    Ghi chú
+                    <input id="shiftNote" type="text" maxlength="200" placeholder="Tuỳ chọn..." style="padding:9px 12px; border:1px solid #ddd; border-radius:6px; font-size:0.9rem;">
+                </label>
+            </div>
+
+            <div id="shiftFormError" style="color:#dc2626; font-size:0.85rem; margin-top:12px; display:none;"></div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button type="button" id="shiftModalCancel" style="padding:9px 18px; border:1px solid #ddd; border-radius:6px; background:#fff; cursor:pointer;">Huỷ</button>
+                <button type="submit" id="shiftModalSubmit" style="padding:9px 18px; background:#c48c71; color:#fff; border:none; border-radius:6px; font-weight:600; cursor:pointer;">Lưu ca làm</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Modal Phân ca tự động -->
+    <dialog id="autoAssignModal" style="border:none; border-radius:12px; padding:0; width:440px; max-width:95vw; box-shadow:0 8px 40px rgba(0,0,0,0.18);">
+        <div style="padding:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h2 style="margin:0; font-size:1.1rem;">Phân ca tự động</h2>
+                <button type="button" id="autoAssignClose" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color:#666;">&times;</button>
+            </div>
+            <p style="font-size:0.88rem; color:#666; margin:0 0 16px;">Hệ thống sẽ tự động phân ca <b>Ca sáng (08:00)</b>, <b>Ca chiều (13:00)</b>, <b>Ca tối (17:00)</b> — mỗi ca 4 giờ — đều đặn cho tất cả nhân viên trong khoảng thời gian bên dưới.</p>
+
+            <div style="display:flex; flex-direction:column; gap:14px;">
+                <label style="font-size:0.88rem; color:#555; display:flex; flex-direction:column; gap:5px;">
+                    Từ ngày
+                    <input id="autoFrom" type="date" style="padding:9px 12px; border:1px solid #ddd; border-radius:6px; font-size:0.9rem;">
+                </label>
+                <label style="font-size:0.88rem; color:#555; display:flex; flex-direction:column; gap:5px;">
+                    Đến ngày
+                    <input id="autoTo" type="date" style="padding:9px 12px; border:1px solid #ddd; border-radius:6px; font-size:0.9rem;">
+                </label>
+            </div>
+
+            <div id="autoAssignResult" style="margin-top:14px; font-size:0.88rem; display:none;"></div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button type="button" id="autoAssignCancel" style="padding:9px 18px; border:1px solid #ddd; border-radius:6px; background:#fff; cursor:pointer;">Huỷ</button>
+                <button type="button" id="autoAssignRun" style="padding:9px 18px; background:#c48c71; color:#fff; border:none; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fa-solid fa-wand-magic-sparkles"></i> Bắt đầu phân ca</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script src="/js/admin.js?v=1780630161586"></script>
     <script>
         // Inline script to render schedule, it will be executed if admin.js is not modified for this route yet.
         document.addEventListener('DOMContentLoaded', async () => {
@@ -355,6 +439,177 @@
                     document.getElementById('scheduleRows').innerHTML = `<tr><td colspan="8" style="text-align:center; color:red;">${e.message}</td></tr>`;
                 }
             }
+
+            // ── Helper ────────────────────────────────────────────────────
+            function toYMD(date) {
+                return date.toISOString().split('T')[0];
+            }
+
+            // ── Nút Tạo ca làm ───────────────────────────────────────────
+            const shiftModal = document.getElementById('shiftModal');
+            const shiftForm  = document.getElementById('shiftForm');
+
+            async function openCreateShift(prefillDate = '') {
+                document.getElementById('shiftEditId').value = '';
+                document.getElementById('shiftModalTitle').textContent = 'Tạo ca làm';
+                document.getElementById('shiftModalSubmit').textContent = 'Lưu ca làm';
+                document.getElementById('shiftDate').value = prefillDate || toYMD(new Date());
+                document.getElementById('shiftNote').value = '';
+                document.getElementById('shiftFormError').style.display = 'none';
+
+                // Load danh sách nhân viên
+                const sel = document.getElementById('shiftStaff');
+                sel.innerHTML = '<option value="">-- Đang tải... --</option>';
+                try {
+                    const data = await api('/admin/staff?from=2020-01-01&to=2099-12-31');
+                    sel.innerHTML = '<option value="">-- Chọn nhân viên --</option>';
+                    (data.staff || []).forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s._id;
+                        opt.textContent = s.name + (s.role === 'admin' ? ' (Quản lý)' : ' (NV bán hàng)');
+                        sel.appendChild(opt);
+                    });
+                } catch (_) {
+                    sel.innerHTML = '<option value="">-- Không tải được danh sách --</option>';
+                }
+
+                shiftModal.showModal();
+            }
+
+            document.getElementById('btnCreateShift').addEventListener('click', () => openCreateShift());
+            document.getElementById('shiftModalClose').addEventListener('click', () => shiftModal.close());
+            document.getElementById('shiftModalCancel').addEventListener('click', () => shiftModal.close());
+
+            shiftForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const errEl    = document.getElementById('shiftFormError');
+                const submitBtn = document.getElementById('shiftModalSubmit');
+                errEl.style.display = 'none';
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Đang lưu...';
+
+                const body = {
+                    staff:         document.getElementById('shiftStaff').value,
+                    shiftDate:     document.getElementById('shiftDate').value,
+                    startTime:     document.getElementById('shiftStart').value,
+                    durationHours: Number(document.getElementById('shiftDuration').value),
+                    note:          document.getElementById('shiftNote').value
+                };
+
+                try {
+                    const editId = document.getElementById('shiftEditId').value;
+                    if (editId) {
+                        await api(`/admin/staff-shifts/${editId}`, { method: 'PATCH', body: JSON.stringify(body) });
+                    } else {
+                        await api('/admin/staff-shifts', { method: 'POST', body: JSON.stringify(body) });
+                    }
+                    shiftModal.close();
+                    window.location.reload();
+                } catch (err) {
+                    errEl.textContent = err.message;
+                    errEl.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Lưu ca làm';
+                }
+            });
+
+            // ── Nút Phân ca tự động ──────────────────────────────────────
+            const autoModal = document.getElementById('autoAssignModal');
+
+            document.getElementById('btnAutoAssign').addEventListener('click', () => {
+                const today = new Date();
+                const end   = new Date(today); end.setDate(end.getDate() + 6);
+                document.getElementById('autoFrom').value = toYMD(today);
+                document.getElementById('autoTo').value   = toYMD(end);
+                document.getElementById('autoAssignResult').style.display = 'none';
+                autoModal.showModal();
+            });
+            document.getElementById('autoAssignClose').addEventListener('click',  () => autoModal.close());
+            document.getElementById('autoAssignCancel').addEventListener('click', () => autoModal.close());
+
+            document.getElementById('autoAssignRun').addEventListener('click', async () => {
+                const fromVal = document.getElementById('autoFrom').value;
+                const toVal   = document.getElementById('autoTo').value;
+                const resEl   = document.getElementById('autoAssignResult');
+
+                if (!fromVal || !toVal || fromVal > toVal) {
+                    resEl.style.color = '#dc2626';
+                    resEl.textContent = 'Vui lòng chọn khoảng ngày hợp lệ.';
+                    resEl.style.display = 'block';
+                    return;
+                }
+
+                const runBtn = document.getElementById('autoAssignRun');
+                runBtn.disabled = true;
+                runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang phân ca...';
+                resEl.style.display = 'none';
+
+                try {
+                    const data = await api(`/admin/staff?from=${fromVal}&to=${toVal}`);
+                    const staffList = data.staff || [];
+                    if (!staffList.length) throw new Error('Không có nhân viên nào trong hệ thống.');
+
+                    // Tạo danh sách ngày trong khoảng
+                    const days = [];
+                    const cur  = new Date(fromVal);
+                    const end  = new Date(toVal);
+                    while (cur <= end) { days.push(toYMD(cur)); cur.setDate(cur.getDate() + 1); }
+
+                    // Xoay vòng 3 ca: sáng → chiều → tối
+                    const caXoayVong = ['08:00', '13:00', '17:00'];
+                    let created = 0, skipped = 0;
+
+                    for (let di = 0; di < days.length; di++) {
+                        for (let si = 0; si < staffList.length; si++) {
+                            const startTime = caXoayVong[(di * staffList.length + si) % caXoayVong.length];
+                            try {
+                                await api('/admin/staff-shifts', {
+                                    method: 'POST',
+                                    body: JSON.stringify({
+                                        staff: staffList[si]._id,
+                                        shiftDate: days[di],
+                                        startTime,
+                                        durationHours: 4
+                                    })
+                                });
+                                created++;
+                            } catch (_) {
+                                skipped++; // nhân viên đã có ca ngày đó → bỏ qua
+                            }
+                        }
+                    }
+
+                    resEl.style.color = '#059669';
+                    resEl.innerHTML = `✔ Đã tạo <b>${created}</b> ca, bỏ qua <b>${skipped}</b> ca đã có sẵn.
+                        <br><a href="" style="color:#c48c71; font-weight:600;">↻ Tải lại trang để xem kết quả</a>`;
+                    resEl.style.display = 'block';
+                } catch (err) {
+                    resEl.style.color = '#dc2626';
+                    resEl.textContent = err.message;
+                    resEl.style.display = 'block';
+                } finally {
+                    runBtn.disabled = false;
+                    runBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Bắt đầu phân ca';
+                }
+            });
+
+            // ── Nút Xuất lịch (CSV) ──────────────────────────────────────
+            document.getElementById('btnExportSchedule').addEventListener('click', () => {
+                const table = document.querySelector('.schedule-table');
+                if (!table) return;
+                let csv = '';
+                table.querySelectorAll('tr').forEach(row => {
+                    const cols = [...row.querySelectorAll('th,td')].map(c =>
+                        `"${c.innerText.replace(/"/g, '""').replace(/\n/g, ' ').trim()}"`
+                    );
+                    csv += cols.join(',') + '\n';
+                });
+                const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `lich-ca-${toYMD(new Date())}.csv`;
+                a.click();
+            });
         });
     </script>
 </body>

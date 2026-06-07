@@ -277,6 +277,7 @@ const assetCache = (maxAge = 0) => ({
 });
 
 app.use('/images', express.static(path.join(__dirname, '..', 'public', 'images'), assetCache('7d')));
+app.use('/backups', express.static(path.join(__dirname, '..', 'backups')));
 app.use(express.static(path.join(__dirname, '..', 'public'), assetCache()));
 
 // Routes
