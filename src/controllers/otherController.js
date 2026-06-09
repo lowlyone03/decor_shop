@@ -212,6 +212,7 @@ exports.createContact = async (req, res) => {
             phone,
             subject,
             message,
+            relatedOrderCode: cleanText(req.body.orderSelectRadio || req.body.relatedOrderCode || '', 20),
             ...meta
         });
         const hydrated = await notifyAdminsAboutContact(

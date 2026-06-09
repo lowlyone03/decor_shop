@@ -10425,3 +10425,31 @@ nav,
         height: auto;
     }
 }
+
+
+/* Cute Order Select UI */
+.cute-order-card { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1.5px solid #f2e6de; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.25s ease; position: relative; overflow: hidden; margin-bottom: 6px; }
+.cute-order-card:hover { border-color: #e0c8b8; background: #faf5f2; }
+.cute-order-card input[type="radio"] { display: none !important; }
+.cute-order-card input[type="radio"]:checked + .cute-order-content { border-color: transparent; }
+.cute-order-card:has(input[type="radio"]:checked) { border-color: #d68b6d; background: #fffaf7; box-shadow: 0 4px 12px rgba(214,139,109,0.15); transform: translateY(-1px); }
+.cute-order-card:has(input[type="radio"]:checked) .cute-check-icon { opacity: 1; transform: scale(1); }
+.cute-order-content { flex: 1; font-size: 0.9em; line-height: 1.4; }
+.cute-order-header { display: flex; align-items: center; gap: 6px; }
+.cute-order-code { color: #6d4c41; font-size: 1.05em; font-weight: bold; }
+.cute-order-date { font-size: 0.8em; color: #a1887f; background: #f5f0ed; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+.cute-order-price { color: #8d6e63; font-size: 0.85em; margin-top: 4px; }
+.cute-order-price b { color: #d84315; }
+.cute-check-icon { color: #d68b6d; font-size: 1.3em; opacity: 0; transform: scale(0.5); transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.order-select-container-rich { border: 1.5px dashed #e8d5c8; padding: 14px; border-radius: 16px; background: #fdfaf8; margin-bottom: 12px; }
+.order-select-container-rich label.rich-label { font-size: 0.9em; font-weight: 700; display: block; margin-bottom: 10px; color: #6d4c41; text-transform: uppercase; letter-spacing: 0.5px; }
+#loginToSeeOrdersMsg { font-size: 0.85em; color: #a1887f; margin-bottom: 10px; padding: 8px 12px; background: #f5f0ed; border-radius: 8px; text-align: center; font-style: italic; }
+.order-manual-input { background: #fff; border: 1.5px solid #f2e6de !important; border-radius: 10px !important; transition: all 0.2s ease; }
+.order-manual-input:focus { border-color: #d68b6d !important; box-shadow: 0 0 0 3px rgba(214,139,109,0.1) !important; outline: none; }
+
+
+.support-empty { overflow-y: auto; padding-bottom: 30px; }
+
+
+.support-empty { flex: 1; height: 100%; }
+

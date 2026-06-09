@@ -12,7 +12,9 @@ const cartItemSchema = new mongoose.Schema({
 const cartSchema = new mongoose.Schema({
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     items: [cartItemSchema],
-    subTotal: { type: Number, default: 0, min: 0 }
+    subTotal: { type: Number, default: 0, min: 0 },
+    crmClaimedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    crmClaimExpires: { type: Date, default: null }
 }, { timestamps: true });
 
 cartSchema.index({ customer: 1 }, { unique: true });

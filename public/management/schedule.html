@@ -112,32 +112,32 @@
 
         <nav class="admin-menu" aria-label="Menu quản trị">
             <p>Quản lý chung</p>
-            <a href="/admin/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+            <a href="/management/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
 
             <p>Quản lý cửa hàng</p>
-            <a href="/admin/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
-            <a href="/admin/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
-            <a href="/admin/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
-            <a href="/admin/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
-            <a href="/admin/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
-            <a href="/admin/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+            <a href="/management/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/management/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/management/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/management/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/management/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/management/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
 
             <p>Nội dung & Marketing</p>
-            <a href="/admin/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
-            <a href="/admin/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
-            <a href="/admin/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
-            <a href="/admin/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+            <a href="/management/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/management/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/management/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/management/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
 
             <p>Vận hành</p>
-            <a href="/admin/inventory.html" data-view="inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
-            <a class="active" href="/admin/schedule.html" data-view="schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+            <a href="/management/inventory.html" data-view="inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a class="active" href="/management/schedule.html" data-view="schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
 
             <p>Báo cáo & Thống kê</p>
-            <a href="/admin/reports.html"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+            <a href="/management/reports.html"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
 
             <p>Hệ thống</p>
-            <a href="/admin/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
-            <a href="/admin/settings.html"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+            <a href="/management/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/management/settings.html"><i class="fa-solid fa-gear"></i> Cài đặt</a>
         </nav>
     </aside>
 
@@ -153,7 +153,7 @@
                 <input id="dateTo" type="date">
                 <button id="reloadDashboard" type="button"><i class="fa-solid fa-rotate"></i></button>
             </div>
-            <a class="admin-profile" href="/admin/profile.html">
+            <a class="admin-profile" href="/management/profile.html">
                 <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
                 <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
             </a>
@@ -185,35 +185,36 @@
                 <div class="stat-card">
                     <div class="stat-icon icon-orange"><i class="fa-regular fa-sun"></i></div>
                     <div class="stat-info">
-                        <h3>Ca sáng</h3>
+                        <h3>Ca 1</h3>
                         <div class="stat-value" id="statMorning">0</div>
-                        <small>08:00 - 12:00</small>
+                        <small>00:00 - 06:00</small>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon icon-orange"><i class="fa-solid fa-sun"></i></div>
                     <div class="stat-info">
-                        <h3>Ca chiều</h3>
+                        <h3>Ca 2</h3>
                         <div class="stat-value" id="statAfternoon">0</div>
-                        <small>13:00 - 17:00</small>
+                        <small>06:00 - 12:00</small>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon icon-purple"><i class="fa-regular fa-moon"></i></div>
                     <div class="stat-info">
-                        <h3>Ca tối</h3>
+                        <h3>Ca 3</h3>
                         <div class="stat-value" id="statEvening">0</div>
-                        <small>17:00 - 21:00</small>
+                        <small>12:00 - 18:00</small>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon icon-red"><i class="fa-regular fa-calendar-xmark"></i></div>
+                    <div class="stat-icon icon-purple" style="background:#e0e7ff;color:#4f46e5;"><i class="fa-solid fa-moon"></i></div>
                     <div class="stat-info">
-                        <h3>Nghỉ phép</h3>
-                        <div class="stat-value" id="statOff">0</div>
-                        <small>Đã duyệt</small>
+                        <h3>Ca 4</h3>
+                        <div class="stat-value" id="statNight">0</div>
+                        <small>18:00 - 24:00</small>
                     </div>
                 </div>
+                
             </div>
 
             <div class="schedule-layout">
@@ -303,17 +304,17 @@
                 <label style="font-size:0.88rem; color:#555; display:flex; flex-direction:column; gap:5px;">
                     Giờ bắt đầu <span style="color:#dc2626;">*</span>
                     <select id="shiftStart" required style="padding:9px 12px; border:1px solid #ddd; border-radius:6px; font-size:0.9rem;">
-                        <option value="08:00">08:00 — Ca sáng</option>
-                        <option value="13:00">13:00 — Ca chiều</option>
-                        <option value="17:00">17:00 — Ca tối</option>
+                        <option value="00:00">00:00 — Ca 1</option>
+                        <option value="06:00">06:00 — Ca 2</option>
+                        <option value="12:00">12:00 — Ca 3</option>
+                        <option value="18:00">18:00 — Ca 4</option>
                     </select>
                 </label>
 
                 <label style="font-size:0.88rem; color:#555; display:flex; flex-direction:column; gap:5px;">
                     Số giờ làm <span style="color:#dc2626;">*</span>
                     <select id="shiftDuration" required style="padding:9px 12px; border:1px solid #ddd; border-radius:6px; font-size:0.9rem;">
-                        <option value="4">4 giờ</option>
-                        <option value="8">8 giờ</option>
+                        <option value="6">6 giờ</option>
                     </select>
                 </label>
 
@@ -339,7 +340,7 @@
                 <h2 style="margin:0; font-size:1.1rem;">Phân ca tự động</h2>
                 <button type="button" id="autoAssignClose" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color:#666;">&times;</button>
             </div>
-            <p style="font-size:0.88rem; color:#666; margin:0 0 16px;">Hệ thống sẽ tự động phân ca <b>Ca sáng (08:00)</b>, <b>Ca chiều (13:00)</b>, <b>Ca tối (17:00)</b> — mỗi ca 4 giờ — đều đặn cho tất cả nhân viên trong khoảng thời gian bên dưới.</p>
+            <p style="font-size:0.88rem; color:#666; margin:0 0 16px;">Hệ thống sẽ tự động phân <b>4 ca</b> (Ca 1, Ca 2, Ca 3, Ca 4) — mỗi ca 6 giờ — đều đặn cho tất cả nhân viên theo vòng lặp luân phiên tiếp nối.</p>
 
             <div style="display:flex; flex-direction:column; gap:14px;">
                 <label style="font-size:0.88rem; color:#555; display:flex; flex-direction:column; gap:5px;">
@@ -365,7 +366,7 @@
     <script>
         // Inline script to render schedule, it will be executed if admin.js is not modified for this route yet.
         document.addEventListener('DOMContentLoaded', async () => {
-            if (window.location.pathname === '/admin/schedule.html') {
+            if (window.location.pathname === '/management/schedule.html') {
                 try {
                     const today = new Date();
                     const fromStr = today.toISOString().split('T')[0];
@@ -379,15 +380,17 @@
                     document.getElementById('statStaffPercent').innerText = `${((data.stats.scheduledToday / data.stats.total)*100).toFixed(1)}% có lịch`;
                     
                     // Count shifts
-                    let m=0, a=0, e=0;
+                    let c1=0, c2=0, c3=0, c4=0;
                     data.shifts.forEach(s => {
-                        if (s.startMinute < 780) m++; // before 13:00 -> morning
-                        else if (s.startMinute < 1020) a++; // before 17:00 -> afternoon
-                        else e++;
+                        if (s.startMinute === 0) c1++;
+                        else if (s.startMinute === 360) c2++;
+                        else if (s.startMinute === 720) c3++;
+                        else c4++;
                     });
-                    document.getElementById('statMorning').innerText = m;
-                    document.getElementById('statAfternoon').innerText = a;
-                    document.getElementById('statEvening').innerText = e;
+                    document.getElementById('statMorning').innerText = c1;
+                    document.getElementById('statAfternoon').innerText = c2;
+                    document.getElementById('statEvening').innerText = c3;
+                    if (document.getElementById('statNight')) document.getElementById('statNight').innerText = c4;
                     
                     // Render headers
                     let headHtml = '<th>Nhân viên</th>';
@@ -424,8 +427,8 @@
                         for(let i=0; i<7; i++) {
                             let shift = rowsObj[k].days[i];
                             if (shift) {
-                                let cls = shift.startMinute < 780 ? 'shift-morning' : (shift.startMinute < 1020 ? 'shift-afternoon' : 'shift-evening');
-                                let name = shift.startMinute < 780 ? 'Ca sáng' : (shift.startMinute < 1020 ? 'Ca chiều' : 'Ca tối');
+                                let cls = shift.startMinute === 0 ? 'shift-morning' : (shift.startMinute === 360 ? 'shift-afternoon' : (shift.startMinute === 720 ? 'shift-evening' : 'shift-morning'));
+                                let name = shift.startMinute === 0 ? 'Ca 1' : (shift.startMinute === 360 ? 'Ca 2' : (shift.startMinute === 720 ? 'Ca 3' : 'Ca 4'));
                                 html += `<td><div class="shift-badge ${cls}"><b>${name}</b><small>${shift.startTime} - ${shift.endTime}</small></div></td>`;
                             } else {
                                 html += `<td><div class="shift-badge shift-off"><b>Nghỉ</b></div></td>`;
@@ -556,31 +559,12 @@
                     while (cur <= end) { days.push(toYMD(cur)); cur.setDate(cur.getDate() + 1); }
 
                     // Xoay vòng 3 ca: sáng → chiều → tối
-                    const caXoayVong = ['08:00', '13:00', '17:00'];
-                    let created = 0, skipped = 0;
-
-                    for (let di = 0; di < days.length; di++) {
-                        for (let si = 0; si < staffList.length; si++) {
-                            const startTime = caXoayVong[(di * staffList.length + si) % caXoayVong.length];
-                            try {
-                                await api('/admin/staff-shifts', {
-                                    method: 'POST',
-                                    body: JSON.stringify({
-                                        staff: staffList[si]._id,
-                                        shiftDate: days[di],
-                                        startTime,
-                                        durationHours: 4
-                                    })
-                                });
-                                created++;
-                            } catch (_) {
-                                skipped++; // nhân viên đã có ca ngày đó → bỏ qua
-                            }
-                        }
-                    }
-
+                    const response = await api('/admin/staff-shifts/auto-assign', {
+                        method: 'POST',
+                        body: JSON.stringify({ from: fromVal, to: toVal })
+                    });
                     resEl.style.color = '#059669';
-                    resEl.innerHTML = `✔ Đã tạo <b>${created}</b> ca, bỏ qua <b>${skipped}</b> ca đã có sẵn.
+                    resEl.innerHTML = `✔ ${response.message}
                         <br><a href="" style="color:#c48c71; font-weight:600;">↻ Tải lại trang để xem kết quả</a>`;
                     resEl.style.display = 'block';
                 } catch (err) {
@@ -614,3 +598,4 @@
     </script>
 </body>
 </html>
+

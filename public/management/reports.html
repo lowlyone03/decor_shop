@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo & Thống kê - Casa Decor Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=20260607">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="admin-page">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay v? trang ch? Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Admin</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a href="/management/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a href="/management/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/management/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/management/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/management/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/management/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/management/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung & Marketing</p>
+            <a href="/management/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/management/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/management/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/management/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a href="/management/inventory.html"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a href="/management/schedule.html"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+
+            <p>Báo cáo & Thống kê</p>
+            <a class="active" href="/management/reports.html" data-view="reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/management/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/management/settings.html" data-view="settings"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+
+        <div class="sidebar-decor">
+            <img src="/images/lohoa_decor/lohoa01.jpg" alt="Casa Decor">
+            <b>Casa Decor</b>
+            <span>Elevate your space, Elevate your life.</span>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng...">
+                <kbd>⌘K</kbd>
+            </label>
+            <div class="date-filter">
+                <input id="dateFrom" type="date" aria-label="Từ ngày">
+                <span>-</span>
+                <input id="dateTo" type="date" aria-label="Đến ngày">
+                <button id="reloadDashboard" type="button" aria-label="Tải lại"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <button class="icon-btn" type="button" aria-label="Thông báo" data-admin-session><i class="fa-regular fa-bell"></i><span data-notify-count>0</span></button>
+            <a class="admin-profile" href="/management/profile.html" title="M? h? so qu?n tr?" data-view="profile" data-admin-session>
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
+            </a>
+            <button id="quickAddBtn" class="quick-add" type="button" data-admin-session><i class="fa-solid fa-plus"></i> Thêm nhanh</button>
+            <div id="quickAddMenu" class="quick-menu" hidden></div>
+        </header>
+
+        <section id="authGate" class="auth-gate" hidden>
+            <div>
+                <i class="fa-solid fa-lock"></i>
+                <h1>Cần đăng nhập tài khoản admin</h1>
+                <p>Đăng nhập bằng tài khoản có quyền admin để xem Dashboard Casa Decor.</p>
+                <a id="adminLoginLink" href="/customers/login.html?redirect=/admin/index.html">Đăng nhập</a>
+            </div>
+        </section>
+
+        
+        <section id="adminReportsView" class="admin-profile-page" hidden>
+            <!-- Page Header -->
+            <div class="page-hero">
+                <div class="page-hero-left">
+                    <div class="page-hero-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <div>
+                        <h1>Báo cáo & Thống kê Hệ thống</h1>
+                        <p>Phân tích toàn diện dữ liệu kinh doanh, doanh thu và khách hàng</p>
+                    </div>
+                </div>
+                <div class="page-hero-actions">
+                    <button class="secondary-action" type="button" onclick="exportReportsCSV()">
+                        <i class="fa-solid fa-file-csv"></i> Xuất báo cáo
+                    </button>
+                    <button class="secondary-action" type="button" onclick="exportReportsPDF()">
+                        <i class="fa-solid fa-file-pdf"></i> Tải PDF
+                    </button>
+                    <button class="primary-action" type="button" onclick="loadReports()">
+                        <i class="fa-solid fa-rotate"></i> Làm mới
+                    </button>
+                </div>
+            </div>
+
+            <!-- 6 KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-label">Tổng doanh thu</span>
+                        <span class="kpi-trend" id="kpiRevenueTrend"><i class="fa-solid fa-arrow-up"></i> +0%</span>
+                    </div>
+                    <div class="kpi-value" id="kpiTotalRevenue">0 ₫</div>
+                    <div class="kpi-footer">So với kỳ trước</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-label">Tổng đơn hàng</span>
+                        <span class="kpi-trend" id="kpiOrdersTrend"><i class="fa-solid fa-arrow-up"></i> +0%</span>
+                    </div>
+                    <div class="kpi-value" id="kpiTotalOrders">0</div>
+                    <div class="kpi-footer">Đơn hàng hoàn thành</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-label">Tỷ lệ chuyển đổi</span>
+                        <span class="kpi-trend" id="kpiConversionTrend"><i class="fa-solid fa-arrow-up"></i> +0%</span>
+                    </div>
+                    <div class="kpi-value" id="kpiConversionRate">0%</div>
+                    <div class="kpi-footer">Hoàn thành / Tổng đơn</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-label">Giá trị đơn trung bình</span>
+                        <span class="kpi-trend neutral"><i class="fa-solid fa-minus"></i> 0%</span>
+                    </div>
+                    <div class="kpi-value" id="kpiAvgOrderValue">0 ₫</div>
+                    <div class="kpi-footer">Trung bình mỗi đơn hàng</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-label">Khách hàng mới</span>
+                        <span class="kpi-trend" id="kpiCustomersTrend"><i class="fa-solid fa-arrow-up"></i> +0%</span>
+                    </div>
+                    <div class="kpi-value" id="kpiNewCustomers">0</div>
+                    <div class="kpi-footer">Đăng ký trong kỳ</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-label">Tỷ lệ hoàn đơn</span>
+                        <span class="kpi-trend" id="kpiReturnTrend"><i class="fa-solid fa-arrow-down"></i> -0%</span>
+                    </div>
+                    <div class="kpi-value" id="kpiReturnRate">0%</div>
+                    <div class="kpi-footer">Huỷ / Hoàn trả</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-label">Giá trị đơn lớn nhất</span>
+                        <span class="kpi-trend neutral" id="kpiMaxOrderTrend"><i class="fa-solid fa-minus"></i> -</span>
+                    </div>
+                    <div class="kpi-value" id="kpiMaxOrderValue">0 ₫</div>
+                    <div class="kpi-footer">Đơn hàng cao nhất kỳ này</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-label">Giá trị đơn nhỏ nhất</span>
+                        <span class="kpi-trend neutral" id="kpiMinOrderTrend"><i class="fa-solid fa-minus"></i> -</span>
+                    </div>
+                    <div class="kpi-value" id="kpiMinOrderValue">0 ₫</div>
+                    <div class="kpi-footer">Đơn hàng thấp nhất kỳ này</div>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="reports-filter-bar">
+                <div class="filter-group">
+                    <label>Từ ngày</label>
+                    <input type="date" id="reportDateFrom" class="form-control">
+                </div>
+                <div class="filter-group">
+                    <label>Đến ngày</label>
+                    <input type="date" id="reportDateTo" class="form-control">
+                </div>
+                <div class="filter-group">
+                    <label>Phương thức TT</label>
+                    <select id="reportPaymentMethod" class="form-control">
+                        <option value="">Tất cả</option>
+                        <option value="cod">COD</option>
+                        <option value="bank_transfer">Chuyển khoản</option>
+                        <option value="vnpay">VNPay</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Trạng thái đơn</label>
+                    <select id="reportOrderStatus" class="form-control">
+                        <option value="">Tất cả</option>
+                        <option value="pending">Chờ xử lý</option>
+                        <option value="processing">Đang xử lý</option>
+                        <option value="shipping">Đang giao</option>
+                        <option value="completed">Hoàn thành</option>
+                        <option value="cancelled">Đã huỷ</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Danh mục SP</label>
+                    <select id="reportCategory" class="form-control">
+                        <option value="">Tất cả danh mục</option>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button class="primary-action" type="button" onclick="applyReportsFilter()">
+                        <i class="fa-solid fa-filter"></i> Áp dụng bộ lọc
+                    </button>
+                    <button class="secondary-action" type="button" onclick="resetReportsFilter()">
+                        <i class="fa-solid fa-rotate-left"></i> Xóa bộ lọc
+                    </button>
+                </div>
+            </div>
+
+            <!-- Row 1: 3 Main Charts -->
+            <div class="reports-grid-3">
+                <!-- Chart 1: Doanh thu theo thời gian (Line Chart) -->
+                <article class="panel admin-card">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Doanh thu theo thời gian</h2>
+                            <p>Biểu đồ xu hướng doanh thu</p>
+                        </div>
+                        <div class="segmented">
+                            <button class="active" type="button" data-chart-view="day">Ngày</button>
+                            <button type="button" data-chart-view="week">Tuần</button>
+                            <button type="button" data-chart-view="month">Tháng</button>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 320px; padding: 16px;">
+                        <canvas id="revenueTimeChart"></canvas>
+                    </div>
+                </article>
+
+                <!-- Chart 2: Đơn hàng theo phương thức thanh toán (Horizontal Bar) -->
+                <article class="panel admin-card">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Đơn hàng theo phương thức TT</h2>
+                            <p>Phân bố theo hình thức thanh toán</p>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 320px; padding: 16px;">
+                        <canvas id="paymentMethodChart"></canvas>
+                    </div>
+                </article>
+
+                <!-- Chart 3: Cơ cấu doanh thu theo danh mục (Donut Chart) -->
+                <article class="panel admin-card">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Cơ cấu doanh thu theo danh mục</h2>
+                            <p>Tỷ trọng doanh thu từng danh mục</p>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 380px; padding: 16px;">
+                        <canvas id="categoryDonutChart"></canvas>
+                    </div>
+                </article>
+            </div>
+
+            <!-- Row 2: 4 Columns -->
+            <div class="reports-grid-4">
+                <!-- Col 1: Phễu trạng thái đơn hàng -->
+                <article class="panel admin-card">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Phễu trạng thái đơn hàng</h2>
+                            <p>Tỷ lệ chuyển đổi đơn hàng</p>
+                        </div>
+                    </div>
+                    <div class="report-funnel" id="orderStatusFunnel">
+                        <div class="funnel-item" data-status="pending">
+                            <div class="funnel-bar" style="width: 100%;">
+                                <span class="funnel-label">Chờ xử lý</span>
+                                <span class="funnel-value">0</span>
+                            </div>
+                        </div>
+                        <div class="funnel-item" data-status="processing">
+                            <div class="funnel-bar" style="width: 75%;">
+                                <span class="funnel-label">Đang xử lý</span>
+                                <span class="funnel-value">0</span>
+                            </div>
+                        </div>
+                        <div class="funnel-item" data-status="shipping">
+                            <div class="funnel-bar" style="width: 50%;">
+                                <span class="funnel-label">Đang giao hàng</span>
+                                <span class="funnel-value">0</span>
+                            </div>
+                        </div>
+                        <div class="funnel-item" data-status="completed">
+                            <div class="funnel-bar" style="width: 35%;">
+                                <span class="funnel-label">Hoàn thành</span>
+                                <span class="funnel-value">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Col 2: Top sản phẩm bán chạy -->
+                <article class="panel admin-card">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Top sản phẩm bán chạy</h2>
+                            <p>5 sản phẩm doanh thu cao nhất</p>
+                        </div>
+                    </div>
+                    <div class="report-rank-list" id="topProductsList">
+                        <div class="empty-state">Đang tải dữ liệu...</div>
+                    </div>
+                </article>
+
+                <!-- Col 3: Khách hàng giá trị cao -->
+                <article class="panel admin-card">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Khách hàng giá trị cao</h2>
+                            <p>Top 5 khách chi tiêu nhiều nhất</p>
+                        </div>
+                    </div>
+                    <div class="report-rank-list" id="topCustomersList">
+                        <div class="empty-state">Đang tải dữ liệu...</div>
+                    </div>
+                </article>
+
+                <!-- Col 4: Tồn kho cần chú ý -->
+                <article class="panel admin-card">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Tồn kho cần chú ý</h2>
+                            <p>Sản phẩm sắp hết hàng</p>
+                        </div>
+                    </div>
+                    <div class="report-stock-list" id="lowStockList">
+                        <div class="empty-state">Đang tải dữ liệu...</div>
+                    </div>
+                </article>
+            </div>
+
+            <!-- Row 3: 3 Columns -->
+            <div class="reports-grid-3">
+                <!-- Col 1: Doanh thu theo khung giờ -->
+                <article class="panel admin-card">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Doanh thu theo khung giờ</h2>
+                            <p>Phân bố doanh thu trong ngày</p>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 280px; padding: 16px;">
+                        <canvas id="hourlyRevenueChart"></canvas>
+                    </div>
+                </article>
+
+                <!-- Col 2: Xu hướng danh mục -->
+                <article class="panel admin-card">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Xu hướng danh mục</h2>
+                            <p>Tăng trưởng từng nhóm sản phẩm</p>
+                        </div>
+                    </div>
+                    <div class="report-category-trends" id="categoryTrendsList">
+                        <div class="empty-state">Đang tải dữ liệu...</div>
+                    </div>
+                </article>
+
+                <!-- Col 3: Insight nhanh -->
+                <article class="panel admin-card">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Insight nhanh</h2>
+                            <p>Tổng kết hiệu suất kỳ này</p>
+                        </div>
+                    </div>
+                    <div class="report-insights-grid">
+                        <div class="report-insight-card insight-revenue">
+                            <div class="insight-icon"><i class="fa-solid fa-coins"></i></div>
+                            <div class="insight-body">
+                                <span class="insight-label">Doanh thu</span>
+                                <span class="insight-value" id="insightRevenue">+0%</span>
+                                <span class="insight-sub">So với kỳ trước</span>
+                            </div>
+                        </div>
+                        <div class="report-insight-card insight-sales">
+                            <div class="insight-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+                            <div class="insight-body">
+                                <span class="insight-label">Bán hàng</span>
+                                <span class="insight-value" id="insightSales">+0%</span>
+                                <span class="insight-sub">Số đơn hoàn thành</span>
+                            </div>
+                        </div>
+                        <div class="report-insight-card insight-conversion">
+                            <div class="insight-icon"><i class="fa-solid fa-percent"></i></div>
+                            <div class="insight-body">
+                                <span class="insight-label">Tỷ lệ chuyển đổi</span>
+                                <span class="insight-value" id="insightConversion">0%</span>
+                                <span class="insight-sub">Hoàn thành / Tổng đơn</span>
+                            </div>
+                        </div>
+                        <div class="report-insight-card insight-customers">
+                            <div class="insight-icon"><i class="fa-solid fa-user-plus"></i></div>
+                            <div class="insight-body">
+                                <span class="insight-label">Khách hàng mới</span>
+                                <span class="insight-value" id="insightCustomers">+0</span>
+                                <span class="insight-sub">Đăng ký trong kỳ</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+
+    <div id="toast" class="toast" hidden></div>
+    <div id="adminModal" class="admin-modal" hidden>
+        <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+            <button class="modal-close" type="button" data-action="modal-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            <h2 id="adminModalTitle"></h2>
+            <div id="adminModalBody"></div>
+        </div>
+    </div>
+    <script src="/js/admin.js?v=2026060902"></script>
+</body>
+</html>
+
+
+
+

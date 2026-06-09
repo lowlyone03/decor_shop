@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-const { authRequired, adminRequired } = require('../middlewares/auth');
+const { authRequired, adminOnlyStrict } = require('../middlewares/auth');
 const { validateObjectId } = require('../utils/helpers');
 
 // Middleware: validate :id param is a valid MongoDB ObjectId
@@ -13,7 +13,7 @@ function validateId(req, res, next) {
     next();
 }
 
-router.use(authRequired, adminRequired);
+router.use(authRequired, adminOnlyStrict);
 
 
 // Upload
@@ -29,12 +29,15 @@ router.patch('/orders/:id/status', validateId, adminController.updateOrderStatus
 
 // Staff
 router.get('/staff', adminController.getStaff);
-router.post('/staff', adminController.createStaff);
 router.post('/staff-shifts', adminController.createStaffShift);
 router.patch('/staff-shifts/:id', validateId, adminController.updateStaffShift);
 router.delete('/staff-shifts/:id', validateId, adminController.deleteStaffShift);
-router.patch('/staff/:id', validateId, adminController.updateStaff);
-router.delete('/staff/:id', validateId, adminController.deleteStaff);
+router.post('/staff-shifts/auto-assign', adminController.autoAssignShifts);
+router.post('/staff-shifts/:id/force-checkout', validateId, adminController.forceCheckout);
+router.post('/staff-shifts/:id/reassign', validateId, adminController.reassignShift);
+router.post('/staff-shifts/:id/cancel', validateId, adminController.cancelShift);
+router.post('/orders/:id/assign', validateId, adminController.assignOrder);
+router.get('/payroll', adminController.getPayroll);
 
 // Customers
 router.get('/customers', adminController.getCustomers);
@@ -92,6 +95,15 @@ router.post('/blogs/lock-bod', adminController.lockBlogBOD);
 router.post('/blogs', adminController.createBlog);
 router.patch('/blogs/:id', validateId, adminController.updateBlog);
 router.delete('/blogs/:id', validateId, adminController.deleteBlog);
+
+// Reports
+router.get('/reports', adminController.getReports);
+
+// Backups
+router.post('/backups', adminController.createBackup);
+router.get('/backups', adminController.getBackups);
+router.delete('/backups/:filename', adminController.deleteBackup);
+router.post('/backups/:filename/restore', adminController.restoreBackup);
 
 module.exports = router;
 

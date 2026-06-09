@@ -1,8 +1,8 @@
 const User = require('../models/User');
-const StaffShift = require('../models/StaffShift');
+
 const { hashPassword, verifyPassword, hashToken, signToken } = require('../utils/crypto');
 const { cleanText, sanitizeInput, normalizePhone, isValidEmail, isValidVietnamPhone, validateAddress, toPublicUser } = require('../utils/helpers');
-const { localDateString, localMinutes } = require('../utils/staffShift');
+
 const { sendWelcomeEmail, sendPasswordResetEmail } = require('../utils/email');
 const path = require('path');
 const fs = require('fs');
@@ -75,17 +75,27 @@ exports.login = async (req, res) => {
 
         let activeShift = null;
         if (user.role === 'staff') {
-            const now = new Date();
+            // Đã bỏ chặn đăng nhập ngoài ca (theo yêu cầu B2)
+            // Lấy ca active hiện tại nếu có để trả về (chỉ để frontend biết trạng thái)
+            const StaffShift = require('../models/StaffShift');
+            
+            function vnDate(date = new Date()) {
+                return new Date(date).toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+            }
+            function vnMinuteNow() {
+                const now = new Date();
+                const h = Number(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh', hour: 'numeric', hour12: false }));
+                const m = Number(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh', minute: 'numeric' }));
+                return h * 60 + m;
+            }
+            
             activeShift = await StaffShift.findOne({
                 staff: user._id,
-                shiftDate: localDateString(now),
+                shiftDate: vnDate(),
                 status: { $in: ['scheduled', 'active'] },
-                startMinute: { $lte: localMinutes(now) },
-                endMinute: { $gt: localMinutes(now) }
+                startMinute: { $lte: vnMinuteNow() },
+                endMinute: { $gt: vnMinuteNow() }
             }).lean();
-            if (!activeShift) {
-                return res.status(403).json({ message: 'Tài khoản nhân viên chỉ đăng nhập được trong ca trực được phân công.' });
-            }
         }
 
         res.json({ token: signToken(user._id), user: { ...toPublicUser(user), activeShift } });

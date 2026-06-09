@@ -206,10 +206,15 @@ async function syncCartPrices(cart) {
     const products = await Product.find({ _id: { $in: productIds } });
     const productMap = new Map(products.map((product) => [String(product._id), product]));
     let changed = false;
+    
+    const validItems = [];
 
     for (const item of cart.items) {
         const product = productMap.get(String(item.product));
-        if (!product || product.status !== 'active') continue;
+        if (!product || product.status !== 'active') {
+            changed = true; // Product deleted or hidden, remove it from cart
+            continue;
+        }
         const quantity = positiveInt(item.quantity);
         const price = effectivePrice(product);
         const image = primaryImage(product);
@@ -222,6 +227,12 @@ async function syncCartPrices(cart) {
             item.itemTotal = itemTotal;
             changed = true;
         }
+        validItems.push(item);
+    }
+
+    if (cart.items.length !== validItems.length) {
+        cart.items = validItems;
+        changed = true;
     }
 
     const subTotal = cart.items.reduce((sum, item) => sum + cartLineTotal(item), 0);

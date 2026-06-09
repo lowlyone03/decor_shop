@@ -525,7 +525,6 @@
                 method: 'PATCH',
                 body: JSON.stringify({
                     status: 'processing',
-                    assignedTo,
                     internalNote: cmState.selectedContact?.internalNote
                         ? `${cmState.selectedContact.internalNote}\n${note}`
                         : note

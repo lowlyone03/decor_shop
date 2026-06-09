@@ -632,7 +632,7 @@ async function loadShell() {
                 </div>
             `;
             if (current.user?.role === 'admin') {
-                userSlot.querySelector('.user-nav')?.insertAdjacentHTML('afterbegin', '<a href="/admin/index.html" class="unav-admin"><i class="fa-solid fa-gauge-high"></i><span>Admin</span></a>');
+                userSlot.querySelector('.user-nav')?.insertAdjacentHTML('afterbegin', '<a href="/management/index.html" class="unav-admin"><i class="fa-solid fa-gauge-high"></i><span>Admin</span></a>');
             }
         } else {
             userSlot.innerHTML = `
@@ -785,6 +785,28 @@ function initCustomerSocket() {
             playCustomerTing();
             toast(`🔔 ${notif.title}: ${notif.message}`);
             fetchNotifications(); // Auto refresh
+        });
+        socket.on('cart_updated', (cartCount) => {
+            const cartBadges = document.querySelectorAll('[data-cart-count]');
+            cartBadges.forEach((node) => node.textContent = cartCount);
+            if (window.location.pathname.includes('/cart.html')) {
+                if (typeof loadCart === 'function') loadCart();
+            }
+        });
+        socket.on('product_unavailable', (data) => {
+            // Check if product was in minicart or cart
+            api('/cart').then(res => {
+                const oldCartCount = parseInt(document.querySelector('[data-cart-count]')?.textContent || 0);
+                const newCartCount = (res.cart?.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+                if (oldCartCount !== newCartCount) {
+                    playCustomerTing();
+                    toast(`🔔 Sản phẩm "${data.productName}" đã ngừng kinh doanh và được tự động gỡ khỏi giỏ hàng.`);
+                    updateHeaderCounts();
+                    if (window.location.pathname.includes('/cart.html')) {
+                        if (typeof loadCart === 'function') loadCart();
+                    }
+                }
+            }).catch(console.error);
         });
         socket.on('customer_contact_reply', (payload) => {
             playCustomerTing();
@@ -3214,19 +3236,28 @@ function renderSupportConversation(ticket) {
         createdAt: ticket.createdAt
     }, ...(ticket.replies || [])];
 
-    return messages.map((message) => {
+    return messages.map((message, index) => {
         const isAdmin = message.sender === 'admin';
-        const senderName = isAdmin ? (message.senderName || 'Casa Decor') : (message.senderName || ticket.fullName || 'Khach hang');
+        const senderName = isAdmin ? (message.senderName || 'Casa Decor') : (message.senderName || ticket.fullName || 'Khách hàng');
         const avatar = supportAvatarMarkup(isAdmin ? message.senderAvatar : (message.senderAvatar || customerAvatar), senderName, isAdmin);
+        const isFirstMessage = index === 0;
+        const attachmentHtml = (isFirstMessage && ticket.relatedOrderCode) 
+            ? `<div style="margin-top: 8px; padding: 6px 10px; background: #fff8f2; border: 1px solid #f2e6de; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; color: #a1887f; font-size: 0.85em;"><i class="fa-solid fa-box-open" style="color: #d68b6d;"></i><span>Đơn hàng đính kèm:</span><strong style="color: #6d4c41;">#${escapeHtml(ticket.relatedOrderCode)}</strong></div>`
+            : '';
+        
         return `
             <div class="support-message ${isAdmin ? 'admin' : 'customer'}">
                 <div class="support-avatar">${avatar}</div>
                 <div class="support-message-body">
                     <p><b>${escapeHtml(senderName)}</b><small>${supportDate(message.createdAt)}</small></p>
-                    <div class="support-bubble">${escapeHtml(message.message)}</div>
+                    <div class="support-bubble">
+                        ${escapeHtml(message.message)}
+                        ${attachmentHtml}
+                    </div>
                 </div>
             </div>
         `;
+
     }).join('');
 }
 
@@ -3249,6 +3280,12 @@ function renderSupportDetail(ticket) {
                         <option value="complaint">Khiếu nại</option>
                         <option value="feedback">Góp ý</option>
                     </select>
+                    <div id="orderSelectContainer" class="order-select-container-rich" style="display: none;">
+                        <label class="rich-label">Đơn hàng cần hỗ trợ</label>
+                        <div id="customerOrderList" style="max-height: 180px; overflow-y: auto;"></div>
+                        <div id="loginToSeeOrdersMsg">Vui lòng đăng nhập để có thể chọn nhanh đơn hàng của bạn.</div>
+                        <input type="text" name="relatedOrderCode" class="order-manual-input" placeholder="Hoặc nhập tay mã đơn hàng (VD: CSDC...)">
+                    </div>
                     <input name="subject" placeholder="Tiêu đề yêu cầu">
                     <textarea name="message" placeholder="Nội dung cần hỗ trợ" required></textarea>
                     <input type="hidden" name="source" value="website">
@@ -3345,6 +3382,7 @@ function setupSupportInteractions() {
             };
             nextForm.category.value = template.dataset.supportTemplate;
             nextForm.subject.value = subjectMap[template.dataset.supportTemplate] || 'Yêu cầu hỗ trợ';
+            nextForm.category.dispatchEvent(new Event('change'));
             nextForm.message.focus();
             return;
         }
@@ -3393,19 +3431,76 @@ function bindSupportContactForm(form) {
     form.dataset.bound = 'true';
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const values = Object.fromEntries(new FormData(form));
-        const data = await api('/contact', { method: 'POST', body: JSON.stringify(values) });
-        saveSupportIdentity(values);
-        supportState.selectedId = data.contact?._id || null;
-        form.reset();
-        prefillSupportForm(form);
-        await loadSupportTickets();
-        toast('Đã gửi yêu cầu hỗ trợ');
+        try {
+            const values = Object.fromEntries(new FormData(form));
+            const data = await api('/contact', { method: 'POST', body: JSON.stringify(values) });
+            saveSupportIdentity(values);
+            supportState.selectedId = data.contact?._id || null;
+            form.reset();
+            prefillSupportForm(form);
+            await loadSupportTickets();
+            toast('Đã gửi yêu cầu hỗ trợ');
+        } catch (error) {
+            toast(error.message);
+        }
     });
+
+    const categorySelect = form.querySelector('[name="category"]');
+    const orderSelectContainer = form.querySelector('#orderSelectContainer');
+    const orderInput = form.querySelector('[name="relatedOrderCode"]');
+    const customerOrderList = form.querySelector('#customerOrderList');
+    const loginMsg = form.querySelector('#loginToSeeOrdersMsg');
+
+    if (categorySelect && orderSelectContainer) {
+        categorySelect.addEventListener('change', async () => {
+            if (categorySelect.value === 'order' || categorySelect.value === 'warranty') {
+                orderSelectContainer.style.display = 'block';
+                const currentUser = session()?.user;
+                if (currentUser) {
+                    if (loginMsg) loginMsg.style.display = 'none';
+                    if (customerOrderList && !customerOrderList.hasChildNodes()) {
+                        try {
+                            const { orders } = await api('/orders?limit=20');
+                            if (orders && orders.length > 0) {
+                                customerOrderList.innerHTML = orders.map(o => {
+                                    const dateStr = new Date(o.createdAt).toLocaleDateString('vi-VN');
+                                    return `
+                                        <label class="cute-order-card">
+                                            <input type="radio" name="orderSelectRadio" value="${o.orderCode}" onchange="this.closest('form').querySelector('[name=relatedOrderCode]').value=this.value">
+                                            <div class="cute-order-content">
+                                                <div class="cute-order-header">
+                                                    <span class="cute-order-code">📦 ${o.orderCode}</span>
+                                                    <span class="cute-order-date">${dateStr}</span>
+                                                </div>
+                                                <div class="cute-order-price">Tổng thanh toán: <b>${money(o.totalAmount)}</b></div>
+                                            </div>
+                                            <div class="cute-check-icon">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                            </div>
+                                        </label>
+                                    `;
+                                }).join('');
+                            } else {
+                                customerOrderList.innerHTML = '<div style="font-size: 0.85em; color: #a1887f; text-align: center; padding: 10px; font-style: italic;">Bạn chưa có đơn hàng nào.</div>';
+                            }
+                        } catch (e) { }
+                    }
+                } else {
+                    if (loginMsg) loginMsg.style.display = 'block';
+                    if (customerOrderList) customerOrderList.innerHTML = '';
+                }
+            } else {
+                orderSelectContainer.style.display = 'none';
+                if (orderInput) orderInput.value = '';
+            }
+        });
+        categorySelect.dispatchEvent(new Event('change'));
+    }
 }
 
 function setupContact() {
     const form = document.querySelector('#contactForm');
+    if (!form) return;
     prefillSupportForm(form);
     setupSupportInteractions();
     loadSupportTickets().catch((error) => toast(error.message));
@@ -3451,3 +3546,4 @@ document.querySelectorAll('.nw-form').forEach((form) => {
         toast('Đã đăng ký nhận bản tin');
     });
 });
+

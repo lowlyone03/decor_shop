@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng lương NVBH - Casa Decor Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-page">
+    <main class="admin-main" style="margin-left: 0;">
+        <header class="admin-topbar">
+            <h2>Quản lý Bảng Lương NVBH</h2>
+            <a href="/management/index.html" class="link-btn">Quay lại Dashboard</a>
+        </header>
+        <section class="dashboard-root">
+            <article class="panel">
+                <div class="panel-head">
+                    <div><h2>Bảng lương tháng này</h2></div>
+                </div>
+                <div class="table-wrap">
+                    <table id="payrollTable">
+                        <thead>
+                            <tr>
+                                <th>Mã NV</th>
+                                <th>Tên nhân viên</th>
+                                <th>Tháng/Năm</th>
+                                <th>Số ca hoàn thành</th>
+                                <th>Lương dự tính</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        async function loadPayroll() {
+            try {
+                const token = localStorage.getItem('casaSession') ? JSON.parse(localStorage.getItem('casaSession')).token : null;
+                const res = await fetch('/api/admin/payroll', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (data.payrolls) {
+                    const tbody = document.querySelector('#payrollTable tbody');
+                    tbody.innerHTML = data.payrolls.map(p => `
+                        <tr>
+                            <td>${p.staff?.staffCode || '-'}</td>
+                            <td>${p.staff?.name || '-'}</td>
+                            <td>${p.month}/${p.year}</td>
+                            <td>${p.completedShifts}</td>
+                            <td>${p.totalSalary.toLocaleString()}₫</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        loadPayroll();
+    </script>
+</body>
+</html>
+

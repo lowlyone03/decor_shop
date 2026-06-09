@@ -117,6 +117,8 @@ exports.createOrder = async (req, res) => {
         cart.subTotal = 0;
         await cart.save();
 
+        req.app.get('io').to(String(req.user._id)).emit('cart_updated', 0);
+
         // Phát thông báo đơn hàng mới qua socket.io
         req.app.get('io').emit('new_order', {
             _id: order._id,

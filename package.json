@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "nodemon src/server.js",
+    "serve": "node src/server.js",
     "dev": "nodemon src/server.js",
     "seed": "node scripts/seedDatabase.js",
     "test": "jest",
@@ -19,6 +20,7 @@
     "bcryptjs": "^3.0.3",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
+    "dayjs": "^1.11.21",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
@@ -26,6 +28,7 @@
     "mongoose": "^9.6.1",
     "multer": "^2.1.1",
     "node-cache": "^5.1.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^8.0.7",
     "socket.io": "^4.8.3"
   },

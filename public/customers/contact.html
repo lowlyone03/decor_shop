@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -73,6 +73,12 @@
                             <option value="complaint">Khiếu nại</option>
                             <option value="feedback">Góp ý</option>
                         </select>
+                        <div id="orderSelectContainer" class="order-select-container-rich" style="display: none;">
+                            <label class="rich-label">Đơn hàng cần hỗ trợ</label>
+                            <div id="customerOrderList" style="max-height: 180px; overflow-y: auto;"></div>
+                            <div id="loginToSeeOrdersMsg">Vui lòng đăng nhập để có thể chọn nhanh đơn hàng của bạn.</div>
+                            <input type="text" name="relatedOrderCode" class="order-manual-input" placeholder="Hoặc nhập tay mã đơn hàng (VD: CSDC...)">
+                        </div>
                         <input name="subject" placeholder="Tiêu đề yêu cầu">
                         <textarea name="message" placeholder="Nội dung cần hỗ trợ" required></textarea>
                         <input type="hidden" name="source" value="website">
@@ -138,7 +144,7 @@
         <span class="zalo-float-label">Nhắn tin Zalo</span>
         <span class="zalo-float-core">Zalo</span>
     </a>
-    <script src="/js/shop.js"></script>
+    <script src="/js/shop.js?v=20260609"></script>
     <script src="/js/effects.js" defer></script>
 </body>
 

@@ -20,7 +20,9 @@ const contactSchema = new mongoose.Schema({
     priority: { type: String, enum: ['normal', 'high'], default: 'normal' },
     category: { type: String, enum: ['general', 'order', 'consulting', 'complaint', 'warranty', 'feedback'], default: 'general' },
     status: { type: String, enum: ['pending', 'processing', 'resolved'], default: 'pending' },
-    assignedTo: { type: String },
+    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    handledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    handledAt: { type: Date, default: null },
     internalNote: { type: String },
     replies: [replySchema],
     relatedOrderCode: { type: String }

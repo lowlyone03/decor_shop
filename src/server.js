@@ -99,6 +99,7 @@ function getAppRoutes() {
         const paymentRoutes = require('./routes/paymentRoutes');
         const adminRoutes = require('./routes/adminRoutes');
         const otherRoutes = require('./routes/otherRoutes');
+        const staffRoutes = require('./routes/staffRoutes');
         
         parseRouter(authRoutes, '/api/auth');
         parseRouter(productRoutes, '/api');
@@ -106,6 +107,7 @@ function getAppRoutes() {
         parseRouter(orderRoutes, '/api/orders');
         parseRouter(paymentRoutes, '/api/payments');
         parseRouter(adminRoutes, '/api/admin');
+        parseRouter(staffRoutes, '/api/staff');
         parseRouter(otherRoutes, '/api');
     } catch (e) {
         // Fallback silently if routes are not loaded yet
@@ -293,6 +295,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const otherRoutes = require('./routes/otherRoutes');
+const staffRoutes = require('./routes/staffRoutes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -301,6 +304,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/staff', staffRoutes);
 app.use('/api', otherRoutes);
 
 // Redirect root to customers
@@ -323,6 +327,10 @@ async function bootstrap() {
         server.on('error', logServerError);
         server.listen(PORT, () => {
             logServerReady(PORT, dbName);
+
+            // Khởi chạy Cron Jobs cho NVBH
+            const { startShiftCron } = require('./jobs/shiftCron');
+            startShiftCron(io);
         });
     } catch (err) {
         console.error(color('🚨 FAILED TO BOOTSTRAP SERVER:', ansi.red, ansi.bold), err);

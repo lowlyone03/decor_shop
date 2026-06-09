@@ -44,7 +44,7 @@ function redirectAfterAuth(session) {
     const requested = new URLSearchParams(location.search).get('redirect') || '';
     const safeRequested = requested.startsWith('/') && !requested.startsWith('//') ? requested : '';
     if (['admin', 'staff'].includes(session?.user?.role)) {
-        window.location.href = safeRequested || '/admin/index.html';
+        window.location.href = safeRequested || '/management/index.html';
         return;
     }
     window.location.href = safeRequested.startsWith('/customers/') ? safeRequested : '/customers/index.html';
@@ -165,3 +165,4 @@ if (resetForm) {
         }
     });
 }
+

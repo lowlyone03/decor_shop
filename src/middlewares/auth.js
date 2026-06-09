@@ -1,7 +1,5 @@
 const User = require('../models/User');
-const StaffShift = require('../models/StaffShift');
 const { verifyToken } = require('../utils/crypto');
-const { localDateString, localMinutes } = require('../utils/staffShift');
 
 async function authRequired(req, res, next) {
     const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -32,25 +30,61 @@ async function optionalAuthUser(req) {
 
 async function adminRequired(req, res, next) {
     if (req.user?.role === 'admin') return next();
-    if (req.user?.role === 'staff') {
-        const now = new Date();
-        const activeShift = await StaffShift.findOne({
-            staff: req.user._id,
-            shiftDate: localDateString(now),
-            status: { $in: ['scheduled', 'active'] },
-            startMinute: { $lte: localMinutes(now) },
-            endMinute: { $gt: localMinutes(now) }
-        }).lean();
-        if (activeShift) {
-            req.activeShift = activeShift;
-            return next();
-        }
-    }
     return res.status(403).json({ message: 'Ban khong co quyen truy cap khu vuc quan tri.' });
 }
+
+const adminOnly = (req, res, next) => {
+    if (req.user.role !== 'admin')
+        return res.status(403).json({ message: 'Chỉ admin được phép' });
+    next();
+};
+
+// Chỉ admin — chặn cứng staff
+const adminOnlyStrict = (req, res, next) => {
+    if (req.user?.role !== 'admin')
+        return res.status(403).json({ message: 'Chỉ quản trị viên được phép thực hiện.' });
+    next();
+};
+
+// Staff hoặc Admin
+const staffOrAdmin = (req, res, next) => {
+    if (req.user?.role === 'admin' || req.user?.role === 'staff') return next();
+    return res.status(403).json({ message: 'Bạn không có quyền truy cập khu vực này.' });
+};
+
+// Yêu cầu đang trong ca active (admin được miễn)
+const requireActiveShift = async (req, res, next) => {
+    if (req.user?.role === 'admin') return next();
+
+    const StaffShift = require('../models/StaffShift');
+    const now = new Date();
+    const shiftDate = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+    const hours = Number(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh', hour: 'numeric', hour12: false }));
+    const minutes = Number(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh', minute: 'numeric' }));
+    const currentMinute = hours * 60 + minutes;
+
+    const activeShift = await StaffShift.findOne({
+        staff: req.user._id,
+        status: 'active',
+        shiftDate,
+        startMinute: { $lte: currentMinute },
+        endMinute: { $gt: currentMinute }
+    });
+
+    if (!activeShift) {
+        return res.status(403).json({ message: 'Bạn cần check-in ca trực trước khi thực hiện thao tác này.' });
+    }
+
+    req.activeShift = activeShift;
+    next();
+};
 
 module.exports = {
     authRequired,
     optionalAuthUser,
-    adminRequired
+    adminRequired,
+    adminOnly,
+    adminOnlyStrict,
+    staffOrAdmin,
+    requireActiveShift
 };

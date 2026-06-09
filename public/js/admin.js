@@ -62,24 +62,28 @@ function pageFromPath() {
     if (path.endsWith('/profile.html')) return 'profile';
     if (path.endsWith('/inventory.html')) return 'inventory';
     if (path.endsWith('/schedule.html')) return 'schedule';
+    if (path.endsWith('/reports.html')) return 'reports';
+    if (path.endsWith('/settings.html')) return 'settings';
     return 'dashboard';
 }
 
 function viewUrl(view) {
-    if (view === 'products') return '/admin/products.html';
-    if (view === 'categories') return '/admin/categories.html';
-    if (view === 'orders') return '/admin/orders.html';
-    if (view === 'customers') return '/admin/customers.html';
-    if (view === 'staff') return '/admin/staff.html';
-    if (view === 'reviews') return '/admin/reviews.html';
-    if (view === 'promotions') return '/admin/promotions.html';
-    if (view === 'profile') return '/admin/profile.html';
-    if (view === 'banners') return '/admin/banners.html';
-    if (view === 'blog') return '/admin/blog.html';
-    if (view === 'contacts') return '/admin/contacts.html';
-    if (view === 'inventory') return '/admin/inventory.html';
-    if (view === 'schedule') return '/admin/schedule.html';
-    return '/admin/index.html';
+    if (view === 'products') return '/management/products.html';
+    if (view === 'categories') return '/management/categories.html';
+    if (view === 'orders') return '/management/orders.html';
+    if (view === 'customers') return '/management/customers.html';
+    if (view === 'staff') return '/management/staff.html';
+    if (view === 'reviews') return '/management/reviews.html';
+    if (view === 'promotions') return '/management/promotions.html';
+    if (view === 'profile') return '/management/profile.html';
+    if (view === 'banners') return '/management/banners.html';
+    if (view === 'blog') return '/management/blog.html';
+    if (view === 'contacts') return '/management/contacts.html';
+    if (view === 'inventory') return '/management/inventory.html';
+    if (view === 'schedule') return '/management/schedule.html';
+    if (view === 'reports') return '/management/reports.html';
+    if (view === 'settings') return '/management/settings.html';
+    return '/management/index.html';
 }
 
 function session() {
@@ -97,7 +101,12 @@ function authHeaders() {
 }
 
 async function api(path, options = {}) {
-    const response = await fetch(`${API}${path}`, {
+    // Smart rewrite: staff role → /staff/ endpoints thay vì /admin/
+    let finalPath = path;
+    if (getUserRole() === 'staff' && path.startsWith('/admin/')) {
+        finalPath = path.replace('/admin/', '/staff/');
+    }
+    const response = await fetch(`${API}${finalPath}`, {
         headers: { 'Content-Type': 'application/json', ...authHeaders(), ...(options.headers || {}) },
         ...options
     });
@@ -115,6 +124,102 @@ async function ensureAdminSession() {
     window.location.href = loginUrl;
     throw new Error('Chưa đăng nhập.');
 }
+
+// ═══════════════════════════════════════════════════════════════
+// B6: PERMISSION SYSTEM — Ẩn/hiện menu + nút + API base theo role
+// ═══════════════════════════════════════════════════════════════
+
+function getUserRole() {
+    return session()?.user?.role || 'customer';
+}
+
+function apiBase() {
+    return getUserRole() === 'staff' ? '/api/staff' : '/api/admin';
+}
+
+// Menu items mà STAFF KHÔNG được thấy
+const STAFF_HIDDEN_VIEWS = [
+    'staff',        // Quản lý NV (chỉ admin)
+    'banners',      // Banner
+    'blog',         // Blog
+    'reports',      // Báo cáo tổng hợp
+    'settings',     // Cài đặt hệ thống
+    'payroll'       // Bảng lương tổng hợp
+];
+
+// Menu items mà STAFF ĐƯỢC THẤY
+const STAFF_ALLOWED_VIEWS = [
+    'dashboard', 'products', 'categories', 'orders', 'customers',
+    'reviews', 'promotions', 'contacts', 'inventory', 'schedule', 'profile'
+];
+
+// Nút thao tác mà STAFF KHÔNG được dùng (CSS selectors)
+const STAFF_HIDDEN_ACTIONS = [
+    '[data-action="add-product"]',
+    '[data-action="edit-product"]',
+    '[data-action="delete-product"]',
+    '[data-action="add-category"]',
+    '[data-action="edit-category"]',
+    '[data-action="delete-category"]',
+    '[data-action="add-promotion"]',
+    '[data-action="edit-promotion"]',
+    '[data-action="delete-promotion"]',
+    '#quickAddBtn',               // Nút "Thêm nhanh"
+    '.quick-add'                 // Quick add container
+];
+
+function applyPermissions() {
+    const role = getUserRole();
+    if (role === 'admin') return; // Admin thấy hết
+
+    // 1. Ẩn menu items
+    document.querySelectorAll('.admin-menu a[data-view]').forEach(link => {
+        const view = link.getAttribute('data-view');
+        if (STAFF_HIDDEN_VIEWS.includes(view)) {
+            link.style.display = 'none';
+        }
+    });
+    // Ẩn cả link không có data-view (href-based)
+    document.querySelectorAll('.admin-menu a[href]').forEach(link => {
+        const href = link.getAttribute('href') || '';
+        for (const view of STAFF_HIDDEN_VIEWS) {
+            if (href.includes(`/${view}.html`)) {
+                link.style.display = 'none';
+                break;
+            }
+        }
+    });
+
+    // Ẩn section headers không còn menu item nào visible
+    document.querySelectorAll('.admin-menu p').forEach(header => {
+        let next = header.nextElementSibling;
+        let hasVisible = false;
+        while (next && next.tagName === 'A') {
+            if (next.style.display !== 'none') hasVisible = true;
+            next = next.nextElementSibling;
+        }
+        if (!hasVisible) header.style.display = 'none';
+    });
+
+    // 2. Ẩn nút thao tác nhạy cảm
+    STAFF_HIDDEN_ACTIONS.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+            el.style.display = 'none';
+        });
+    });
+
+    // 3. Đổi label header
+    const brandLabel = document.querySelector('.admin-brand small');
+    if (brandLabel) brandLabel.textContent = 'Staff';
+
+    const roleLabel = document.querySelector('#adminRole');
+    if (roleLabel) roleLabel.textContent = 'Nhân viên bán hàng';
+
+    // 4. Đổi text cổng auth
+    const authTitle = document.querySelector('#authGate h1');
+    if (authTitle) authTitle.textContent = 'Cần đăng nhập tài khoản nhân viên';
+}
+
 
 function money(value) {
     return Number(value || 0).toLocaleString('vi-VN') + 'đ';
@@ -235,7 +340,7 @@ function setAdminSessionControls(visible) {
 }
 
 function switchAdminView(view, updateHash = true) {
-    state.currentView = ['profile', 'products', 'product-form', 'categories', 'orders', 'customers', 'staff', 'reviews', 'promotions', 'promotion-form', 'banners', 'blog', 'contacts', 'inventory', 'schedule'].includes(view) ? view : 'dashboard';
+    state.currentView = ['profile', 'products', 'product-form', 'categories', 'orders', 'customers', 'staff', 'reviews', 'promotions', 'promotion-form', 'banners', 'blog', 'contacts', 'inventory', 'schedule', 'reports', 'settings'].includes(view) ? view : 'dashboard';
     const isProfile = state.currentView === 'profile';
     const isProducts = state.currentView === 'products';
     const isProductForm = state.currentView === 'product-form';
@@ -250,7 +355,9 @@ function switchAdminView(view, updateHash = true) {
     const isContacts = state.currentView === 'contacts';
     const isInventory = state.currentView === 'inventory';
     const isSchedule = state.currentView === 'schedule';
-    
+    const isReports = state.currentView === 'reports';
+    const isSettings = state.currentView === 'settings';
+
     const dashboard = document.querySelector('#dashboardRoot');
     const profile = document.querySelector('#adminProfileView');
     const products = document.querySelector('#productManagerView');
@@ -263,8 +370,10 @@ function switchAdminView(view, updateHash = true) {
     const bannersView = document.querySelector('#bannerManagerView');
     const blogView = document.querySelector('#blogManagerView');
     const contactsView = document.querySelector('#contactManagerView');
+    const reportsView = document.querySelector('#adminReportsView');
+    const settingsView = document.querySelector('#adminSettingsView');
 
-    if (dashboard) dashboard.hidden = isProfile || isProducts || isProductForm || isCategories || isOrders || isCustomers || isStaff || isReviews || isBanners || isBlog || isPromotions || isContacts || isInventory || isSchedule;
+    if (dashboard) dashboard.hidden = isProfile || isProducts || isProductForm || isCategories || isOrders || isCustomers || isStaff || isReviews || isBanners || isBlog || isPromotions || isContacts || isInventory || isSchedule || isReports || isSettings;
     if (profile) profile.hidden = !isProfile;
     if (products) products.hidden = !isProducts;
     if (productForm) productForm.hidden = !isProductForm;
@@ -276,6 +385,8 @@ function switchAdminView(view, updateHash = true) {
     if (bannersView) bannersView.hidden = !isBanners;
     if (blogView) blogView.hidden = !isBlog;
     if (contactsView) contactsView.hidden = !isContacts;
+    if (reportsView) reportsView.hidden = !isReports;
+    if (settingsView) settingsView.hidden = !isSettings;
 
     document.querySelectorAll('[data-view]').forEach((item) => {
         const activeView = isProductForm ? 'products' : state.currentView;
@@ -288,7 +399,9 @@ function switchAdminView(view, updateHash = true) {
     if (isStaff) loadStaffManager();
     if (isReviews) loadReviewManager();
     if (isContacts) loadContactManager();
-    if (!isProfile && !isProducts && !isProductForm && !isCategories && !isOrders && !isCustomers && !isStaff && !isReviews && !isBanners && !isBlog && !isPromotions && !isContacts && state.data) requestAnimationFrame(drawRevenueChart);
+    if (isReports) loadReports();
+    if (isSettings) loadSettings();
+    if (!isProfile && !isProducts && !isProductForm && !isCategories && !isOrders && !isCustomers && !isStaff && !isReviews && !isBanners && !isBlog && !isPromotions && !isContacts && !isReports && !isSettings && state.data) requestAnimationFrame(drawRevenueChart);
     if (updateHash) requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0 }));
 }
 
@@ -309,7 +422,7 @@ function setProfileEditing(enabled) {
 function kpiCard({ icon, title, value, note, change, target }) {
     const hasChange = change !== undefined;
     const direction = Number(change || 0) >= 0 ? 'up' : 'down';
-    const clickAttr = target ? `style="cursor:pointer; transition: transform 0.2s;" onclick="window.location.href='/admin/${target}.html'" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'"` : '';
+    const clickAttr = target ? `style="cursor:pointer; transition: transform 0.2s;" onclick="window.location.href='/management/${target}.html'" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'"` : '';
     return `
         <article class="kpi-card" ${clickAttr}>
             <span class="kpi-icon"><i class="${icon}"></i></span>
@@ -716,7 +829,7 @@ function renderCategoryManager(data) {
 
 async function loadOrderManager(page = state.orders.page) {
     const orderView = document.querySelector('#orderManagerView');
-    if (!orderView || orderView.hidden) return;
+    if (!orderView) return;
     const params = new URLSearchParams({
         page: page,
         limit: state.orders.limit,
@@ -1089,14 +1202,22 @@ function renderDashboard(data) {
 }
 
 async function loadDashboard() {
-    const from = document.querySelector('#dateFrom').value;
-    const to = document.querySelector('#dateTo').value;
+    const from = document.querySelector('#dateFrom')?.value;
+    const to = document.querySelector('#dateTo')?.value;
     try {
         await ensureAdminSession();
-        const data = await api(`/admin/dashboard?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
         document.querySelector('#authGate').hidden = true;
         setAdminSessionControls(true);
-        renderDashboard(data);
+        applyPermissions();
+
+        if (getUserRole() === 'staff') {
+            const data = await api('/staff/dashboard');
+            renderStaffDashboard(data);
+        } else {
+            const data = await api(`/admin/dashboard?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+            renderDashboard(data);
+        }
+
         const pageView = pageFromPath();
         switchAdminView(pageView, false);
         if (pageView === 'dashboard' && location.hash) {
@@ -1110,7 +1231,348 @@ async function loadDashboard() {
         if (profile) profile.hidden = true;
         document.querySelector('#authGate').hidden = true;
         setAdminSessionControls(false);
-        showToast('Không thể tải dashboard admin. Kiểm tra MongoDB và tài khoản admin seed.');
+        showToast('Không thể tải dashboard. Kiểm tra kết nối.');
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// B7: DASHBOARD NVBH — HERO ca trực + Checklist + CRM + Ca sắp tới
+// ═══════════════════════════════════════════════════════════════
+
+const SHIFT_STATUS_META = {
+    in_shift:       { label: 'Đang trong ca', icon: 'fa-solid fa-circle-play', color: '#16a34a', tint: '#e5f5dd' },
+    not_checked_in: { label: 'Chưa check-in', icon: 'fa-solid fa-door-open', color: '#dca941', tint: '#fff0d0' },
+    no_shift_today: { label: 'Không có ca hôm nay', icon: 'fa-solid fa-moon', color: '#8b8b8b', tint: '#f0f0f0' }
+};
+
+function renderStaffDashboard(data) {
+    const root = document.querySelector('#dashboardRoot');
+    if (!root) return;
+
+    const meta = SHIFT_STATUS_META[data.shiftStatus] || SHIFT_STATUS_META.no_shift_today;
+    const shift = data.currentShift;
+    const stats = data.shiftStats || {};
+    const cl = data.checklist || {};
+    const crm = data.crm || {};
+    const upcoming = data.upcomingShifts || [];
+
+    root.innerHTML = `
+        <!-- HERO CA TRỰC -->
+        <section class="staff-hero" style="
+            background: linear-gradient(135deg, ${meta.tint} 0%, #fff 100%);
+            border: 2px solid ${meta.color}22;
+            border-radius: 16px; padding: 28px 32px; margin-bottom: 24px;
+            display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center;
+        ">
+            <div>
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                    <i class="${meta.icon}" style="font-size:1.6rem; color:${meta.color}"></i>
+                    <h2 style="margin:0; font-size:1.35rem; color:#333;">${meta.label}</h2>
+                    ${shift ? `<span style="background:${meta.color}15; color:${meta.color}; padding:4px 12px; border-radius:20px; font-size:0.82rem; font-weight:600;">
+                        Ca ${shift.shiftName || ''} · ${shift.startTime} – ${shift.endTime}
+                    </span>` : ''}
+                </div>
+                ${shift ? `
+                <div style="display:flex; gap:20px; flex-wrap:wrap;">
+                    <div class="staff-stat-card">
+                        <small>Đơn xử lý</small>
+                        <strong>${stats.ordersProcessed || 0}</strong>
+                    </div>
+                    <div class="staff-stat-card">
+                        <small>Doanh thu ca</small>
+                        <strong>${money(stats.revenueInShift || 0)}</strong>
+                    </div>
+                    <div class="staff-stat-card">
+                        <small>Lương ca</small>
+                        <strong>${money(shift.totalPay || 300000)}</strong>
+                    </div>
+                </div>` : `<p style="color:#888; margin:8px 0 0;">Bạn không có ca làm việc hôm nay. Kiểm tra lịch phân ca bên dưới.</p>`}
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; min-width:160px;">
+                ${data.shiftStatus === 'not_checked_in' && shift ? `
+                    <button onclick="staffCheckIn('${shift._id}')" class="staff-action-btn" style="background:${meta.color};">
+                        <i class="fa-solid fa-right-to-bracket"></i> Check-in ngay
+                    </button>` : ''}
+                ${data.shiftStatus === 'in_shift' && shift ? `
+                    <button onclick="staffCheckOut('${shift._id}')" class="staff-action-btn" style="background:#cf5148;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Check-out
+                    </button>` : ''}
+                <a href="/management/schedule.html" class="staff-action-btn ghost" style="text-decoration:none; text-align:center;">
+                    <i class="fa-regular fa-calendar"></i> Xem lịch ca
+                </a>
+            </div>
+        </section>
+
+        <!-- CHECKLIST ĐỘNG -->
+        <section style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom:24px;">
+            <a href="/management/orders.html" class="staff-checklist-item" style="text-decoration:none;">
+                <div class="staff-checklist-icon" style="background:#dca94115; color:#dca941;">
+                    <i class="fa-regular fa-clock"></i>
+                </div>
+                <div>
+                    <strong>${cl.pendingOrders || 0}</strong>
+                    <small>Đơn chờ xử lý</small>
+                </div>
+            </a>
+            <a href="/management/orders.html?mine=true" class="staff-checklist-item" style="text-decoration:none;">
+                <div class="staff-checklist-icon" style="background:#3d82c415; color:#3d82c4;">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <div>
+                    <strong>${cl.myProcessingOrders || 0}</strong>
+                    <small>Đơn tôi đang xử lý</small>
+                </div>
+            </a>
+            <a href="/management/contacts.html" class="staff-checklist-item" style="text-decoration:none;">
+                <div class="staff-checklist-icon" style="background:#e67e2215; color:#e67e22;">
+                    <i class="fa-regular fa-message"></i>
+                </div>
+                <div>
+                    <strong>${cl.pendingContacts || 0}</strong>
+                    <small>Liên hệ chờ</small>
+                </div>
+            </a>
+            <a href="/management/reviews.html" class="staff-checklist-item" style="text-decoration:none;">
+                <div class="staff-checklist-icon" style="background:#16a34a15; color:#16a34a;">
+                    <i class="fa-regular fa-star"></i>
+                </div>
+                <div>
+                    <strong>${cl.pendingReviews || 0}</strong>
+                    <small>Đánh giá chờ duyệt</small>
+                </div>
+            </a>
+        </section>
+
+        <!-- ROW: CRM + CA SẮP TỚI -->
+        <section style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <!-- MINI CRM -->
+            <article class="panel" id="staffCrmPanel">
+                <div class="panel-head">
+                    <div><h2>CRM — Bán chủ động</h2><p>Giỏ bỏ quên & Follow-up</p></div>
+                </div>
+                <div class="staff-crm-body" style="padding:16px;">
+                    <div style="display:flex; gap:16px; margin-bottom:16px;">
+                        <div class="staff-crm-stat" style="flex:1; cursor:pointer;" onclick="loadStaffCRM('abandoned')">
+                            <i class="fa-solid fa-cart-shopping" style="color:#cf5148; font-size:1.4rem;"></i>
+                            <strong id="crmAbandoned">${crm.abandonedCartCount || 0}</strong>
+                            <small>Giỏ bỏ quên</small>
+                        </div>
+                        <div class="staff-crm-stat" style="flex:1; cursor:pointer;" onclick="loadStaffCRM('followup')">
+                            <i class="fa-solid fa-phone-volume" style="color:#3d82c4; font-size:1.4rem;"></i>
+                            <strong>—</strong>
+                            <small>Follow-up khách cũ</small>
+                        </div>
+                    </div>
+                    <div id="staffCrmContent" style="min-height:100px;">
+                        <p style="color:#999; text-align:center; padding:20px 0;">Chọn mục bên trên để xem chi tiết</p>
+                    </div>
+                </div>
+            </article>
+
+            <!-- CA SẮP TỚI -->
+            <article class="panel">
+                <div class="panel-head">
+                    <div><h2>Ca sắp tới</h2><p>3 ca làm việc kế tiếp</p></div>
+                </div>
+                <div style="padding:16px;">
+                    ${upcoming.length > 0 ? upcoming.map(s => `
+                        <div class="staff-upcoming-shift">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="background:#c48c7115; color:#c48c71; width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa-regular fa-calendar-check"></i>
+                                </div>
+                                <div>
+                                    <strong>${s.shiftDate}</strong>
+                                    <small style="display:block; color:#888;">Ca ${s.shiftName || ''} · ${s.startTime} – ${s.endTime}</small>
+                                </div>
+                            </div>
+                            <span style="background:#f5f0ed; color:#9e6b50; padding:4px 10px; border-radius:8px; font-size:0.8rem; font-weight:500;">
+                                ${money(s.totalPay || 300000)}
+                            </span>
+                        </div>
+                    `).join('') : '<p style="color:#999; text-align:center; padding:30px 0;">Chưa có ca nào được phân công</p>'}
+                </div>
+            </article>
+        </section>
+    `;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// B7: Staff Check-in / Check-out từ Dashboard
+// ═══════════════════════════════════════════════════════════════
+
+async function staffCheckIn(shiftId) {
+    try {
+        const result = await api(`/staff/shifts/${shiftId}/check-in`, { method: 'POST' });
+        showToast(`✅ ${result.message}`);
+        loadDashboard();
+    } catch (error) {
+        showToast(`❌ ${error.message}`);
+    }
+}
+
+async function staffCheckOut(shiftId) {
+    // Hiển thị modal báo cáo cuối ca
+    const modal = document.querySelector('#adminModal');
+    const title = document.querySelector('#adminModalTitle');
+    const body = document.querySelector('#adminModalBody');
+    title.textContent = 'Báo cáo cuối ca';
+    body.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:14px;">
+            <label style="font-weight:500;">Nội dung báo cáo <span style="color:red">*</span></label>
+            <textarea id="coReportContent" rows="4" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; resize:vertical; font-size:0.95rem;" placeholder="Tóm tắt công việc đã làm trong ca..."></textarea>
+            <label style="font-weight:500;">Sự cố (nếu có)</label>
+            <textarea id="coReportIncidents" rows="2" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; resize:vertical; font-size:0.9rem;" placeholder="Mô tả sự cố nếu có..."></textarea>
+            <label style="font-weight:500;">Bàn giao (nếu có)</label>
+            <textarea id="coReportHandover" rows="2" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; resize:vertical; font-size:0.9rem;" placeholder="Ghi chú bàn giao cho ca sau..."></textarea>
+            <button onclick="submitStaffCheckOut('${shiftId}')" class="staff-action-btn" style="background:#cf5148; margin-top:8px;">
+                <i class="fa-solid fa-right-from-bracket"></i> Xác nhận Check-out
+            </button>
+        </div>
+    `;
+    modal.hidden = false;
+}
+
+async function submitStaffCheckOut(shiftId) {
+    const content = document.querySelector('#coReportContent')?.value?.trim();
+    if (!content) return showToast('❌ Vui lòng nhập báo cáo cuối ca.');
+    const incidents = document.querySelector('#coReportIncidents')?.value?.trim();
+    const handover = document.querySelector('#coReportHandover')?.value?.trim();
+    try {
+        const result = await api(`/staff/shifts/${shiftId}/check-out`, {
+            method: 'POST',
+            body: JSON.stringify({ content, incidents, handover })
+        });
+        document.querySelector('#adminModal').hidden = true;
+        showToast(`✅ ${result.message}`);
+        loadDashboard();
+    } catch (error) {
+        showToast(`❌ ${error.message}`);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// B8: CRM FRONTEND — Giỏ bỏ quên + Follow-up + Nhật ký
+// ═══════════════════════════════════════════════════════════════
+
+async function loadStaffCRM(mode) {
+    const container = document.querySelector('#staffCrmContent');
+    if (!container) return;
+    container.innerHTML = '<p style="text-align:center; padding:20px; color:#999;">Đang tải...</p>';
+
+    try {
+        if (mode === 'abandoned') {
+            const data = await api('/staff/crm/abandoned-carts');
+            if (!data.carts || data.carts.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:#16a34a;"><i class="fa-solid fa-check-circle"></i> Không có giỏ bỏ quên nào</p>';
+                return;
+            }
+            container.innerHTML = data.carts.map(cart => `
+                <div class="staff-crm-row">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                        <img src="${cart.customer?.avatar || '/images/logo/logo1.jpg'}" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                        <div>
+                            <strong>${escapeHtml(cart.customer?.name || 'Khách')}</strong>
+                            <small style="display:block; color:#888;">${cart.customer?.phone || cart.customer?.email || ''} · ${cart.items.length} SP</small>
+                        </div>
+                    </div>
+                    <span style="color:#888; font-size:0.82rem;">${timeAgo(cart.updatedAt)}</span>
+                    <button onclick="claimAbandonedCart('${cart._id}')" class="staff-mini-btn" title="Nhận chăm sóc">
+                        <i class="fa-solid fa-hand-holding-heart"></i> Nhận
+                    </button>
+                </div>
+            `).join('');
+        } else if (mode === 'followup') {
+            const data = await api('/staff/crm/follow-ups?days=30');
+            if (!data.customers || data.customers.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:#999;">Không có khách cần follow-up</p>';
+                return;
+            }
+            container.innerHTML = data.customers.slice(0, 8).map(c => `
+                <div class="staff-crm-row">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                        <img src="${c.avatar || '/images/logo/logo1.jpg'}" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                        <div>
+                            <strong>${escapeHtml(c.name)}</strong>
+                            <small style="display:block; color:#888;">${c.totalOrders} đơn · ${money(c.totalSpent)}</small>
+                        </div>
+                    </div>
+                    <span style="color:#888; font-size:0.82rem;">${shortDate(c.lastOrderDate)}</span>
+                    <button onclick="openInteractionModal('${c._id}', '${escapeHtml(c.name)}')" class="staff-mini-btn" title="Ghi liên hệ">
+                        <i class="fa-solid fa-phone"></i> Liên hệ
+                    </button>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        container.innerHTML = `<p style="text-align:center; padding:20px; color:#cf5148;">${error.message}</p>`;
+    }
+}
+
+function timeAgo(dateStr) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const h = Math.floor(diff / 3600000);
+    if (h < 1) return `${Math.floor(diff / 60000)} phút trước`;
+    if (h < 24) return `${h} giờ trước`;
+    return `${Math.floor(h / 24)} ngày trước`;
+}
+
+async function claimAbandonedCart(cartId) {
+    try {
+        const result = await api(`/staff/crm/abandoned-carts/${cartId}/claim`, { method: 'POST' });
+        showToast(`✅ ${result.message}`);
+        loadStaffCRM('abandoned');
+    } catch (error) {
+        showToast(`❌ ${error.message}`);
+    }
+}
+
+function openInteractionModal(customerId, customerName) {
+    const modal = document.querySelector('#adminModal');
+    const title = document.querySelector('#adminModalTitle');
+    const body = document.querySelector('#adminModalBody');
+    title.textContent = `Ghi liên hệ — ${customerName}`;
+    body.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <label style="font-weight:500;">Kênh liên hệ</label>
+            <select id="interChannel" style="padding:8px 12px; border:1px solid #ddd; border-radius:8px;">
+                <option value="phone">Điện thoại</option>
+                <option value="zalo">Zalo</option>
+                <option value="email">Email</option>
+                <option value="sms">SMS</option>
+                <option value="in_store">Tại cửa hàng</option>
+            </select>
+            <label style="font-weight:500;">Kết quả</label>
+            <select id="interResult" style="padding:8px 12px; border:1px solid #ddd; border-radius:8px;">
+                <option value="interested">Quan tâm</option>
+                <option value="not_interested">Không quan tâm</option>
+                <option value="no_answer">Không nghe máy</option>
+                <option value="callback">Gọi lại sau</option>
+                <option value="ordered">Đã đặt hàng</option>
+            </select>
+            <label style="font-weight:500;">Ghi chú</label>
+            <textarea id="interNote" rows="3" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; resize:vertical;" placeholder="Nội dung trao đổi..."></textarea>
+            <button onclick="submitInteraction('${customerId}')" class="staff-action-btn" style="background:#16a34a; margin-top:6px;">
+                <i class="fa-solid fa-save"></i> Lưu nhật ký
+            </button>
+        </div>
+    `;
+    modal.hidden = false;
+}
+
+async function submitInteraction(customerId) {
+    const channel = document.querySelector('#interChannel')?.value;
+    const result = document.querySelector('#interResult')?.value;
+    const note = document.querySelector('#interNote')?.value?.trim();
+    try {
+        await api('/staff/crm/interactions', {
+            method: 'POST',
+            body: JSON.stringify({ customer: customerId, channel, source: 'follow_up', result, note })
+        });
+        document.querySelector('#adminModal').hidden = true;
+        showToast('✅ Đã lưu nhật ký liên hệ.');
+    } catch (error) {
+        showToast(`❌ ${error.message}`);
     }
 }
 
@@ -1302,21 +1764,18 @@ function openProductForm(product = null) {
 
     if (product) {
         form.elements['name'].value = product.name || '';
-        form.elements['sku'].value = product.slug || '';
-        form.elements['brand'].value = product.style || '';
-        form.elements['tags'].value = product.searchText || '';
+        if (form.elements['brand']) form.elements['brand'].value = product.style || '';
         form.elements['status'].value = product.status !== 'hidden' && product.status !== 'out_of_stock' ? 'active' : (product.status === 'hidden' ? 'hidden' : 'active');
         form.elements['shortDescription'].value = product.shortDescription || '';
         form.elements['description'].value = product.description || '';
         form.elements['material'].value = product.material || '';
         form.elements['dimensions'].value = product.dimensions || '';
         form.elements['color'].value = product.color || '';
-        form.elements['isFeatured'].checked = !!product.isFeatured;
-        form.elements['isNewProduct'].checked = !!product.isNewProduct;
+        if (form.elements['isFeatured']) form.elements['isFeatured'].checked = !!product.isFeatured;
+        if (form.elements['isNewProduct']) form.elements['isNewProduct'].checked = !!product.isNewProduct;
         form.elements['price'].value = product.price || '';
-        form.elements['salePrice'].value = product.salePrice || '';
+        if (form.elements['salePrice']) form.elements['salePrice'].value = product.salePrice || '';
         form.elements['stock'].value = product.stock || 0;
-        form.elements['inventoryStatus'].value = product.stock > 0 ? 'in_stock' : 'out_of_stock';
 
         const primaryImg = product.images?.find(img => img.isPrimary) || product.images?.[0];
         if (primaryImg) {
@@ -1332,12 +1791,22 @@ function openProductForm(product = null) {
             document.getElementById('replacePrimaryBtn').hidden = false;
             document.getElementById('primaryImageInput').value = product.image;
         }
+
+        const galleryImgs = product.images?.filter(img => !img.isPrimary).map(img => img.url) || [];
+        document.getElementById('galleryImagesInput').value = JSON.stringify(galleryImgs);
+        if (typeof renderGalleryImages === 'function') {
+            renderGalleryImages();
+        }
     } else {
         document.getElementById('primaryImagePreview').hidden = true;
         document.getElementById('primaryImagePlaceholder').hidden = false;
         document.getElementById('replacePrimaryBtn').hidden = true;
         document.getElementById('primaryImagePreview').src = '';
         document.getElementById('primaryImageInput').value = '';
+        document.getElementById('galleryImagesInput').value = '';
+        if (typeof renderGalleryImages === 'function') {
+            renderGalleryImages();
+        }
     }
 }
 
@@ -1345,36 +1814,30 @@ async function saveProductForm() {
     const form = document.getElementById('productMainForm');
     const id = document.getElementById('productId').value;
 
-    if (!form.checkValidity()) {
+    if (!id && !form.checkValidity()) {
         form.reportValidity();
         return;
     }
 
     const payload = {
-        name: form.elements['name'].value.trim(),
-        slug: form.elements['sku'].value.trim(),
-        category: form.elements['category'].value,
-        style: form.elements['brand'].value.trim(),
-        searchText: form.elements['tags'].value.trim(),
-        status: form.elements['status'].value,
-        shortDescription: form.elements['shortDescription'].value.trim(),
-        description: form.elements['description'].value.trim(),
-        material: form.elements['material'].value,
-        dimensions: form.elements['dimensions'].value.trim(),
-        color: form.elements['color'].value.trim(),
-        isFeatured: form.elements['isFeatured'].checked,
-        isNewProduct: form.elements['isNewProduct'].checked,
-        price: Number(form.elements['price'].value || 0),
-        salePrice: form.elements['salePrice'].value ? Number(form.elements['salePrice'].value) : undefined,
-        stock: Number(form.elements['stock'].value || 0),
-        image: document.getElementById('primaryImageInput').value.trim()
+        name: form.elements['name']?.value.trim(),
+        category: form.elements['category']?.value,
+        style: form.elements['brand']?.value.trim(),
+        status: form.elements['status']?.value,
+        shortDescription: form.elements['shortDescription']?.value.trim(),
+        description: form.elements['description']?.value.trim(),
+        material: form.elements['material']?.value,
+        dimensions: form.elements['dimensions']?.value.trim(),
+        color: form.elements['color']?.value.trim(),
+        isFeatured: form.elements['isFeatured']?.checked,
+        isNewProduct: form.elements['isNewProduct']?.checked,
+        price: form.elements['price']?.value ? Number(form.elements['price'].value) : undefined,
+        salePrice: form.elements['salePrice']?.value ? Number(form.elements['salePrice'].value) : undefined,
+        stock: form.elements['stock']?.value ? Number(form.elements['stock'].value) : undefined,
+        image: document.getElementById('primaryImageInput')?.value.trim()
     };
 
-    if (form.elements['inventoryStatus'].value === 'out_of_stock') {
-        payload.stock = 0;
-    }
-
-    if (!payload.name || !payload.category || payload.price < 0 || payload.stock < 0) {
+    if (!id && (!payload.name || !payload.category || payload.price === undefined || payload.price < 0)) {
         showToast('Kiểm tra lại thông tin bắt buộc của sản phẩm.');
         return;
     }
@@ -1471,7 +1934,7 @@ async function handleClick(event) {
     }
     if (action === 'permission-open') {
         if (pageFromPath() !== 'dashboard') {
-            window.location.href = `/admin/index.html#${encodeURIComponent(button.dataset.target || '')}`;
+            window.location.href = `/management/index.html#${encodeURIComponent(button.dataset.target || '')}`;
             return;
         }
         switchAdminView('dashboard');
@@ -1482,7 +1945,7 @@ async function handleClick(event) {
     }
     if (action === 'focus-open') {
         if (pageFromPath() !== 'dashboard') {
-            window.location.href = `/admin/index.html#${encodeURIComponent(button.dataset.target || '')}`;
+            window.location.href = `/management/index.html#${encodeURIComponent(button.dataset.target || '')}`;
             return;
         }
         switchAdminView('dashboard');
@@ -1494,6 +1957,14 @@ async function handleClick(event) {
         const form = document.getElementById('categoryMainForm');
         form.reset();
         document.getElementById('categoryId').value = '';
+        document.getElementById('catImgUrl').value = '';
+        const preview = document.getElementById('catImgPreview');
+        const placeholder = document.getElementById('catUploadPlaceholder');
+        if (preview && placeholder) {
+            preview.style.display = 'none';
+            placeholder.style.display = 'block';
+            preview.src = '';
+        }
         document.getElementById('categoryFormTitle').textContent = 'Thêm danh mục mới';
         document.getElementById('categoryFormModal').hidden = false;
         return;
@@ -1507,9 +1978,22 @@ async function handleClick(event) {
         form.elements['name'].value = category.name;
         form.elements['slug'].value = category.slug;
         form.elements['description'].value = category.description || '';
-        form.elements['image'].value = category.image || '';
         form.elements['status'].value = category.status;
         form.elements['isFeatured'].checked = category.isFeatured;
+        
+        const preview = document.getElementById('catImgPreview');
+        const placeholder = document.getElementById('catUploadPlaceholder');
+        document.getElementById('catImgUrl').value = category.image || '';
+        if (category.image && preview && placeholder) {
+            preview.src = category.image;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+        } else if (preview && placeholder) {
+            preview.style.display = 'none';
+            placeholder.style.display = 'block';
+            preview.src = '';
+        }
+        
         document.getElementById('categoryFormTitle').textContent = 'Sửa danh mục';
         document.getElementById('categoryFormModal').hidden = false;
         return;
@@ -1550,11 +2034,11 @@ async function handleClick(event) {
         button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xóa...';
         button.disabled = true;
         try {
-            await api(`/admin/categories/${id}`, { method: 'DELETE' });
-            recordActivity('Xóa danh mục', 'Xóa mềm danh mục trong quản trị', 'fa-regular fa-folder');
+            const result = await api(`/admin/categories/${id}`, { method: 'DELETE' });
+            recordActivity('Xóa danh mục', 'Xóa mềm/Xóa vĩnh viễn danh mục trong quản trị', 'fa-regular fa-folder');
             await loadCategoryManager();
             document.getElementById('deleteCategoryModal').hidden = true;
-            showToast('Đã xóa danh mục thành công.');
+            showToast(result.message || 'Đã xóa danh mục thành công.');
         } catch (error) {
             showToast(error.message);
         } finally {
@@ -1649,11 +2133,11 @@ async function handleClick(event) {
         button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xóa...';
         button.disabled = true;
         try {
-            await api(`/admin/products/${id}`, { method: 'DELETE' });
-            recordActivity('Xóa sản phẩm', 'Xóa mềm sản phẩm trong quản trị', 'fa-regular fa-trash-can');
+            const result = await api(`/admin/products/${id}`, { method: 'DELETE' });
+            recordActivity('Xóa sản phẩm', 'Xóa mềm/Xóa vĩnh viễn sản phẩm trong quản trị', 'fa-regular fa-trash-can');
             await loadProductManager();
             document.getElementById('deleteProductModal').hidden = true;
-            showToast('Đã xóa sản phẩm thành công.');
+            showToast(result.message || 'Đã xóa sản phẩm thành công.');
         } catch (error) {
             showToast(error.message);
         } finally {
@@ -1689,7 +2173,7 @@ async function handleClick(event) {
         return;
     }
     if (action === 'back-dashboard') {
-        window.location.href = '/admin/index.html';
+        window.location.href = '/management/index.html';
         return;
     }
     if (action === 'profile-edit') {
@@ -1751,11 +2235,11 @@ async function handleClick(event) {
         const target = button.dataset.target;
         document.querySelector('#quickAddMenu').hidden = true;
         if (target === 'products') {
-            window.location.href = '/admin/products.html';
+            window.location.href = '/management/products.html';
             return;
         }
         if (pageFromPath() !== 'dashboard') {
-            window.location.href = `/admin/index.html#${encodeURIComponent(target)}`;
+            window.location.href = `/management/index.html#${encodeURIComponent(target)}`;
             return;
         }
         const section = document.querySelector(`#${target}`);
@@ -1763,11 +2247,11 @@ async function handleClick(event) {
         showToast('Đang mở nhanh module quản trị tương ứng.');
     }
     if (action === 'view-order') {
-        window.location.href = `/admin/orders.html?id=${button.dataset.id}`;
+        window.location.href = `/management/orders.html?id=${button.dataset.id}`;
         return;
     }
     if (action === 'orders') {
-        window.location.href = '/admin/orders.html';
+        window.location.href = '/management/orders.html';
         return;
     }
     if (action === 'next-order') {
@@ -1822,7 +2306,7 @@ function setupEvents() {
                     name: form.elements['name'].value,
                     slug: form.elements['slug'].value,
                     description: form.elements['description'].value,
-                    image: form.elements['image'].value,
+                    image: document.getElementById('catImgUrl')?.value || form.elements['image']?.value,
                     status: form.elements['status'].value,
                     isFeatured: form.elements['isFeatured'].checked
                 };
@@ -1946,7 +2430,7 @@ function renderCustomerManager(data) {
                 <td><span class="badge ${customer.status === 'active' ? 'success' : 'danger'}">${customer.status === 'active' ? 'Đang hoạt động' : 'Bị khóa'}</span></td>
                 <td>
                     <div class="product-actions">
-                        <button type="button" title="Xem lịch sử" onclick="state.orders.filter.q='${escapeHtml(customer.email)}'; window.location.href='/admin/orders.html';"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                        <button type="button" title="Xem lịch sử" onclick="state.orders.filter.q='${escapeHtml(customer.email)}'; window.location.href='/management/orders.html';"><i class="fa-solid fa-clock-rotate-left"></i></button>
                         <button class="${customer.status === 'active' ? 'danger' : ''}" type="button" title="${customer.status === 'active' ? 'Khóa tài khoản' : 'Mở khóa'}" onclick="toggleCustomerStatus('${escapeHtml(customer._id)}', '${customer.status === 'active' ? 'locked' : 'active'}')"><i class="fa-solid ${customer.status === 'active' ? 'fa-lock' : 'fa-lock-open'}"></i></button>
                     </div>
                 </td>
@@ -2692,7 +3176,28 @@ async function submitReviewStatus() {
         showToast(error.message);
     }
 }
-
+async function showOrderDetailByCode(code) {
+    try {
+        const res = await api(`/admin/orders?q=${encodeURIComponent(code)}`);
+        if (res.orders && res.orders.length > 0) {
+            // Find exact match just in case
+            const order = res.orders.find(o => o.orderCode === code) || res.orders[0];
+            
+            // Đóng modal contact nếu đang mở (tuỳ chọn)
+            document.querySelectorAll('.custom-modal-overlay').forEach(el => el.hidden = true);
+            
+            // Switch to orders view
+            switchAdminView('orders');
+            
+            // Open detail view
+            await showOrderDetailView(order._id);
+        } else {
+            showToast('Không tìm thấy đơn hàng có mã ' + code);
+        }
+    } catch (e) {
+        showToast(e.message);
+    }
+}
 async function showOrderDetailView(orderId) {
     const orderView = document.querySelector('#orderManagerView');
     const detailView = document.querySelector('#orderDetailView');
@@ -2923,6 +3428,7 @@ async function showOrderDetailView(orderId) {
 function closeOrderDetailView() {
     document.querySelector('#orderManagerView').hidden = false;
     document.querySelector('#orderDetailView').hidden = true;
+    loadOrderManager();
 }
 
 async function submitOrderDetailStatus() {
@@ -2969,10 +3475,39 @@ function initAdminSocket() {
     script.src = '/socket.io/socket.io.js';
     script.onload = () => {
         const socket = io();
-        
+        window._adminSocket = socket;  // Expose for reconnect
+
+        // Join phòng theo role (gửi token để server xác thực)
+        const s = session();
+        if (s?.token) {
+            socket.emit('join_role_room', s.token);
+        }
+
+        // Tự rejoin phòng khi reconnect sau rớt mạng
+        socket.on('connect', () => {
+            const ss = session();
+            if (ss?.token && socket.recovered === false) {
+                socket.emit('rejoin', ss.token);
+            }
+        });
+
+        // Xử lý force disconnect từ server (admin kick, token hết hạn)
+        socket.on('force_disconnect', (data) => {
+            showToast(`⚠️ ${data.message || 'Phiên làm việc đã kết thúc.'}`);
+            setTimeout(() => {
+                localStorage.removeItem('casaSession');
+                window.location.href = '/customers/login.html';
+            }, 2000);
+        });
+
+        socket.on('auth_error', (data) => {
+            console.warn('[Socket] Auth error:', data.message);
+        });
+
         // Listen for new orders
         socket.on('new_order', (order) => {
-            playTingTing();
+            const msg = `Đơn hàng mới: ${order.orderCode} từ ${order.customerName}`;
+            playTingTing(msg);
             showToast(`🚀 Đơn hàng mới: ${order.orderCode} từ ${escapeHtml(order.customerName)} - ${money(order.totalAmount)}`);
 
             // Mới có đơn hàng, tải lại danh sách thông báo từ API
@@ -2987,7 +3522,8 @@ function initAdminSocket() {
 
         // Listen for return requests from customers
         socket.on('return_requested', (data) => {
-            playTingTing();
+            const msg = `Yêu cầu trả hàng từ ${data.customerName}`;
+            playTingTing(msg);
             showToast(`🔄 Yêu cầu trả hàng: ${data.orderCode} từ ${escapeHtml(data.customerName)} - Lý do: ${escapeHtml(data.reason)}`);
 
             fetchAdminNotifs();
@@ -2997,6 +3533,14 @@ function initAdminSocket() {
             } else if (state.currentView === 'orders') {
                 loadOrderManager(1);
             }
+        });
+
+        // ═══ STAFF-ONLY: Cảnh báo đơn treo ═══
+        socket.on('stale_orders_alert', (data) => {
+            playTingTing();
+            showToast(`⏰ ${data.message}`);
+            if (state.currentView === 'dashboard') loadDashboard();
+            if (state.currentView === 'orders') loadOrderManager(1);
         });
 
         const refreshContacts = () => {
@@ -3027,30 +3571,40 @@ function initAdminSocket() {
     document.head.appendChild(script);
 }
 
-function playTingTing() {
+function playTingTing(messageToRead = '') {
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
-
-        const playTone = (freq, startTime, duration) => {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
-            gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
-            gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + startTime + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + startTime + duration);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(ctx.currentTime + startTime);
-            osc.stop(ctx.currentTime + startTime + duration);
-        };
-
-        playTone(880, 0, 0.3);       // A5
-        playTone(1108.73, 0.15, 0.5); // C#6
+        if (AudioContext) {
+            const ctx = new AudioContext();
+            const playTone = (freq, startTime, duration) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+                gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
+                gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + startTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + startTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime + startTime);
+                osc.stop(ctx.currentTime + startTime + duration);
+            };
+            playTone(880, 0, 0.3);       // A5
+            playTone(1108.73, 0.15, 0.5); // C#6
+        }
     } catch (e) {
-        console.error('AudioContext not supported');
+        console.error('Audio error:', e);
+    }
+
+    if (messageToRead && 'speechSynthesis' in window) {
+        try {
+            const utterance = new SpeechSynthesisUtterance(messageToRead);
+            utterance.lang = 'vi-VN';
+            utterance.rate = 1.1;
+            window.speechSynthesis.speak(utterance);
+        } catch (err) {
+            console.error('TTS error:', err);
+        }
     }
 }
 
@@ -3843,6 +4397,24 @@ async function handlePrimaryImageUpload(event) {
     event.target.value = '';
 }
 
+function previewCategoryImage(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        fileToBase64(file).then(base64 => {
+            const preview = document.getElementById('catImgPreview');
+            const placeholder = document.getElementById('catUploadPlaceholder');
+            const urlInput = document.getElementById('catImgUrl');
+            
+            if (preview && placeholder && urlInput) {
+                preview.src = base64;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+                urlInput.value = base64;
+            }
+        }).catch(err => showToast('Lỗi khi đọc ảnh.'));
+    }
+}
+
 
 async function handleGalleryImageUpload(event) {
     const files = Array.from(event.target.files || []);
@@ -3943,99 +4515,7 @@ function removeGalleryImage(index) {
     showToast('Đã xóa ảnh');
 }
 
-// ============================================================================
-// PRODUCT FORM SAVE
-// ============================================================================
 
-async function saveProductForm() {
-    const form = document.getElementById('productMainForm');
-    if (!form) return;
-    
-    const productId = document.getElementById('productId')?.value;
-    const saveBtn = document.querySelector('[data-action="save-product"]');
-    const saveBtnText = document.getElementById('saveProductBtnText');
-    
-    try {
-        // Validate required fields
-        const name = form.name.value.trim();
-        const sku = form.sku.value.trim();
-        const category = form.category.value;
-        const price = parseFloat(form.price.value);
-        const stock = parseInt(form.stock.value);
-        const shortDescription = form.shortDescription.value.trim();
-        
-        if (!name || !sku || !category || !price || !shortDescription) {
-            showToast('Vui lòng điền đầy đủ các trường bắt buộc');
-            return;
-        }
-        
-        // Disable button
-        if (saveBtn) saveBtn.disabled = true;
-        if (saveBtnText) saveBtnText.textContent = 'Đang lưu...';
-        
-        // Collect form data
-        const formData = {
-            name,
-            sku,
-            category,
-            price,
-            salePrice: form.salePrice.value ? parseFloat(form.salePrice.value) : undefined,
-            stock,
-            status: form.status.value,
-            shortDescription,
-            description: form.description.value.trim(),
-            material: form.material.value,
-            dimensions: form.dimensions.value,
-            color: form.color.value,
-            brand: form.brand?.value || '',
-            isFeatured: form.isFeatured?.checked || false,
-            isNewProduct: form.isNewProduct?.checked || false
-        };
-        
-        // Add primary image
-        const primaryImage = document.getElementById('primaryImageInput')?.value;
-        if (primaryImage) {
-            formData.image = primaryImage;
-        }
-        
-        // Add gallery images (for future enhancement)
-        const galleryImages = document.getElementById('galleryImagesInput')?.value;
-        if (galleryImages) {
-            try {
-                formData.galleryImages = JSON.parse(galleryImages);
-            } catch (e) {
-                // Ignore parse errors
-            }
-        }
-        
-        // Call API
-        const endpoint = productId ? `/admin/products/${productId}` : '/admin/products';
-        const method = productId ? 'PATCH' : 'POST';
-        
-        const result = await api(endpoint, {
-            method,
-            body: JSON.stringify(formData)
-        });
-        
-        showToast(productId ? 'Đã cập nhật sản phẩm' : 'Đã thêm sản phẩm mới');
-        recordActivity(
-            productId ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới',
-            `Sản phẩm: ${name}`,
-            'fa-solid fa-cube'
-        );
-        
-        // Navigate back to product list
-        setTimeout(() => {
-            window.location.href = '/admin/products.html';
-        }, 500);
-        
-    } catch (error) {
-        showToast(error.message);
-    } finally {
-        if (saveBtn) saveBtn.disabled = false;
-        if (saveBtnText) saveBtnText.textContent = productId ? 'Cập nhật sản phẩm' : 'Lưu sản phẩm';
-    }
-}
 
 async function loadProductForm(productId) {
     if (!productId) return;
@@ -4055,7 +4535,6 @@ async function loadProductForm(productId) {
         
         document.getElementById('productId').value = product._id;
         form.name.value = product.name || '';
-        form.sku.value = product.sku || '';
         form.category.value = product.category?._id || product.category || '';
         form.price.value = product.price || 0;
         form.salePrice.value = product.salePrice || '';
@@ -4066,7 +4545,7 @@ async function loadProductForm(productId) {
         form.material.value = product.material || '';
         form.dimensions.value = product.dimensions || '';
         form.color.value = product.color || '';
-        if (form.brand) form.brand.value = product.brand || '';
+        if (form.brand) form.brand.value = product.style || product.brand || '';
         if (form.isFeatured) form.isFeatured.checked = product.isFeatured || false;
         if (form.isNewProduct) form.isNewProduct.checked = product.isNewProduct || false;
         
@@ -4272,6 +4751,15 @@ function showContactDetail(contactId) {
                         <span>${escapeHtml(contact.subject || 'Không có chủ đề')}</span>
                     </div>
                 </div>
+                ${contact.relatedOrderCode ? `
+                <div class="contact-detail-info-item" style="cursor: pointer;" onclick="showOrderDetailByCode('${escapeHtml(contact.relatedOrderCode)}')">
+                    <i class="fa-solid fa-box-open" style="color: var(--admin-primary);"></i>
+                    <div>
+                        <label>Đơn hàng đính kèm</label>
+                        <span style="color: var(--admin-primary); font-weight: bold; text-decoration: underline;">#${escapeHtml(contact.relatedOrderCode)}</span>
+                    </div>
+                </div>
+                ` : ''}
             </div>
 
             <div class="contact-detail-message">
@@ -4312,6 +4800,918 @@ async function submitContactStatus(contactId) {
 
 // ===== END CONTACT MANAGER =====
 
+// ═══════════════════════════════════════════════════════════════
+// REPORTS PAGE — Báo cáo & Thống kê
+// ═══════════════════════════════════════════════════════════════
+
+let reportsData = null;
+let reportsCharts = {
+    revenue: null,
+    payment: null,
+    category: null,
+    hourly: null
+};
+
+async function loadReports() {
+    try {
+        const from = document.getElementById('reportDateFrom')?.value || '';
+        const to = document.getElementById('reportDateTo')?.value || '';
+        const params = new URLSearchParams();
+        if (from) params.append('from', from);
+        if (to) params.append('to', to);
+
+        const data = await api(`/admin/reports?${params}`);
+        reportsData = data;
+        renderReports(data);
+        showToast('Đã tải báo cáo thành công.');
+    } catch (error) {
+        showToast(error.message || 'Lỗi khi tải báo cáo.');
+    }
+}
+
+function renderReports(data) {
+    if (!data) return;
+    renderReportKPIs(data.kpis);
+    drawReportRevenueChart(data.revenueByDay);
+    drawPaymentMethodChart(data.ordersByPaymentMethod);
+    drawCategoryDonutChart(data.revenueByCategory);
+    renderOrderFunnel(data.orderStatusFunnel);
+    renderTopProducts(data.topProducts);
+    renderTopCustomers(data.topCustomers);
+    renderLowStock(data.lowStockProducts);
+    drawHourlyChart(data.revenueByHour);
+    renderCategoryTrends(data.categoryTrends);
+    renderInsights(data.insights);
+}
+
+function renderReportKPIs(kpis) {
+    if (!kpis) return;
+
+    // Total Revenue
+    const revEl = document.getElementById('kpiTotalRevenue');
+    const revTrend = document.getElementById('kpiRevenueTrend');
+    if (revEl) revEl.textContent = money(kpis.totalRevenue);
+    if (revTrend) {
+        const change = kpis.revenueChange || 0;
+        const icon = change >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+        const cls = change >= 0 ? '' : 'negative';
+        revTrend.className = `kpi-trend ${cls}`;
+        revTrend.innerHTML = `<i class="fa-solid ${icon}"></i> ${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+    }
+
+    // Total Orders
+    const ordEl = document.getElementById('kpiTotalOrders');
+    const ordTrend = document.getElementById('kpiOrdersTrend');
+    if (ordEl) ordEl.textContent = number(kpis.totalOrders);
+    if (ordTrend) {
+        const change = kpis.ordersChange || 0;
+        const icon = change >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+        const cls = change >= 0 ? '' : 'negative';
+        ordTrend.className = `kpi-trend ${cls}`;
+        ordTrend.innerHTML = `<i class="fa-solid ${icon}"></i> ${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+    }
+
+    // Conversion Rate
+    const convEl = document.getElementById('kpiConversionRate');
+    const convTrend = document.getElementById('kpiConversionTrend');
+    if (convEl) convEl.textContent = `${(kpis.conversionRate || 0).toFixed(1)}%`;
+    if (convTrend) {
+        const change = kpis.conversionChange || 0;
+        const icon = change >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+        const cls = change >= 0 ? '' : 'negative';
+        convTrend.className = `kpi-trend ${cls}`;
+        convTrend.innerHTML = `<i class="fa-solid ${icon}"></i> ${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+    }
+
+    // Avg Order Value
+    const avgEl = document.getElementById('kpiAvgOrderValue');
+    if (avgEl) avgEl.textContent = money(kpis.avgOrderValue);
+
+    // Max & Min Order Value
+    const maxEl = document.getElementById('kpiMaxOrderValue');
+    const maxTrend = document.getElementById('kpiMaxOrderTrend');
+    if (maxEl) maxEl.textContent = money(kpis.maxOrderValue);
+    if (maxTrend) {
+        const change = kpis.maxOrderChange || 0;
+        const icon = change > 0 ? 'fa-arrow-up' : (change < 0 ? 'fa-arrow-down' : 'fa-minus');
+        const cls = change > 0 ? '' : (change < 0 ? 'negative' : 'neutral');
+        maxTrend.className = `kpi-trend ${cls}`;
+        maxTrend.innerHTML = `<i class="fa-solid ${icon}"></i> ${change > 0 ? '+' : ''}${change.toFixed(1)}%`;
+    }
+
+    const minEl = document.getElementById('kpiMinOrderValue');
+    const minTrend = document.getElementById('kpiMinOrderTrend');
+    if (minEl) minEl.textContent = money(kpis.minOrderValue);
+    if (minTrend) {
+        const change = kpis.minOrderChange || 0;
+        const icon = change > 0 ? 'fa-arrow-up' : (change < 0 ? 'fa-arrow-down' : 'fa-minus');
+        const cls = change > 0 ? '' : (change < 0 ? 'negative' : 'neutral');
+        minTrend.className = `kpi-trend ${cls}`;
+        minTrend.innerHTML = `<i class="fa-solid ${icon}"></i> ${change > 0 ? '+' : ''}${change.toFixed(1)}%`;
+    }
+
+    // New Customers
+    const custEl = document.getElementById('kpiNewCustomers');
+    const custTrend = document.getElementById('kpiCustomersTrend');
+    if (custEl) custEl.textContent = number(kpis.newCustomers);
+    if (custTrend) {
+        const change = kpis.customersChange || 0;
+        const icon = change >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+        const cls = change >= 0 ? '' : 'negative';
+        custTrend.className = `kpi-trend ${cls}`;
+        custTrend.innerHTML = `<i class="fa-solid ${icon}"></i> ${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+    }
+
+    // Return Rate
+    const retEl = document.getElementById('kpiReturnRate');
+    const retTrend = document.getElementById('kpiReturnTrend');
+    if (retEl) retEl.textContent = `${(kpis.returnRate || 0).toFixed(1)}%`;
+    if (retTrend) {
+        const change = kpis.returnRateChange || 0;
+        const icon = change <= 0 ? 'fa-arrow-down' : 'fa-arrow-up';
+        const cls = change <= 0 ? '' : 'negative';
+        retTrend.className = `kpi-trend ${cls}`;
+        retTrend.innerHTML = `<i class="fa-solid ${icon}"></i> ${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+    }
+}
+
+function applyReportsFilter() {
+    loadReports();
+}
+
+function resetReportsFilter() {
+    document.getElementById('reportDateFrom').value = '';
+    document.getElementById('reportDateTo').value = '';
+    document.getElementById('reportPaymentMethod').value = '';
+    document.getElementById('reportOrderStatus').value = '';
+    document.getElementById('reportCategory').value = '';
+    loadReports();
+}
+
+function exportReportsPDF() {
+    showToast('Chức năng xuất PDF đang được phát triển.');
+}
+
+// ===== REPORTS CHART FUNCTIONS =====
+
+function destroyChart(key) {
+    if (reportsCharts[key]) {
+        reportsCharts[key].destroy();
+        reportsCharts[key] = null;
+    }
+}
+
+function drawReportRevenueChart(revenueByDay, viewMode = 'day') {
+    destroyChart('revenue');
+    const canvas = document.getElementById('revenueTimeChart');
+    if (!canvas || !revenueByDay || !revenueByDay.length) return;
+
+    let groupedData = [];
+    if (viewMode === 'day') {
+        groupedData = revenueByDay;
+    } else if (viewMode === 'week') {
+        let temp = [];
+        for (let i = 0; i < revenueByDay.length; i += 7) {
+            const chunk = revenueByDay.slice(i, i + 7);
+            temp.push({
+                date: chunk[0].date,
+                revenue: chunk.reduce((s, c) => s + (c.revenue || 0), 0),
+                orders: chunk.reduce((s, c) => s + (c.orders || 0), 0)
+            });
+        }
+        groupedData = temp;
+    } else if (viewMode === 'month') {
+        const map = {};
+        revenueByDay.forEach(d => {
+            const m = d.date ? d.date.substring(0, 7) : '';
+            if (!map[m]) map[m] = { date: m, revenue: 0, orders: 0 };
+            map[m].revenue += d.revenue || 0;
+            map[m].orders += d.orders || 0;
+        });
+        groupedData = Object.values(map);
+    }
+
+    const labels = groupedData.map(d => {
+        const dateStr = d.date || d._id;
+        if (!dateStr) return '';
+        if (viewMode === 'month') return dateStr;
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+    });
+    const revenues = groupedData.map(d => d.revenue || 0);
+    const orders = groupedData.map(d => d.orders || 0);
+
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+    gradient.addColorStop(0, 'rgba(232, 115, 74, 0.35)');
+    gradient.addColorStop(1, 'rgba(232, 115, 74, 0.02)');
+
+    reportsCharts.revenue = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Doanh thu (₫)',
+                    data: revenues,
+                    borderColor: '#e8734a',
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.35,
+                    yAxisID: 'y',
+                    pointRadius: 4,
+                    pointBackgroundColor: '#e8734a',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6,
+                    borderWidth: 2.5
+                },
+                {
+                    label: 'Đơn hàng',
+                    data: orders,
+                    borderColor: '#f5a623',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    tension: 0.35,
+                    yAxisID: 'y1',
+                    pointRadius: 3,
+                    pointBackgroundColor: '#f5a623',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 5,
+                    borderWidth: 2,
+                    borderDash: [5, 4]
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top', align: 'start', labels: { boxWidth: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 10.5, family: 'Inter, sans-serif' }, padding: 14 } }
+            },
+            scales: {
+                y: { type: 'linear', position: 'left', ticks: { callback: v => money(v), font: { size: 10 } }, grid: { color: 'rgba(0,0,0,.04)' }, border: { display: false } },
+                y1: { type: 'linear', position: 'right', ticks: { stepSize: 1, font: { size: 10 } }, grid: { display: false }, border: { display: false } },
+                x: { grid: { display: false }, ticks: { font: { size: 10 } }, border: { display: false } }
+            }
+        }
+    });
+}
+
+function drawPaymentMethodChart(data) {
+    destroyChart('payment');
+    const canvas = document.getElementById('paymentMethodChart');
+    if (!canvas || !data || !data.length) return;
+
+    const methodLabels = { cod: 'COD (Tiền mặt)', bank_transfer: 'Chuyển khoản', vnpay: 'VNPay', momo: 'MoMo', zalopay: 'ZaloPay' };
+    const colors = ['#e8734a', '#f5a623', '#4fc3f7', '#66bb6a', '#ab47bc'];
+    const total = data.reduce((s, d) => s + (d.count || 0), 0) || 1;
+
+    const labels = data.map(d => {
+        const name = methodLabels[d.method] || d.method || 'Khác';
+        const pct = ((d.count / total) * 100).toFixed(1);
+        return `${name} · ${d.count} (${pct}%)`;
+    });
+    const values = data.map(d => d.count || 0);
+
+    reportsCharts.payment = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Số đơn hàng',
+                data: values,
+                backgroundColor: colors.slice(0, data.length),
+                borderRadius: 6,
+                barThickness: 26
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: 'rgba(0,0,0,.04)' }, ticks: { stepSize: 1, font: { size: 10 } }, border: { display: false } },
+                y: { grid: { display: false }, ticks: { font: { size: 10.5, family: 'Inter, sans-serif' } }, border: { display: false } }
+            }
+        }
+    });
+}
+
+function drawCategoryDonutChart(data) {
+    destroyChart('category');
+    const canvas = document.getElementById('categoryDonutChart');
+    if (!canvas || !data || !data.length) return;
+
+    const colors = ['#e8734a', '#f5a623', '#4fc3f7', '#66bb6a', '#ab47bc', '#ef5350', '#78909c'];
+    const labels = data.map(d => d.category || d.categoryName || 'Khác');
+    const values = data.map(d => d.revenue || 0);
+    const total = values.reduce((s, v) => s + v, 0);
+
+    // Center text plugin
+    const centerTextPlugin = {
+        id: 'centerText',
+        afterDraw(chart) {
+            const { ctx, chartArea: { width, height, top, left } } = chart;
+            const centerX = left + width / 2;
+            const centerY = top + height / 2;
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#999';
+            ctx.font = '500 10px Inter, sans-serif';
+            ctx.fillText('Tổng doanh thu', centerX, centerY - 14);
+            ctx.fillStyle = '#2f2925';
+            ctx.font = '800 18px Inter, sans-serif';
+            ctx.fillText(money(total), centerX, centerY + 6);
+            ctx.fillStyle = '#e8734a';
+            ctx.font = '700 11px Inter, sans-serif';
+            ctx.fillText('100%', centerX, centerY + 22);
+            ctx.restore();
+        }
+    };
+
+    reportsCharts.category = new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors.slice(0, data.length),
+                borderWidth: 2,
+                borderColor: '#fff',
+                hoverOffset: 6
+            }]
+        },
+        plugins: [centerTextPlugin],
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '62%',
+            layout: { padding: { right: 8 } },
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        font: { size: 10, family: 'Inter, sans-serif' },
+                        padding: 10,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        generateLabels: (chart) => {
+                            const ds = chart.data.datasets[0];
+                            return chart.data.labels.map((label, i) => ({
+                                text: `${label}  ${money(ds.data[i])}`,
+                                fillStyle: ds.backgroundColor[i],
+                                strokeStyle: 'transparent',
+                                lineWidth: 0,
+                                hidden: false,
+                                index: i,
+                                pointStyle: 'circle'
+                            }));
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : 0;
+                            return `${ctx.label}: ${money(ctx.raw)} (${pct}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function drawHourlyChart(data) {
+    destroyChart('hourly');
+    const canvas = document.getElementById('hourlyRevenueChart');
+    if (!canvas || !data || !data.length) return;
+
+    // Group hours into time slots
+    const slots = [
+        { label: '0h-6h', from: 0, to: 5 },
+        { label: '6h-9h', from: 6, to: 8 },
+        { label: '9h-12h', from: 9, to: 11 },
+        { label: '12h-15h', from: 12, to: 14 },
+        { label: '15h-18h', from: 15, to: 17 },
+        { label: '18h-21h', from: 18, to: 20 },
+        { label: '21h-24h', from: 21, to: 23 }
+    ];
+
+    const slotValues = slots.map(slot => {
+        return data
+            .filter(d => d.hour >= slot.from && d.hour <= slot.to)
+            .reduce((sum, d) => sum + (d.revenue || 0), 0);
+    });
+
+    reportsCharts.hourly = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: slots.map(s => s.label),
+            datasets: [{
+                label: 'Doanh thu (₫)',
+                data: slotValues,
+                backgroundColor: 'rgba(232, 115, 74, 0.6)',
+                borderColor: '#e8734a',
+                borderWidth: 1,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { ticks: { callback: v => money(v) }, grid: { color: 'rgba(0,0,0,.05)' } },
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+// ===== REPORTS LIST RENDERS =====
+
+function renderOrderFunnel(data) {
+    const container = document.getElementById('orderStatusFunnel');
+    if (!container || !data) return;
+
+    const statusMap = {};
+    data.forEach(d => { statusMap[d.status || d._id] = d.count; });
+
+    const allTotal = Object.values(statusMap).reduce((s, v) => s + v, 0) || 1;
+
+    const orderSteps = [
+        { key: 'pending', label: 'Chờ xử lý', sub: 'Đơn hàng mới chờ xác nhận', color: '#c98e6c', icon: 'fa-home', width: '100%' },
+        { key: 'processing', label: 'Đang xử lý', sub: 'Đơn đang được chuẩn bị', color: '#f5a623', icon: 'fa-spinner', width: 'calc(100% - 32px)' },
+        { key: 'shipping', label: 'Đang giao hàng', sub: 'Đơn đã giao cho vận chuyển', color: '#ffd54f', icon: 'fa-truck', width: 'calc(100% - 64px)' },
+        { key: 'completed', label: 'Hoàn thành', sub: 'Đơn giao thành công', color: '#81c784', icon: 'fa-check-circle', width: 'calc(100% - 96px)' }
+    ];
+
+    container.innerHTML = orderSteps.map(step => {
+        const count = statusMap[step.key] || 0;
+        const pct = ((count / allTotal) * 100).toFixed(2);
+        return `
+            <div class="true-funnel-layer" style="width: ${step.width}; background: ${step.color};">
+                <div class="layer-left">
+                    <i class="fa-solid ${step.icon}"></i>
+                    <div>
+                        <b>${step.label}</b>
+                        <span>${step.sub}</span>
+                    </div>
+                </div>
+                <div class="layer-right">
+                    <b>${number(count)}</b>
+                    <span>${pct}%</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderTopProducts(products) {
+    const container = document.getElementById('topProductsList');
+    if (!container) return;
+
+    if (!products || !products.length) {
+        container.innerHTML = '<div class="empty-state">Chưa có dữ liệu sản phẩm</div>';
+        return;
+    }
+
+    container.innerHTML = products.map((p, i) => `
+        <div class="report-rank-item">
+            <span class="rank-number">${i + 1}</span>
+            <img class="rank-thumb" src="${p.image || '/images/logo/logo1.jpg'}" alt="" onerror="this.src='/images/logo/logo1.jpg'">
+            <div class="rank-body">
+                <span class="rank-name">${escapeHtml(p.name || 'Sản phẩm')}</span>
+                <span class="rank-meta">Đã bán: ${number(p.sold || p.totalSold || 0)} sản phẩm</span>
+            </div>
+            <span class="rank-value">${money(p.revenue || p.totalRevenue || 0)}</span>
+        </div>
+    `).join('');
+}
+
+function renderTopCustomers(customers) {
+    const container = document.getElementById('topCustomersList');
+    if (!container) return;
+
+    if (!customers || !customers.length) {
+        container.innerHTML = '<div class="empty-state">Chưa có dữ liệu khách hàng</div>';
+        return;
+    }
+
+    const avatarColors = ['#e8734a', '#f5a623', '#4fc3f7', '#66bb6a', '#ab47bc'];
+
+    container.innerHTML = customers.map((c, i) => {
+        const name = c.name || 'Khách hàng';
+        const initials = name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
+        const color = avatarColors[i % avatarColors.length];
+        return `
+        <div class="report-rank-item">
+            <div class="customer-avatar" style="background:${color}">${initials}</div>
+            <div class="rank-body">
+                <span class="rank-name">${escapeHtml(name)}</span>
+                <span class="rank-meta">${number(c.orderCount || c.totalOrders || 0)} đơn hàng</span>
+            </div>
+            <span class="rank-value">${money(c.totalSpent)}</span>
+        </div>
+    `}).join('');
+}
+
+function renderLowStock(products) {
+    const container = document.getElementById('lowStockList');
+    if (!container) return;
+
+    if (!products || !products.length) {
+        container.innerHTML = '<div class="empty-state">Không có sản phẩm tồn kho thấp</div>';
+        return;
+    }
+
+    container.innerHTML = products.map(p => {
+        let badgeCls = 'ok', badgeText = `Còn ${p.stock}`;
+        if (p.stock <= 5) { badgeCls = 'danger'; badgeText = `${p.stock}`; }
+        else if (p.stock <= 15) { badgeCls = 'warn'; badgeText = `${p.stock}`; }
+
+        return `
+            <div class="report-stock-item">
+                <img class="rank-thumb" src="${p.image || '/images/logo/logo.png'}" alt="" onerror="this.src='/images/logo/logo.png'">
+                <div class="stock-info">
+                    <b>${escapeHtml(p.name || 'Sản phẩm')}</b>
+                    <span>${p.categoryName || ''}</span>
+                </div>
+                <span class="report-stock-badge ${badgeCls}"><i class="fa-solid fa-box"></i> ${badgeText}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderCategoryTrends(trends) {
+    const container = document.getElementById('categoryTrendsList');
+    if (!container) return;
+
+    if (!trends || !trends.length) {
+        container.innerHTML = '<div class="empty-state">Chưa có dữ liệu xu hướng</div>';
+        return;
+    }
+
+    container.innerHTML = trends.map(t => {
+        const change = t.change || 0;
+        const cls = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
+        const icon = change > 0 ? 'fa-arrow-up' : change < 0 ? 'fa-arrow-down' : 'fa-minus';
+        return `
+            <div class="report-category-card">
+                <div class="category-info">
+                    <b>${escapeHtml(t.category || t.categoryName || 'Danh mục')}</b>
+                    <span>Doanh thu: ${money(t.revenue)}</span>
+                </div>
+                <span class="category-change ${cls}">
+                    <i class="fa-solid ${icon}"></i> ${change >= 0 ? '+' : ''}${change.toFixed(1)}%
+                </span>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderInsights(insights) {
+    if (!insights) return;
+    const revEl = document.getElementById('insightRevenue');
+    const salesEl = document.getElementById('insightSales');
+    const convEl = document.getElementById('insightConversion');
+    const custEl = document.getElementById('insightCustomers');
+
+    if (revEl) revEl.textContent = `${insights.revenueChange >= 0 ? '+' : ''}${(insights.revenueChange || 0).toFixed(1)}%`;
+    if (salesEl) salesEl.textContent = `${insights.salesChange >= 0 ? '+' : ''}${(insights.salesChange || 0).toFixed(1)}%`;
+    if (convEl) convEl.textContent = `${(insights.conversionRate || 0).toFixed(1)}%`;
+    if (custEl) custEl.textContent = `+${number(insights.newCustomers || 0)}`;
+}
+
+function exportReportsCSV() {
+    if (!reportsData) {
+        showToast('Chưa có dữ liệu báo cáo. Vui lòng tải báo cáo trước.');
+        return;
+    }
+
+    const BOM = '﻿';
+    const lines = [];
+    lines.push('BÁO CÁO THỐNG KÊ - DECOR SHOP');
+    lines.push(`Kỳ: ${reportsData.period?.from || ''} - ${reportsData.period?.to || ''}`);
+    lines.push('');
+
+    // KPIs
+    lines.push('--- TỔNG QUAN KPI ---');
+    const k = reportsData.kpis || {};
+    lines.push(`Tổng doanh thu,${k.totalRevenue || 0}`);
+    lines.push(`Tổng đơn hàng,${k.totalOrders || 0}`);
+    lines.push(`Tỷ lệ chuyển đổi,${(k.conversionRate || 0).toFixed(1)}%`);
+    lines.push(`Giá trị đơn TB,${k.avgOrderValue || 0}`);
+    lines.push(`Khách hàng mới,${k.newCustomers || 0}`);
+    lines.push(`Tỷ lệ hoàn đơn,${(k.returnRate || 0).toFixed(1)}%`);
+    lines.push('');
+
+    // Revenue by Day
+    lines.push('--- DOANH THU THEO NGÀY ---');
+    lines.push('Ngày,Doanh thu,Số đơn');
+    (reportsData.revenueByDay || []).forEach(d => {
+        lines.push(`${d._id},${d.revenue},${d.orders}`);
+    });
+    lines.push('');
+
+    // Top Products
+    lines.push('--- TOP SẢN PHẨM BÁN CHẠY ---');
+    lines.push('Tên SP,Đã bán,Doanh thu');
+    (reportsData.topProducts || []).forEach(p => {
+        lines.push(`"${p.name}",${p.totalSold},${p.totalRevenue}`);
+    });
+
+    const blob = new Blob([BOM + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bao-cao-thong-ke-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Đã xuất báo cáo CSV thành công.');
+}
+
+// ===== END REPORTS PAGE =====
+
+// ===== SETTINGS PAGE =====
+
+function getDefaultSettings() {
+    return {
+        store: { name: 'Casa Decor', hotline: '1900 1234', email: 'support@casadecor.vn', address: '' },
+        payment: { cod: true, bank: true, ewallet: false, vnpay: false, paypal: false, installment: false },
+        notify: { adminEmail: true, newOrder: true, newContact: true, lowStock: true, sms: false, push: false },
+        security: { sessionTimeout: 4, logRetention: 90, maxLoginAttempts: 5, twoFactor: false, loginLimit: true, activityLog: true },
+        backup: { schedule: 'off', maxBackups: 7, maintenanceDays: 30 }
+    };
+}
+
+function loadSettings() {
+    const settings = loadJson('casaDecorSettings', getDefaultSettings());
+
+    // Store info
+    const storeName = document.getElementById('settingStoreName');
+    const storeHotline = document.getElementById('settingStoreHotline');
+    const storeEmail = document.getElementById('settingStoreEmail');
+    const storeAddress = document.getElementById('settingStoreAddress');
+    if (storeName) storeName.value = settings.store?.name || '';
+    if (storeHotline) storeHotline.value = settings.store?.hotline || '';
+    if (storeEmail) storeEmail.value = settings.store?.email || '';
+    if (storeAddress) storeAddress.value = settings.store?.address || '';
+
+    // Payment methods
+    const payFields = { settingPayCod: 'cod', settingPayBank: 'bank', settingPayEwallet: 'ewallet', settingPayVnpay: 'vnpay', settingPayPaypal: 'paypal', settingPayInstallment: 'installment' };
+    Object.entries(payFields).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = settings.payment?.[key] ?? false;
+    });
+
+    // Notifications
+    const notifyFields = { settingNotifyAdminEmail: 'adminEmail', settingNotifyNewOrder: 'newOrder', settingNotifyNewContact: 'newContact', settingNotifyLowStock: 'lowStock', settingNotifySms: 'sms', settingNotifyPush: 'push' };
+    Object.entries(notifyFields).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = settings.notify?.[key] ?? false;
+    });
+
+    // Security
+    const secTimeout = document.getElementById('settingSessionTimeout');
+    const secLog = document.getElementById('settingLogRetention');
+    const secMax = document.getElementById('settingMaxLoginAttempts');
+    if (secTimeout) secTimeout.value = settings.security?.sessionTimeout ?? 4;
+    if (secLog) secLog.value = settings.security?.logRetention ?? 90;
+    if (secMax) secMax.value = settings.security?.maxLoginAttempts ?? 5;
+
+    const secCheckboxes = { settingTwoFactor: 'twoFactor', settingLoginLimit: 'loginLimit', settingActivityLog: 'activityLog' };
+    Object.entries(secCheckboxes).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = settings.security?.[key] ?? false;
+    });
+
+    // Backup config
+    const backupSchedule = document.getElementById('settingBackupSchedule');
+    const backupMax = document.getElementById('settingMaxBackups');
+    const backupDays = document.getElementById('settingMaintenanceDays');
+    if (backupSchedule) backupSchedule.value = settings.backup?.schedule || 'off';
+    if (backupMax) backupMax.value = settings.backup?.maxBackups ?? 7;
+    if (backupDays) backupDays.value = settings.backup?.maintenanceDays ?? 30;
+
+    updateSettingsStatus(settings);
+    loadBackupList();
+}
+
+function collectSettings() {
+    return {
+        store: {
+            name: (document.getElementById('settingStoreName')?.value || '').trim(),
+            hotline: (document.getElementById('settingStoreHotline')?.value || '').trim(),
+            email: (document.getElementById('settingStoreEmail')?.value || '').trim(),
+            address: (document.getElementById('settingStoreAddress')?.value || '').trim()
+        },
+        payment: {
+            cod: document.getElementById('settingPayCod')?.checked ?? false,
+            bank: document.getElementById('settingPayBank')?.checked ?? false,
+            ewallet: document.getElementById('settingPayEwallet')?.checked ?? false,
+            vnpay: document.getElementById('settingPayVnpay')?.checked ?? false,
+            paypal: document.getElementById('settingPayPaypal')?.checked ?? false,
+            installment: document.getElementById('settingPayInstallment')?.checked ?? false
+        },
+        notify: {
+            adminEmail: document.getElementById('settingNotifyAdminEmail')?.checked ?? false,
+            newOrder: document.getElementById('settingNotifyNewOrder')?.checked ?? false,
+            newContact: document.getElementById('settingNotifyNewContact')?.checked ?? false,
+            lowStock: document.getElementById('settingNotifyLowStock')?.checked ?? false,
+            sms: document.getElementById('settingNotifySms')?.checked ?? false,
+            push: document.getElementById('settingNotifyPush')?.checked ?? false
+        },
+        security: {
+            sessionTimeout: Number(document.getElementById('settingSessionTimeout')?.value) || 4,
+            logRetention: Number(document.getElementById('settingLogRetention')?.value) || 90,
+            maxLoginAttempts: Number(document.getElementById('settingMaxLoginAttempts')?.value) || 5,
+            twoFactor: document.getElementById('settingTwoFactor')?.checked ?? false,
+            loginLimit: document.getElementById('settingLoginLimit')?.checked ?? false,
+            activityLog: document.getElementById('settingActivityLog')?.checked ?? false
+        },
+        backup: {
+            schedule: document.getElementById('settingBackupSchedule')?.value || 'off',
+            maxBackups: Number(document.getElementById('settingMaxBackups')?.value) || 7,
+            maintenanceDays: Number(document.getElementById('settingMaintenanceDays')?.value) || 30
+        },
+        updatedAt: new Date().toISOString()
+    };
+}
+
+function saveSettings() {
+    const settings = collectSettings();
+    saveJson('casaDecorSettings', settings);
+    updateSettingsStatus(settings);
+    recordActivity('Cập nhật cài đặt', 'Đã lưu cấu hình hệ thống', 'fa-solid fa-gear');
+    showToast('Đã lưu cấu hình thành công!');
+}
+
+function resetSettings() {
+    if (!confirm('Bạn có chắc muốn khôi phục tất cả cài đặt về mặc định?')) return;
+    const defaults = getDefaultSettings();
+    saveJson('casaDecorSettings', defaults);
+    loadSettings();
+    showToast('Đã khôi phục cài đặt mặc định.');
+}
+
+function updateSettingsStatus(settings) {
+    // System status
+    const systemLabel = document.getElementById('statusSystemLabel');
+    if (systemLabel) systemLabel.textContent = 'Hoạt động bình thường';
+
+    // Security level
+    const secLabel = document.getElementById('statusSecurityLabel');
+    const secDetails = document.getElementById('statusSecurityDetails');
+    const secFeatures = [settings.security?.twoFactor, settings.security?.loginLimit, settings.security?.activityLog].filter(Boolean).length;
+    const secLevel = secFeatures >= 3 ? 'Cao' : secFeatures >= 1 ? 'Trung bình' : 'Thấp';
+    if (secLabel) secLabel.textContent = secLevel;
+    if (secDetails) secDetails.textContent = `${secFeatures}/3 tính năng bảo mật đang bật`;
+
+    // Payment count
+    const payCount = document.getElementById('statusPaymentCount');
+    const payMethods = settings.payment || {};
+    const activePayments = Object.values(payMethods).filter(Boolean).length;
+    const totalPayments = Object.keys(payMethods).length;
+    if (payCount) payCount.textContent = `${activePayments}/${totalPayments} đang bật`;
+
+    // Backup time
+    const backupTime = document.getElementById('statusBackupTime');
+    const lastBackup = document.getElementById('lastBackupTime');
+    const backups = loadJson('casaDecorBackups', []);
+    const lastBackupEntry = backups.length ? backups[0] : null;
+    const timeText = lastBackupEntry ? dateText(lastBackupEntry.createdAt) : 'Chưa có';
+    if (backupTime) backupTime.textContent = timeText;
+    if (lastBackup) lastBackup.textContent = timeText;
+}
+
+async function exportBackup() {
+    try {
+        showToast('Đang tạo bản sao lưu toàn bộ hệ thống...');
+        const data = await api('/admin/backups', { method: 'POST' });
+        loadBackupList();
+        updateSettingsStatus(loadJson('casaDecorSettings', getDefaultSettings()));
+        recordActivity('Sao lưu dữ liệu', `Tạo bản sao lưu: ${data.backup.name}`, 'fa-solid fa-cloud-arrow-up');
+        showToast(data.message || 'Đã tạo bản sao lưu thành công!');
+    } catch (error) {
+        showToast('Lỗi khi tạo bản sao lưu: ' + error.message);
+    }
+}
+
+function restoreBackup(event) {
+    // This handles file upload restore — not used for server backups
+    // Keep for compatibility with uploaded .cdbak files
+    const file = event.target.files[0];
+    if (!file) return;
+    event.target.value = '';
+    showToast('Để phục hồi, hãy chọn bản sao lưu từ danh sách và nhấn nút phục hồi.');
+}
+
+async function restoreFromServer(filename) {
+    if (!confirm(`Phục hồi toàn bộ dữ liệu từ bản sao lưu "${filename}"?\n\n⚠️ Dữ liệu hiện tại sẽ bị ghi đè!`)) return;
+    try {
+        showToast('Đang phục hồi dữ liệu...');
+        const data = await api(`/admin/backups/${encodeURIComponent(filename)}/restore`, { method: 'POST' });
+        recordActivity('Phục hồi dữ liệu', `Phục hồi từ: ${filename}`, 'fa-solid fa-clock-rotate-left');
+        showToast(data.message || 'Đã phục hồi dữ liệu thành công!');
+    } catch (error) {
+        showToast('Lỗi phục hồi: ' + error.message);
+    }
+}
+
+function clearCache() {
+    if (!confirm('Xóa bộ nhớ tạm trình duyệt? Các dữ liệu tạm thời sẽ bị xóa.')) return;
+    sessionStorage.clear();
+    showToast('Đã xóa bộ nhớ tạm thành công.');
+}
+
+function exportSettingsConfig() {
+    const settings = loadJson('casaDecorSettings', getDefaultSettings());
+    const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `casadecor-config-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Đã xuất cấu hình thành công.');
+}
+
+async function loadBackupList() {
+    const tbody = document.getElementById('backupList');
+    const countEl = document.getElementById('backupCount');
+
+    if (!tbody) return;
+
+    try {
+        const data = await api('/admin/backups');
+        const backups = data.backups || [];
+
+        if (countEl) countEl.textContent = `${backups.length} bản`;
+
+        if (!backups.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Chưa có bản sao lưu nào.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = backups.map((b) => {
+            const sizeText = b.size >= 1048576
+                ? `${(b.size / 1048576).toFixed(1)} MB`
+                : `${(b.size / 1024).toFixed(1)} KB`;
+            return `
+            <tr>
+                <td><i class="fa-solid fa-file-zipper" style="color:#bd7654; margin-right:6px;"></i>${escapeHtml(b.name)}</td>
+                <td>${sizeText}</td>
+                <td>${dateText(b.createdAt)}</td>
+                <td>
+                    <div class="product-actions">
+                        <button type="button" title="Tải về" onclick="downloadBackup('${escapeHtml(b.name)}')"><i class="fa-solid fa-download"></i></button>
+                        <button type="button" title="Phục hồi" onclick="restoreFromServer('${escapeHtml(b.name)}')"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                        <button type="button" title="Xóa" onclick="deleteBackup('${escapeHtml(b.name)}')"><i class="fa-regular fa-trash-can"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `}).join('');
+
+        // Update status card
+        if (backups.length) {
+            const lastBackup = document.getElementById('lastBackupTime');
+            const backupTime = document.getElementById('statusBackupTime');
+            const timeText = dateText(backups[0].createdAt);
+            if (lastBackup) lastBackup.textContent = timeText;
+            if (backupTime) backupTime.textContent = timeText;
+        }
+    } catch (error) {
+        if (countEl) countEl.textContent = '0 bản';
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Không thể tải danh sách sao lưu.</td></tr>';
+    }
+}
+
+function downloadBackup(filename) {
+    window.open(`/backups/${encodeURIComponent(filename)}`, '_blank');
+}
+
+async function deleteBackup(filename) {
+    if (!confirm(`Xóa bản sao lưu "${filename}"?`)) return;
+    try {
+        await api(`/admin/backups/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+        loadBackupList();
+        showToast('Đã xóa bản sao lưu.');
+    } catch (error) {
+        showToast('Lỗi: ' + error.message);
+    }
+}
+
+// ===== END SETTINGS PAGE =====
+
 function runWhenIdle(task) {
     if ('requestIdleCallback' in window) {
         requestIdleCallback(task, { timeout: 1500 });
@@ -4334,6 +5734,7 @@ async function bootAdmin() {
             await ensureAdminSession();
             document.querySelector('#authGate').hidden = true;
             setAdminSessionControls(true);
+            applyPermissions();
             switchAdminView(state.currentView, false);
         } catch {
             document.querySelector('#authGate').hidden = true;
@@ -4349,3 +5750,20 @@ async function bootAdmin() {
 }
 
 bootAdmin();
+
+document.addEventListener('click', (event) => {
+    const chartViewBtn = event.target.closest('[data-chart-view]');
+    if (chartViewBtn) {
+        // Remove active class from siblings in the same group
+        const group = chartViewBtn.closest('.segmented');
+        if (group) {
+            group.querySelectorAll('[data-chart-view]').forEach(b => b.classList.remove('active'));
+            chartViewBtn.classList.add('active');
+            const mode = chartViewBtn.getAttribute('data-chart-view');
+            if (typeof reportsData !== 'undefined' && reportsData && reportsData.revenueByDay) {
+                drawReportRevenueChart(reportsData.revenueByDay, mode);
+            }
+        }
+    }
+});
+

@@ -51,7 +51,9 @@ exports.addCartItem = async (req, res) => {
         cart.subTotal = cart.items.reduce((sum, entry) => sum + entry.itemTotal, 0);
         await cart.save();
 
-        res.status(201).json({ cart: cartResponse(cart, req.user._id) });
+        const savedCart = cartResponse(cart, req.user._id);
+        req.app.get('io').to(String(req.user._id)).emit('cart_updated', savedCart.items.length);
+        res.status(201).json({ cart: savedCart });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -84,7 +86,10 @@ exports.updateCartItem = async (req, res) => {
         cart.subTotal = cart.items.reduce((sum, entry) => sum + entry.itemTotal, 0);
         await cart.save();
 
-        res.json({ cart: cartResponse(cart, req.user._id) });
+        const savedCart = cartResponse(cart, req.user._id);
+        req.app.get('io').to(String(req.user._id)).emit('cart_updated', savedCart.items.length);
+
+        res.json({ cart: savedCart });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -99,7 +104,10 @@ exports.removeCartItem = async (req, res) => {
         cart.subTotal = cart.items.reduce((sum, entry) => sum + entry.itemTotal, 0);
         await cart.save();
 
-        res.json({ cart: cartResponse(cart, req.user._id) });
+        const savedCart = cartResponse(cart, req.user._id);
+        req.app.get('io').to(String(req.user._id)).emit('cart_updated', savedCart.items.length);
+
+        res.json({ cart: savedCart });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

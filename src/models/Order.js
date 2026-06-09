@@ -21,12 +21,20 @@ const shippingInfoSchema = new mongoose.Schema({
 const statusHistorySchema = new mongoose.Schema({
     status: { type: String, required: true },
     note: { type: String },
+    changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    shiftId: { type: mongoose.Schema.Types.ObjectId, ref: 'StaffShift' },
     createdAt: { type: Date, default: Date.now }
 }, { _id: false });
 
 const orderSchema = new mongoose.Schema({
     orderCode: { type: String, unique: true, required: true },
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    // NVBH xử lý
+    processedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    lastUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    recoveredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },  // CRM attribution
+    _staleAlerted: { type: Boolean, default: false },
+    _staleAlertedAt: { type: Date, default: null },
     shippingInfo: shippingInfoSchema,
     items: [orderItemSchema],
     itemsTotal: { type: Number, required: true, min: 0 },
@@ -59,5 +67,7 @@ const orderSchema = new mongoose.Schema({
 
 orderSchema.index({ customer: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1, paymentStatus: 1 });
+orderSchema.index({ orderStatus: 1, createdAt: 1 });
+orderSchema.index({ processedBy: 1 });
 
 module.exports = mongoose.model('Order', orderSchema);
