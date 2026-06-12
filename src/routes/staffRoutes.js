@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const staffController = require('../controllers/staffController');
+const adminController = require('../controllers/adminController');
 const { authRequired, staffOrAdmin, requireActiveShift } = require('../middlewares/auth');
 const { validateObjectId } = require('../utils/helpers');
 
@@ -23,30 +24,42 @@ router.post('/shifts/:id/check-in', validateId, staffController.checkIn);
 router.post('/shifts/:id/check-out', validateId, staffController.checkOut);
 
 // Đơn hàng
-router.get('/orders', staffController.getOrders);
-router.get('/orders/:id', validateId, staffController.getOrderDetail);
+router.get('/orders', adminController.getOrders);
+router.get('/orders/:id', validateId, adminController.getOrderById);
 router.post('/orders/:id/claim', validateId, requireActiveShift, staffController.claimOrder);
 router.patch('/orders/:id/status', validateId, requireActiveShift, staffController.updateOrderStatus);
 
 // Khách hàng (read-only)
-router.get('/customers', staffController.getCustomers);
+router.get('/customers', adminController.getCustomers);
 router.get('/customers/:id', validateId, staffController.getCustomerDetail);
 
-// Sản phẩm / Danh mục / Tồn kho (read-only)
-router.get('/products', staffController.getProducts);
-router.get('/categories', staffController.getCategories);
-router.get('/inventory', staffController.getInventory);
+// Sản phẩm / Danh mục / Tồn kho (Staff có thể thêm sửa theo yêu cầu)
+router.post('/upload/product-image', adminController.uploadProductImage);
+router.get('/products', adminController.getProducts);
+router.post('/products', adminController.createProduct);
+router.patch('/products/:id', validateId, adminController.updateProduct);
+router.delete('/products/:id', validateId, adminController.deleteProduct);
+
+router.get('/categories', adminController.getCategories);
+router.post('/categories', adminController.createCategory);
+router.patch('/categories/:id', validateId, adminController.updateCategory);
+router.delete('/categories/:id', validateId, adminController.deleteCategory);
+
+router.get('/inventory', adminController.getInventory);
+router.post('/inventory/transaction', adminController.createInventoryTransaction);
+router.get('/inventory/transactions', adminController.getInventoryTransactions);
+router.put('/inventory/product/:id', validateId, adminController.updateInventoryProduct);
 
 // Khuyến mãi (chỉ active)
-router.get('/promotions', staffController.getPromotions);
+router.get('/promotions', adminController.getPromotions);
 
 // Đánh giá
-router.get('/reviews', staffController.getReviews);
+router.get('/reviews', adminController.getReviews);
 router.post('/reviews/:id/reply', validateId, requireActiveShift, staffController.replyReview);
 
 // Liên hệ
-router.get('/contacts', staffController.getContacts);
-router.get('/contacts/:id', validateId, staffController.getContactDetail);
+router.get('/contacts', adminController.getContacts);
+router.get('/contacts/:id', validateId, adminController.getContactById);
 router.post('/contacts/:id/reply', validateId, requireActiveShift, staffController.replyContact);
 router.patch('/contacts/:id/status', validateId, requireActiveShift, staffController.updateContactStatus);
 

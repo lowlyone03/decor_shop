@@ -29,6 +29,10 @@ router.patch('/orders/:id/status', validateId, adminController.updateOrderStatus
 
 // Staff
 router.get('/staff', adminController.getStaff);
+router.post('/staff', adminController.createStaff);
+router.patch('/staff/:id', validateId, adminController.updateStaff);
+router.delete('/staff/:id', validateId, adminController.deleteStaff);
+
 router.post('/staff-shifts', adminController.createStaffShift);
 router.patch('/staff-shifts/:id', validateId, adminController.updateStaffShift);
 router.delete('/staff-shifts/:id', validateId, adminController.deleteStaffShift);

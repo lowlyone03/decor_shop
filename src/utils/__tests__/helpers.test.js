@@ -29,7 +29,7 @@ describe('Helpers Utility Modules', () => {
     describe('cleanText', () => {
         test('should remove HTML tags, collapse whitespace, trim and respect maxLength', () => {
             const input = '   <script>alert(1)</script>   Xin chào    các  bạn!   ';
-            expect(helpers.cleanText(input, 50)).toBe('scriptalert(1)/script Xin chào các bạn!');
+            expect(helpers.cleanText(input, 50)).toBe('alert(1) Xin chào các bạn!');
             expect(helpers.cleanText('Abc', 2)).toBe('Ab');
             expect(helpers.cleanText(null)).toBe('');
         });
@@ -251,7 +251,7 @@ describe('Helpers Utility Modules', () => {
             expect(mockCart.save).toHaveBeenCalled();
         });
 
-        test('should skip inactive products and not save if nothing changed', async () => {
+        test('should remove inactive products and save cart', async () => {
             const mockProduct = {
                 _id: 'prod1', name: 'Ghế Sofa', price: 500000, salePrice: 450000,
                 status: 'inactive', images: []
@@ -263,7 +263,8 @@ describe('Helpers Utility Modules', () => {
                 save: jest.fn()
             };
             await helpers.syncCartPrices(mockCart);
-            expect(mockCart.save).not.toHaveBeenCalled();
+            expect(mockCart.items).toHaveLength(0);
+            expect(mockCart.save).toHaveBeenCalled();
         });
     });
 

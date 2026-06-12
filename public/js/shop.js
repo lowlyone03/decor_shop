@@ -631,8 +631,9 @@ async function loadShell() {
                     </button>
                 </div>
             `;
-            if (current.user?.role === 'admin') {
-                userSlot.querySelector('.user-nav')?.insertAdjacentHTML('afterbegin', '<a href="/management/index.html" class="unav-admin"><i class="fa-solid fa-gauge-high"></i><span>Admin</span></a>');
+            if (current.user?.role === 'admin' || current.user?.role === 'staff') {
+                const label = current.user?.role === 'staff' ? 'Nhân viên' : 'Admin';
+                userSlot.querySelector('.user-nav')?.insertAdjacentHTML('afterbegin', `<a href="/management/index.html" class="unav-admin"><i class="fa-solid fa-gauge-high"></i><span>${label}</span></a>`);
             }
         } else {
             userSlot.innerHTML = `
@@ -1172,8 +1173,23 @@ async function renderHomeProducts() {
     setLoading(grid, 'Dang tai san pham noi bat...');
     try {
         const { products } = await api('/products?featured=true&limit=6&sort=best_selling');
-        if (products?.length) {
-            grid.innerHTML = products.map(productCard).join('');
+        let items = products || [];
+        // Nếu chưa đủ 6 sản phẩm nổi bật, bổ sung từ sản phẩm bán chạy
+        if (items.length < 6) {
+            const existingIds = new Set(items.map(p => p._id));
+            const { products: extra } = await api(`/products?limit=${6 - items.length}&sort=best_selling`);
+            if (extra?.length) {
+                for (const p of extra) {
+                    if (!existingIds.has(p._id)) {
+                        items.push(p);
+                        existingIds.add(p._id);
+                        if (items.length >= 6) break;
+                    }
+                }
+            }
+        }
+        if (items.length) {
+            grid.innerHTML = items.map(productCard).join('');
         } else {
             grid.innerHTML = '<p class="empty-state">Chua co san pham noi bat.</p>';
         }
@@ -3112,22 +3128,12 @@ function supportDate(value) {
 
 function supportIdentity() {
     const current = session();
-    const stored = JSON.parse(localStorage.getItem('casaSupportIdentity') || '{}');
     return {
-        fullName: current?.user?.name || stored.fullName || '',
-        email: current?.user?.email || stored.email || '',
-        phone: current?.user?.phone || stored.phone || ''
+        fullName: current?.user?.name || '',
+        email: current?.user?.email || '',
+        phone: current?.user?.phone || ''
     };
 }
-
-function saveSupportIdentity(values) {
-    localStorage.setItem('casaSupportIdentity', JSON.stringify({
-        fullName: values.fullName || '',
-        email: values.email || '',
-        phone: values.phone || ''
-    }));
-}
-
 function prefillSupportForm(form) {
     if (!form) return;
     const identity = supportIdentity();
@@ -3332,6 +3338,14 @@ function renderSupportDetail(ticket) {
 async function loadSupportTickets() {
     const root = document.querySelector('[data-support-root]');
     if (!root) return;
+    const current = session();
+    // Chỉ hiển thị yêu cầu hỗ trợ khi đã đăng nhập
+    if (!current) {
+        renderSupportStats({ open: 0, replied: 0 });
+        supportState.tickets = [];
+        renderSupportTickets();
+        return;
+    }
     const identity = supportIdentity();
     if (!identity.email) {
         renderSupportStats({ open: 0, replied: 0 });
@@ -3434,7 +3448,6 @@ function bindSupportContactForm(form) {
         try {
             const values = Object.fromEntries(new FormData(form));
             const data = await api('/contact', { method: 'POST', body: JSON.stringify(values) });
-            saveSupportIdentity(values);
             supportState.selectedId = data.contact?._id || null;
             form.reset();
             prefillSupportForm(form);

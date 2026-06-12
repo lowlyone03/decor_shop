@@ -5,66 +5,297 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng lương NVBH - Casa Decor Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=1780630161587">
+    <style>
+        .payroll-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            display: flex; flex-direction: column; gap: 8px; border: 1px solid #f0f0f0; position: relative; overflow: hidden;
+        }
+        .stat-card::after {
+            content: ''; position: absolute; top: 0; right: 0; width: 80px; height: 80px; background: rgba(196, 140, 113, 0.05);
+            border-radius: 0 0 0 100%; pointer-events: none;
+        }
+        .stat-card h3 { font-size: 0.95rem; color: #666; margin: 0; font-weight: 500; }
+        .stat-card .stat-value { font-size: 2rem; font-weight: 700; color: #222; }
+        .stat-card i { position: absolute; top: 24px; right: 24px; font-size: 1.5rem; color: #c48c71; opacity: 0.5; }
+
+        .payroll-filters {
+            display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;
+            background: #fff; padding: 15px 20px; border-radius: 8px; border: 1px solid #eee; align-items: center; justify-content: space-between;
+        }
+        .payroll-filters label { display: flex; align-items: center; gap: 10px; font-weight: 500; color: #444; }
+        .payroll-filters input[type="month"] {
+            padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; font-family: inherit; color: #333; outline: none; transition: border-color 0.2s;
+        }
+        .payroll-filters input[type="month"]:focus { border-color: #c48c71; }
+
+        .payroll-table-wrap { overflow-x: auto; background: #fff; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
+        .payroll-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        .payroll-table th, .payroll-table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid #f5f5f5; }
+        .payroll-table th { background: #fafafa; font-weight: 600; font-size: 0.85rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+        .payroll-table tbody tr:hover { background: #fafdfc; }
+        .staff-info-col { display: flex; align-items: center; gap: 15px; }
+        .staff-info-col img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .staff-info-col div { display: flex; flex-direction: column; gap: 2px; }
+        .staff-info-col b { font-size: 1rem; color: #222; }
+        .staff-info-col small { font-size: 0.8rem; color: #888; }
+        
+        .stat-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.9rem; color: #555; }
+        .stat-item i { width: 16px; text-align: center; color: #aaa; }
+        .salary-amount { font-weight: 700; color: #059669; font-size: 1.15rem; background: #e5f5f0; padding: 6px 12px; border-radius: 6px; display: inline-block;}
+        .empty-state { text-align: center; padding: 60px 20px; color: #888; }
+        .empty-state i { font-size: 3rem; color: #ddd; margin-bottom: 15px; }
+    </style>
 </head>
 <body class="admin-page">
-    <main class="admin-main" style="margin-left: 0;">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay về trang chủ Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Admin</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a href="/management/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a href="/management/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/management/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/management/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/management/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/management/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/management/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung & Marketing</p>
+            <a href="/management/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/management/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/management/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/management/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a href="/management/inventory.html" data-view="inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a href="/management/schedule.html" data-view="schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+            <a class="active" href="/management/payroll.html" data-view="payroll"><i class="fa-solid fa-file-invoice-dollar"></i> Bảng lương NVBH</a>
+
+            <a href="/management/staff-report.html" data-view="staff-report"><i class="fa-solid fa-chart-pie"></i> Báo cáo ca trực</a>
+
+            <p>Báo cáo & Thống kê</p>
+            <a href="/management/reports.html"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/management/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/management/settings.html"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
         <header class="admin-topbar">
-            <h2>Quản lý Bảng Lương NVBH</h2>
-            <a href="/management/index.html" class="link-btn">Quay lại Dashboard</a>
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng...">
+            </label>
+            <a class="admin-profile" href="/management/profile.html">
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Admin</b><span id="adminRole">Super Admin</span></div>
+            </a>
         </header>
-        <section class="dashboard-root">
-            <article class="panel">
-                <div class="panel-head">
-                    <div><h2>Bảng lương tháng này</h2></div>
+
+        <section class="payroll-manager-page" style="padding: 24px 32px;">
+            <div class="manager-title-row" style="display:flex; justify-content:space-between; margin-bottom: 24px; align-items:center;">
+                <div>
+                    <h1 style="font-size:1.5rem; margin:0 0 4px; color:#111;">Bảng Lương Nhân Viên</h1>
+                    <p style="color:#666; margin:0; font-size:0.95rem;">Quản lý và theo dõi lương thưởng của toàn bộ nhân viên bán hàng theo từng tháng.</p>
                 </div>
-                <div class="table-wrap">
-                    <table id="payrollTable">
-                        <thead>
-                            <tr>
-                                <th>Mã NV</th>
-                                <th>Tên nhân viên</th>
-                                <th>Tháng/Năm</th>
-                                <th>Số ca hoàn thành</th>
-                                <th>Lương dự tính</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="5" style="text-align:center;">Đang tải dữ liệu...</td></tr>
-                        </tbody>
-                    </table>
+                <div class="manager-actions">
+                    <button id="btnExport" class="secondary-action" type="button" style="background:#fff; border:1px solid #ddd; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:500; font-family:inherit; transition:all 0.2s; box-shadow:0 2px 5px rgba(0,0,0,0.02);">
+                        <i class="fa-solid fa-download" style="margin-right:8px; color:#c48c71;"></i> Xuất Excel
+                    </button>
                 </div>
-            </article>
+            </div>
+
+            <div class="payroll-filters">
+                <label>
+                    Chọn tháng hiển thị:
+                    <input type="month" id="monthPicker">
+                </label>
+                <div style="font-size: 0.9rem; color: #666;">
+                    * Lương cơ bản: <b>50.000₫/giờ</b> (Ca 6 tiếng: <b>300.000₫/ca</b>)
+                </div>
+            </div>
+
+            <div class="payroll-stats-grid">
+                <div class="stat-card">
+                    <i class="fa-solid fa-users"></i>
+                    <h3>Tổng nhân sự</h3>
+                    <div class="stat-value" id="statTotalStaff">0</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-regular fa-clock"></i>
+                    <h3>Tổng ca hoàn thành</h3>
+                    <div class="stat-value" id="statTotalShifts">0</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-wallet"></i>
+                    <h3>Tổng quỹ lương dự tính</h3>
+                    <div class="stat-value" id="statTotalSalary" style="color: #c48c71;">0₫</div>
+                </div>
+            </div>
+
+            <div class="payroll-table-wrap">
+                <table class="payroll-table">
+                    <thead>
+                        <tr>
+                            <th>Nhân viên</th>
+                            <th>Ca làm việc</th>
+                            <th>Hiệu suất CSKH</th>
+                            <th>Xử lý đơn hàng</th>
+                            <th style="text-align: right;">Thực lãnh (Dự tính)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payrollTableBody">
+                        <tr><td colspan="5" style="text-align:center; padding: 40px;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem; color:#ccc; margin-bottom:10px; display:block;"></i> Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
     </main>
 
+    <script src="/js/admin.js?v=1780630161586"></script>
     <script>
-        async function loadPayroll() {
-            try {
-                const token = localStorage.getItem('casaSession') ? JSON.parse(localStorage.getItem('casaSession')).token : null;
-                const res = await fetch('/api/admin/payroll', {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                const data = await res.json();
-                if (data.payrolls) {
-                    const tbody = document.querySelector('#payrollTable tbody');
-                    tbody.innerHTML = data.payrolls.map(p => `
-                        <tr>
-                            <td>${p.staff?.staffCode || '-'}</td>
-                            <td>${p.staff?.name || '-'}</td>
-                            <td>${p.month}/${p.year}</td>
-                            <td>${p.completedShifts}</td>
-                            <td>${p.totalSalary.toLocaleString()}₫</td>
-                        </tr>
-                    `).join('');
+        document.addEventListener('DOMContentLoaded', () => {
+            const monthPicker = document.getElementById('monthPicker');
+            const today = new Date();
+            const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+            monthPicker.value = currentMonth;
+
+            monthPicker.addEventListener('change', loadPayroll);
+
+            async function loadPayroll() {
+                const month = monthPicker.value;
+                if (!month) return;
+                
+                const tbody = document.getElementById('payrollTableBody');
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem; color:#ccc; margin-bottom:10px; display:block;"></i> Đang tải dữ liệu...</td></tr>';
+                
+                try {
+                    const data = await api(`/admin/payroll?month=${month}`);
+                    const payrolls = data.payrolls || [];
+                    
+                    if (payrolls.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5">
+                            <div class="empty-state">
+                                <i class="fa-solid fa-folder-open"></i>
+                                <div>Không có dữ liệu bảng lương cho tháng ${month}</div>
+                            </div>
+                        </td></tr>`;
+                        document.getElementById('statTotalStaff').innerText = 0;
+                        document.getElementById('statTotalShifts').innerText = 0;
+                        document.getElementById('statTotalSalary').innerText = '0₫';
+                        return;
+                    }
+
+                    let totalShifts = 0;
+                    let totalSalary = 0;
+
+                    tbody.innerHTML = payrolls.map(p => {
+                        totalShifts += p.completedShifts || 0;
+                        totalSalary += p.totalSalary || 0;
+                        
+                        return `
+                            <tr>
+                                <td>
+                                    <div class="staff-info-col">
+                                        <img src="${p.staff?.avatar || '/images/default-avatar.png'}" alt="Avatar">
+                                        <div>
+                                            <b>${p.staff?.name || 'Không xác định'}</b>
+                                            <small>Mã NV: ${p.staff?.staffCode || 'N/A'}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="stat-item"><i class="fa-solid fa-check-double"></i> Đã hoàn thành: <b>${p.completedShifts || 0} ca</b></div>
+                                    <div class="stat-item"><i class="fa-regular fa-clock"></i> Số giờ công: <b>${p.totalHours || 0}h</b></div>
+                                    ${(p.lateCount > 0) ? `<div class="stat-item" style="color:#dc2626;"><i class="fa-solid fa-triangle-exclamation"></i> Đi muộn: <b>${p.lateCount} lần</b></div>` : ''}
+                                </td>
+                                <td>
+                                    <div class="stat-item"><i class="fa-regular fa-star"></i> Phản hồi đánh giá: <b>${p.reviewsHandled || 0}</b></div>
+                                    <div class="stat-item"><i class="fa-regular fa-message"></i> Xử lý liên hệ: <b>${p.contactsHandled || 0}</b></div>
+                                    <div class="stat-item"><i class="fa-solid fa-headset"></i> Tương tác hỗ trợ: <b>${p.interactionsLogged || 0}</b></div>
+                                </td>
+                                <td>
+                                    <div class="stat-item"><i class="fa-solid fa-box-open"></i> Giao nhận đơn: <b>${p.totalOrders || 0}</b></div>
+                                    <div class="stat-item"><i class="fa-solid fa-rotate-left"></i> Cứu đơn (CRM): <b>${p.ordersRescued || 0}</b></div>
+                                    <div class="stat-item" style="color:#059669;"><i class="fa-solid fa-money-bill-wave"></i> Doanh thu mang lại: <b>${(p.totalRevenue || 0).toLocaleString()}₫</b></div>
+                                </td>
+                                <td style="text-align: right; vertical-align: middle;">
+                                    <div class="salary-amount">${(p.totalSalary || 0).toLocaleString()}₫</div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    document.getElementById('statTotalStaff').innerText = payrolls.length;
+                    document.getElementById('statTotalShifts').innerText = totalShifts;
+                    document.getElementById('statTotalSalary').innerText = totalSalary.toLocaleString() + '₫';
+                    
+                } catch (e) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px; color:#dc2626;">Lỗi tải dữ liệu: ${e.message}</td></tr>`;
                 }
-            } catch (e) {
-                console.error(e);
             }
-        }
-        loadPayroll();
+            
+            loadPayroll();
+            
+            document.getElementById('btnExport').addEventListener('click', () => {
+                const month = monthPicker.value;
+                const table = document.querySelector('.payroll-table');
+                let csv = 'Nhân viên,Ca làm việc,Hiệu suất CSKH,Xử lý đơn hàng,Thực lãnh (Dự tính)\n';
+                
+                const rows = table.querySelectorAll('tbody tr');
+                if (rows.length === 1 && rows[0].querySelector('.empty-state, .fa-spin')) {
+                    alert('Không có dữ liệu để xuất!');
+                    return;
+                }
+                
+                rows.forEach(row => {
+                    const cols = row.querySelectorAll('td');
+                    if (cols.length === 5) {
+                        const name = cols[0].querySelector('b').innerText;
+                        const code = cols[0].querySelector('small').innerText;
+                        const shifts = cols[1].innerText.replace(/\n/g, ' - ');
+                        const cskh = cols[2].innerText.replace(/\n/g, ' - ');
+                        const orders = cols[3].innerText.replace(/\n/g, ' - ');
+                        const salary = cols[4].innerText.replace(/₫/g, '').replace(/,/g, '').trim();
+                        
+                        csv += `"${name} (${code})","${shifts}","${cskh}","${orders}","${salary}"\n`;
+                    }
+                });
+                
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `bang-luong-${month}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        });
     </script>
 </body>
 </html>
-

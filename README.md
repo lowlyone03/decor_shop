@@ -2,24 +2,30 @@
 
 ![Casa Decor Banner](https://via.placeholder.com/1200x300.png?text=Casa+Decor+-+T%C3%B4+%C4%91i%E1%BB%83m+kh%C3%B4ng+gian+s%E1%BB%91ng)
 
-**Casa Decor** là nền tảng thương mại điện tử chuyên cung cấp các sản phẩm trang trí nội thất cao cấp. Hệ thống được xây dựng với kiến trúc Client-Server hiện đại, đáp ứng đầy đủ các tiêu chuẩn của một website E-commerce thực thụ bao gồm quản lý bán hàng, tương tác khách hàng, thanh toán trực tuyến và hệ thống gửi email tự động.
+**Casa Decor** là nền tảng thương mại điện tử chuyên cung cấp các sản phẩm trang trí nội thất cao cấp. Hệ thống được xây dựng với kiến trúc Client-Server hiện đại, đáp ứng đầy đủ các tiêu chuẩn của một website E-commerce thực thụ bao gồm quản lý bán hàng, tương tác khách hàng, thanh toán trực tuyến, hệ thống gửi email tự động và hệ thống nghiệp vụ nội bộ phân quyền nhiều lớp.
 
 ---
 
 ## 🌟 Chức năng nổi bật (Features)
 
-### 🛍️ Dành cho Khách hàng (Customer)
+### 🛒 Dành cho Khách hàng (Customer)
 - **Tài khoản & Bảo mật:** Đăng ký, đăng nhập, bảo vệ bằng mã hóa Bcrypt. Tính năng quên mật khẩu (Reset password qua Email).
 - **Trải nghiệm mua sắm:** Xem danh mục, chi tiết sản phẩm, quản lý Giỏ hàng (Cart) và Sản phẩm yêu thích (Wishlist).
 - **Thanh toán đa dạng:** Hỗ trợ thanh toán khi nhận hàng (COD) và đặc biệt là cổng thanh toán trực tuyến **VNPAY**.
 - **Tương tác:** Đánh giá sản phẩm (Reviews), đọc bài viết (Blogs), gửi liên hệ hỗ trợ.
+- **Hỗ trợ khách hàng:** Khách hàng có thể tạo yêu cầu hỗ trợ, đính kèm trực tiếp mã đơn hàng gặp sự cố thông qua giao diện trực quan và trao đổi tin nhắn hai chiều với Ban quản trị.
 - **Email tự động:** Nhận email xác nhận đơn hàng đẹp mắt ngay sau khi đặt hàng thành công (Tích hợp Brevo SMTP).
 
 ### 🛠️ Dành cho Quản trị viên (Admin Panel)
-- **Quản lý danh mục & Sản phẩm:** Thêm, sửa, xóa, tải lên hình ảnh sản phẩm.
+- **Quản lý danh mục & Sản phẩm:** Thêm, sửa, xóa, tải lên hình ảnh sản phẩm. Hệ thống xóa 2 lớp (Soft-delete & Hard-delete) an toàn.
 - **Quản lý Đơn hàng:** Xem chi tiết đơn hàng, cập nhật trạng thái giao hàng.
 - **Marketing & CSKH:** Quản lý mã giảm giá (Promotions), Banner quảng cáo, phản hồi Contact từ khách.
-- **Vận hành nội bộ:** Quản lý nhân viên (Staff) và phân ca làm việc (Staff Shifts).
+- **Quản trị Nhân sự:** Quản lý nhân viên (Staff), phân ca tự động theo thuật toán Round-robin, bảng tính lương ca trực.
+
+### 💼 Dành cho Nhân viên bán hàng (Staff / NVBH)
+- **Đăng nhập định danh:** Hệ thống khóa đăng nhập nếu nhân viên không có trong ca trực hiện hành.
+- **Bảng điều khiển (Dashboard):** Giao diện quản lý dùng chung (`/management`) nhưng được phân quyền ẩn/hiện các module nhạy cảm theo Role.
+- **Giao nhận đơn hàng:** Xử lý các đơn hàng được Admin hoặc hệ thống phân bổ, thay đổi trạng thái đơn (State Machine).
 
 ---
 
@@ -29,13 +35,14 @@
 - **Runtime:** Node.js
 - **Framework:** Express.js (RESTful API)
 - **Database:** MongoDB & Mongoose ORM
-- **Real-time:** Socket.io (Hỗ trợ WebSocket)
+- **Real-time:** Socket.io (Hỗ trợ WebSocket cho tính năng thông báo)
 - **Email Service:** Nodemailer + Brevo SMTP
 - **Bảo mật:** Helmet, CORS, Express Rate Limit, Bcryptjs
+- **Lập lịch (Cron):** `node-cron` để tự động chuyển ca trực và tính lương nhân viên.
 
 ### Frontend (Client)
 - **Cấu trúc:** HTML5, CSS3, Vanilla JavaScript (Không sử dụng Framework để tối ưu tốc độ)
-- **Giao diện:** Tương thích trên nhiều thiết bị (Responsive Design)
+- **Giao diện:** Tương thích trên nhiều thiết bị (Responsive Design), sử dụng CSS Flexbox/Grid, hỗ trợ CSS Variables cho hệ thống màu (Theming).
 
 ---
 
@@ -82,7 +89,7 @@ VNP_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 ```
 
 ### Bước 3: Đổ dữ liệu mẫu (Seeding Database)
-Nếu bạn chạy lần đầu, hãy nạp dữ liệu mẫu vào database để có sẵn danh mục, sản phẩm, và tài khoản test:
+Nếu bạn chạy lần đầu, hãy nạp dữ liệu mẫu vào database để có sẵn danh mục, sản phẩm, nhân viên và tài khoản test:
 ```bash
 npm run seed
 ```
@@ -100,22 +107,23 @@ Truy cập website tại: `http://localhost:5000`
 
 ```text
 decor_shop/
-│
 ├── public/              # Chứa toàn bộ source code Frontend (HTML/CSS/JS)
-│   ├── admin/           # Trang quản trị dành cho Admin
+│   ├── management/      # Trang quản trị dùng chung (Admin / Staff)
+│   ├── customers/       # Giao diện dành riêng cho tài khoản khách hàng
 │   ├── css/             # Stylesheet
 │   ├── images/          # Hình ảnh (Logo, Sản phẩm, Banner)
 │   ├── js/              # Client-side JavaScript
-│   └── ...              # Các trang HTML (index.html, product.html...)
+│   └── ...              # Các trang HTML (index.html, shop.html...)
 │
 ├── src/                 # Chứa mã nguồn Backend (Node.js)
-│   ├── controllers/     # Xử lý logic nghiệp vụ cho từng route (auth, order, product...)
+│   ├── controllers/     # Xử lý logic nghiệp vụ cho từng route (auth, order, product, staff...)
 │   ├── models/          # Khai báo schema Database MongoDB (Mongoose)
 │   ├── routes/          # Khai báo các đường dẫn API
 │   ├── utils/           # Các hàm tiện ích (email.js, jwt.js...)
+│   ├── jobs/            # Tác vụ chạy ngầm (cron jobs)
 │   └── server.js        # Điểm bắt đầu (Entry point) của ứng dụng
 │
-├── scripts/             # Các đoạn script tiện ích (vd: seedDatabase.js)
+├── scripts/             # Các đoạn script tiện ích (vd: check_staff.js)
 ├── .env                 # File cấu hình biến môi trường
 ├── package.json         # Danh sách thư viện và scripts npm
 └── README.md            # Tài liệu dự án
@@ -123,8 +131,15 @@ decor_shop/
 
 ---
 
+## 📝 Nhật ký thay đổi gần đây (Changelog)
+- **Cập nhật tính năng Đính kèm đơn hàng**: Khách hàng có thể chọn trực tiếp mã đơn hàng để đính kèm vào yêu cầu hỗ trợ. Admin có thể xem chi tiết đơn hàng trực tiếp tại cửa sổ Chat.
+- **Xóa 2 lớp (Soft-delete)**: Đảm bảo an toàn dữ liệu, chống xóa nhầm sản phẩm/danh mục đang kinh doanh.
+- **Triển khai Module Nhân viên (NVBH)**: Tổ chức lại cơ sở dữ liệu (`StaffShift`, `Interaction`, `StaffKPI`), gộp thư mục quản trị thành `/management` và sẵn sàng cho việc phân ca tự động.
+
+---
+
 ## 👨‍💻 Tác giả
 Dự án được phát triển bởi **Nguyễn Trí Thức** & **Phương Anh**.
-Mọi thông tin đóng góp hoặc câu hỏi vui lòng liên hệ qua email!.
+Mọi thông tin đóng góp hoặc câu hỏi vui lòng liên hệ qua email!
 
 *Cảm ơn bạn đã xem qua dự án!* ❤️

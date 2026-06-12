@@ -314,6 +314,9 @@ exports.getOrders = async (req, res) => {
         if (req.query.status && req.query.status !== 'all') {
             filter.orderStatus = req.query.status;
         }
+        if (req.query.mine === 'true') {
+            filter.processedBy = req.user._id;
+        }
 
         const [orders, total, statsRows] = await Promise.all([
             Order.find(filter).populate('customer', 'name email').sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
@@ -1522,6 +1525,80 @@ exports.uploadProductImage = async (req, res) => {
 };
 
 // Lấy danh sách nhân viên
+exports.createStaff = async (req, res) => {
+    try {
+        if (!ensureAdminOnly(req, res)) return;
+        const { name, email, phone, password, role } = req.body;
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'Tên, email và mật khẩu là bắt buộc.' });
+        }
+        
+        const existing = await User.findOne({ email: email.toLowerCase().trim() });
+        if (existing) {
+            return res.status(400).json({ message: 'Email đã tồn tại trong hệ thống.' });
+        }
+
+        const hashedPassword = await hashPassword(password);
+        
+        const staffCount = await User.countDocuments({ role: { $in: ['staff', 'admin'] } });
+        const staffCode = `NV${String(staffCount + 1).padStart(2, '0')}`;
+
+        const newStaff = new User({
+            name: name.trim(),
+            email: email.toLowerCase().trim(),
+            phone: phone ? phone.trim() : '',
+            password: hashedPassword,
+            role: role || 'staff',
+            staffCode: staffCode
+        });
+
+        await newStaff.save();
+        res.status(201).json({ message: 'Thêm nhân viên thành công', staff: newStaff });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.updateStaff = async (req, res) => {
+    try {
+        if (!ensureAdminOnly(req, res)) return;
+        const { id } = req.params;
+        const { name, phone, role, status, password } = req.body;
+        
+        const staff = await User.findById(id);
+        if (!staff) return res.status(404).json({ message: 'Không tìm thấy nhân viên.' });
+
+        if (name) staff.name = name.trim();
+        if (phone !== undefined) staff.phone = phone.trim();
+        if (role) staff.role = role;
+        if (status) staff.status = status;
+        if (password) {
+            staff.password = await hashPassword(password);
+        }
+
+        await staff.save();
+        res.json({ message: 'Cập nhật thành công', staff });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.deleteStaff = async (req, res) => {
+    try {
+        if (!ensureAdminOnly(req, res)) return;
+        const { id } = req.params;
+        
+        const staff = await User.findById(id);
+        if (!staff) return res.status(404).json({ message: 'Không tìm thấy nhân viên.' });
+
+        await StaffShift.deleteMany({ staff: id });
+        await User.findByIdAndDelete(id);
+        res.json({ message: 'Đã xóa nhân viên và lịch ca.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 exports.getStaff = async (req, res) => {
     try {
         if (!ensureAdminOnly(req, res)) return;
@@ -1562,7 +1639,6 @@ exports.getStaff = async (req, res) => {
 // Inventory
 exports.getInventory = async (req, res) => {
     try {
-        if (!ensureAdminOnly(req, res)) return;
         
         const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
         const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 5), 500);
@@ -1645,7 +1721,6 @@ exports.getInventory = async (req, res) => {
 // Inventory Transactions
 exports.createInventoryTransaction = async (req, res) => {
     try {
-        if (!ensureAdminOnly(req, res)) return;
         const { type, items, reason } = req.body;
         
         if (!['import', 'export', 'check'].includes(type)) {
@@ -1688,7 +1763,6 @@ exports.createInventoryTransaction = async (req, res) => {
 
 exports.getInventoryTransactions = async (req, res) => {
     try {
-        if (!ensureAdminOnly(req, res)) return;
         const transactions = await InventoryTransaction.find()
             .populate('createdBy', 'name')
             .sort({ createdAt: -1 })
@@ -1702,7 +1776,6 @@ exports.getInventoryTransactions = async (req, res) => {
 
 exports.updateInventoryProduct = async (req, res) => {
     try {
-        if (!ensureAdminOnly(req, res)) return;
         const product = await Product.findById(req.params.id);
         if (!product) return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
         

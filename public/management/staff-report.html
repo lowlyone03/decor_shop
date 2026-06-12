@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo ca trực - Casa Decor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css?v=1780630161587">
+    <!-- Thư viện xuất PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            background: #fff;
+            padding: 20px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid #f0f0f0;
+        }
+        .report-title h1 {
+            font-size: 1.6rem;
+            margin: 0 0 4px;
+            color: #111;
+            font-family: 'Playfair Display', serif;
+        }
+        .report-title p {
+            color: #666;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+        .export-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-export {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
+        }
+        .btn-export.excel {
+            background: #107c41;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 10px rgba(16, 124, 65, 0.2);
+        }
+        .btn-export.excel:hover {
+            background: #0c6334;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(16, 124, 65, 0.3);
+        }
+        .btn-export.pdf {
+            background: #e11d48;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 10px rgba(225, 29, 72, 0.2);
+        }
+        .btn-export.pdf:hover {
+            background: #be123c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(225, 29, 72, 0.3);
+        }
+
+        .report-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: linear-gradient(145deg, #ffffff, #fafafa);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid #eee;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+        }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, rgba(196, 140, 113, 0.1), rgba(196, 140, 113, 0));
+            border-radius: 0 0 0 100%;
+            pointer-events: none;
+        }
+        .stat-card h3 { font-size: 0.95rem; color: #64748b; margin: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .stat-value { font-size: 2.2rem; font-weight: 700; color: #1e293b; }
+        .stat-card i { position: absolute; top: 24px; right: 24px; font-size: 1.8rem; color: #c48c71; opacity: 0.2; transition: opacity 0.3s ease; }
+        .stat-card:hover i { opacity: 0.5; }
+
+        .report-filters {
+            display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;
+            background: #fff; padding: 15px 24px; border-radius: 12px; border: 1px solid #eee; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        .report-filters label { display: flex; align-items: center; gap: 12px; font-weight: 500; color: #334155; }
+        .report-filters input[type="month"] {
+            padding: 10px 16px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-family: inherit; color: #1e293b; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+            background: #f8fafc;
+        }
+        .report-filters input[type="month"]:focus { border-color: #c48c71; background: #fff; box-shadow: 0 0 0 3px rgba(196, 140, 113, 0.1); }
+
+        .report-table-wrap { overflow-x: auto; background: #fff; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .report-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        .report-table th, .report-table td { padding: 18px 24px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        .report-table th { background: #f8fafc; font-weight: 600; font-size: 0.85rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .report-table tbody tr { transition: background-color 0.2s ease; }
+        .report-table tbody tr:hover { background: #f8fafc; }
+        
+        .stat-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.95rem; color: #475569; }
+        .stat-item i { width: 16px; text-align: center; color: #94a3b8; }
+        .salary-amount { font-weight: 700; color: #059669; font-size: 1.15rem; background: #d1fae5; padding: 6px 12px; border-radius: 8px; display: inline-block;}
+        .empty-state { text-align: center; padding: 80px 20px; color: #94a3b8; }
+        .empty-state i { font-size: 3.5rem; color: #e2e8f0; margin-bottom: 20px; }
+        .empty-state div { font-size: 1.1rem; color: #64748b; }
+        
+        /* Modern Badges for Status */
+        .shift-status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .shift-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+        .shift-status.completed { color: #047857; background: #d1fae5; }
+        .shift-status.completed::before { background: #059669; }
+        .shift-status.active { color: #1d4ed8; background: #dbeafe; }
+        .shift-status.active::before { background: #2563eb; }
+        .shift-status.scheduled { color: #b45309; background: #fef3c7; }
+        .shift-status.scheduled::before { background: #d97706; }
+        .shift-status.absent { color: #be123c; background: #ffe4e6; }
+        .shift-status.absent::before { background: #e11d48; }
+        .shift-status.cancelled { color: #475569; background: #f1f5f9; }
+        .shift-status.cancelled::before { background: #64748b; }
+
+        /* Print Styles for PDF */
+        @media print {
+            body * { visibility: hidden; }
+            #printableReport, #printableReport * { visibility: visible; }
+            #printableReport { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            .report-filters, .export-actions { display: none !important; }
+            .stat-card { box-shadow: none; border: 1px solid #ddd; }
+            .report-table-wrap { box-shadow: none; border: 1px solid #ddd; }
+        }
+    </style>
+</head>
+<body class="admin-page">
+    <aside class="admin-sidebar">
+        <a class="admin-brand" href="/customers/index.html" aria-label="Quay về trang chủ Casa Decor">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                    <path class="logo-line outer" d="M20 101V48c0-4 1-6 4-9L57 8c3-3 7-3 10 0l32 31c3 3 5 7 5 12"/>
+                    <path class="logo-line base" d="M20 101h86V70"/>
+                    <path class="logo-line inner" d="M44 91V64c0-8 3-14 9-20l16-15c7-7 17-7 24 0l16 15c6 6 9 12 9 20v12c0 14-11 25-25 25H54c-6 0-10-4-10-10Z"/>
+                    <path class="logo-line stem" d="M94 49c13-3 22-14 21-28"/>
+                    <path class="logo-fill leaf leaf-a" d="M102 45c-10 1-18-4-22-13 10-1 18 4 22 13Z"/>
+                    <path class="logo-fill leaf leaf-b" d="M111 57c-10 3-19-1-25-9 10-3 19 1 25 9Z"/>
+                    <path class="logo-fill leaf leaf-c" d="M114 30c-1 11-8 19-18 22 1-11 8-19 18-22Z"/>
+                </svg>
+            </span>
+            <span><b>Casa Decor</b><small>Staff</small></span>
+        </a>
+
+        <nav class="admin-menu" aria-label="Menu quản trị">
+            <p>Quản lý chung</p>
+            <a href="/management/index.html" data-view="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</a>
+
+            <p>Quản lý cửa hàng</p>
+            <a href="/management/products.html" data-view="products"><i class="fa-solid fa-cube"></i> Quản lý sản phẩm</a>
+            <a href="/management/categories.html" data-view="categories"><i class="fa-regular fa-folder"></i> Danh mục</a>
+            <a href="/management/orders.html" data-view="orders"><i class="fa-solid fa-box"></i> Đơn hàng</a>
+            <a href="/management/customers.html" data-view="customers"><i class="fa-regular fa-user"></i> Khách hàng</a>
+            <a href="/management/staff.html" data-view="staff"><i class="fa-solid fa-user-tie"></i> Nhân viên bán hàng</a>
+            <a href="/management/reviews.html" data-view="reviews"><i class="fa-regular fa-star"></i> Đánh giá</a>
+
+            <p>Nội dung & Marketing</p>
+            <a href="/management/banners.html" data-view="banners"><i class="fa-regular fa-image"></i> Banner trang chủ</a>
+            <a href="/management/promotions.html"><i class="fa-solid fa-tags"></i> Khuyến mãi</a>
+            <a href="/management/blog.html" data-view="blog"><i class="fa-regular fa-newspaper"></i> Blog / Bài viết</a>
+            <a href="/management/contacts.html" data-view="contacts"><i class="fa-regular fa-message"></i> Liên hệ khách hàng</a>
+
+            <p>Vận hành</p>
+            <a href="/management/inventory.html" data-view="inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
+            <a href="/management/schedule.html" data-view="schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
+            <a href="/management/payroll.html" data-view="payroll"><i class="fa-solid fa-file-invoice-dollar"></i> Bảng lương NVBH</a>
+
+            <a class="active" href="/management/staff-report.html" data-view="staff-report"><i class="fa-solid fa-chart-pie"></i> Báo cáo ca trực</a>
+
+            <p>Báo cáo & Thống kê</p>
+            <a href="/management/reports.html"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
+
+            <p>Hệ thống</p>
+            <a href="/management/profile.html" data-view="profile"><i class="fa-regular fa-id-card"></i> Tài khoản admin</a>
+            <a href="/management/settings.html"><i class="fa-solid fa-gear"></i> Cài đặt</a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <label class="admin-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="adminSearch" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng...">
+            </label>
+            <a class="admin-profile" href="#">
+                <img id="adminAvatar" src="/images/logo/logo1.jpg" alt="Admin">
+                <div><b id="adminName">Nhân viên</b><span id="adminRole">Staff</span></div>
+            </a>
+        </header>
+
+        <section class="payroll-manager-page" style="padding: 24px 32px;">
+            
+            <div class="report-header">
+                <div class="report-title">
+                    <h1>Báo Cáo Hiệu Suất Ca Trực</h1>
+                    <p>Theo dõi thống kê xử lý đơn hàng và doanh thu theo tháng</p>
+                </div>
+                <div class="export-actions">
+                    <button class="btn-export excel" id="btnExportExcel">
+                        <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                    </button>
+                    <button class="btn-export pdf" id="btnExportPDF">
+                        <i class="fa-solid fa-file-pdf"></i> Xuất PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Vùng cần in/xuất PDF sẽ bọc trong div này -->
+            <div id="printableReport">
+                <div class="report-filters" data-html2canvas-ignore>
+                    <label>
+                        <i class="fa-regular fa-calendar" style="color: #64748b;"></i> Lọc theo tháng:
+                        <input type="month" id="monthPicker">
+                    </label>
+                </div>
+
+                <!-- Thêm Tiêu đề báo cáo khi xuất PDF (bình thường ẩn) -->
+                <div id="pdfHeader" style="display: none; text-align: center; margin-bottom: 30px;">
+                    <h2 style="font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 5px;">CASA DECOR - BÁO CÁO NHÂN VIÊN BÁN HÀNG</h2>
+                    <p style="color: #666; font-size: 16px;" id="pdfMonthText"></p>
+                    <p style="color: #888; font-size: 14px; margin-top: 5px;" id="pdfStaffText"></p>
+                </div>
+
+                <div class="report-stats-grid">
+                    <div class="stat-card">
+                        <i class="fa-regular fa-calendar-check"></i>
+                        <h3>Ca hoàn thành</h3>
+                        <div class="stat-value" id="statCompletedShifts">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-box-open"></i>
+                        <h3>Đơn hàng xử lý</h3>
+                        <div class="stat-value" id="statTotalOrders">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                        <h3>Doanh thu mang lại</h3>
+                        <div class="stat-value" id="statTotalRevenue" style="color: #c48c71;">0₫</div>
+                    </div>
+                </div>
+
+                <div class="report-table-wrap">
+                    <table class="report-table" id="reportTable">
+                        <thead>
+                            <tr>
+                                <th>Ngày ca trực</th>
+                                <th>Khung giờ</th>
+                                <th>Trạng thái</th>
+                                <th>Chi tiết xử lý đơn</th>
+                                <th style="text-align: right;">Thu nhập ca</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody">
+                            <tr><td colspan="5" style="text-align:center; padding: 60px;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem; color:#ccc; margin-bottom:15px; display:block;"></i> Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/admin.js?v=1780630161586"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const monthPicker = document.getElementById('monthPicker');
+            const today = new Date();
+            const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+            monthPicker.value = currentMonth;
+
+            // Load staff info cho report PDF
+            const currentSession = session();
+            if(currentSession && currentSession.user) {
+                document.getElementById('pdfStaffText').innerText = `Nhân viên: ${currentSession.user.name} (${currentSession.user.email})`;
+            }
+
+            monthPicker.addEventListener('change', loadReport);
+
+            function formatMoney(amount) {
+                return Number(amount || 0).toLocaleString('vi-VN') + '₫';
+            }
+
+            function formatDate(dateStr) {
+                if (!dateStr) return 'N/A';
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+            }
+
+            function formatTime(minutes) {
+                const h = Math.floor(minutes / 60).toString().padStart(2, '0');
+                const m = (minutes % 60).toString().padStart(2, '0');
+                return `${h}:${m}`;
+            }
+
+            function statusHtml(status) {
+                const map = {
+                    'completed': 'Đã hoàn thành',
+                    'active': 'Đang trực',
+                    'scheduled': 'Chưa bắt đầu',
+                    'absent': 'Vắng mặt',
+                    'cancelled': 'Đã hủy'
+                };
+                return `<span class="shift-status ${status}">${map[status] || status}</span>`;
+            }
+
+            async function loadReport() {
+                const month = monthPicker.value;
+                if (!month) return;
+                
+                document.getElementById('pdfMonthText').innerText = `Thống kê tháng: ${month}`;
+
+                const tbody = document.getElementById('reportTableBody');
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 60px;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem; color:#cbd5e1; margin-bottom:15px; display:block;"></i> Đang tải dữ liệu...</td></tr>';
+                
+                try {
+                    const data = await api(`/staff/my-salary?month=${month}`);
+                    const shifts = data.shifts || [];
+                    
+                    if (shifts.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5">
+                            <div class="empty-state">
+                                <i class="fa-regular fa-folder-open"></i>
+                                <div>Không có dữ liệu ca trực cho tháng ${month}</div>
+                            </div>
+                        </td></tr>`;
+                        document.getElementById('statCompletedShifts').innerText = 0;
+                        document.getElementById('statTotalOrders').innerText = 0;
+                        document.getElementById('statTotalRevenue').innerText = '0₫';
+                        return;
+                    }
+
+                    let totalRevenue = 0;
+                    let totalOrders = 0;
+                    let completedShiftsCount = 0;
+
+                    tbody.innerHTML = shifts.map(shift => {
+                        const revenue = shift.stats?.revenueInShift || 0;
+                        const ordersProcessed = shift.stats?.ordersProcessed || 0;
+                        
+                        if (shift.status === 'completed') {
+                            completedShiftsCount++;
+                            totalRevenue += revenue;
+                            totalOrders += ordersProcessed;
+                        }
+                        
+                        return `
+                            <tr>
+                                <td>
+                                    <b style="color: #1e293b;">${formatDate(shift.shiftDate)}</b>
+                                </td>
+                                <td>
+                                    <div class="stat-item"><i class="fa-regular fa-clock"></i> <b>${formatTime(shift.startMinute)} - ${formatTime(shift.endMinute)}</b></div>
+                                    <div style="font-size: 0.8rem; color: #94a3b8; margin-left: 24px;">(${shift.durationHours} tiếng)</div>
+                                </td>
+                                <td>
+                                    ${statusHtml(shift.status)}
+                                    ${shift.isLateCheckIn ? '<div style="color:#e11d48; font-size:0.8rem; margin-top:6px; font-weight:500;"><i class="fa-solid fa-triangle-exclamation"></i> Đi muộn</div>' : ''}
+                                </td>
+                                <td>
+                                    <div class="stat-item"><i class="fa-solid fa-box-open"></i> Đơn đã xử lý: <b style="color: #334155;">${ordersProcessed}</b></div>
+                                    <div class="stat-item" style="color:#b45309;"><i class="fa-solid fa-sack-dollar"></i> Doanh thu: <b>${formatMoney(revenue)}</b></div>
+                                </td>
+                                <td style="text-align: right; vertical-align: middle;">
+                                    ${shift.status === 'completed' ? `<div class="salary-amount">${formatMoney(shift.totalPay || (shift.durationHours * 50000))}</div>` : '<span style="color:#94a3b8; font-style: italic; font-size: 0.95rem;">Chưa chốt</span>'}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    document.getElementById('statCompletedShifts').innerText = completedShiftsCount;
+                    document.getElementById('statTotalOrders').innerText = totalOrders;
+                    document.getElementById('statTotalRevenue').innerText = formatMoney(totalRevenue);
+                    
+                } catch (e) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 40px; color:#e11d48;">Lỗi tải dữ liệu: ${e.message}</td></tr>`;
+                }
+            }
+            
+            loadReport();
+
+            // Xử lý nút Xuất Excel (CSV)
+            document.getElementById('btnExportExcel').addEventListener('click', () => {
+                const month = monthPicker.value;
+                const rows = document.querySelectorAll('#reportTable tbody tr');
+                
+                if (rows.length === 1 && rows[0].querySelector('.empty-state, .fa-spin')) {
+                    alert('Không có dữ liệu để xuất!');
+                    return;
+                }
+
+                let csv = 'Ngày ca trực,Khung giờ,Số giờ làm,Trạng thái,Đơn đã xử lý,Doanh thu,Thu nhập ca\n';
+                
+                rows.forEach(row => {
+                    const cols = row.querySelectorAll('td');
+                    if (cols.length === 5) {
+                        const date = cols[0].innerText.replace(/\n/g, '').trim();
+                        
+                        const timeText = cols[1].innerText;
+                        const timeLines = timeText.split('\n').map(t => t.trim());
+                        const timeRange = timeLines[0] || '';
+                        const hours = (timeLines[1] || '').replace('(', '').replace(')', '');
+                        
+                        const statusText = cols[2].innerText.replace(/\n/g, ' - ').trim();
+                        
+                        const detailText = cols[3].innerText;
+                        const detailLines = detailText.split('\n');
+                        const orders = (detailLines[0] || '').replace('Đơn đã xử lý:', '').trim();
+                        const revenue = (detailLines[1] || '').replace('Doanh thu:', '').replace(/₫/g, '').replace(/\./g, '').trim();
+                        
+                        const salaryText = cols[4].innerText.replace(/₫/g, '').replace(/\./g, '').trim();
+                        
+                        csv += `"${date}","${timeRange}","${hours}","${statusText}","${orders}","${revenue}","${salaryText}"\n`;
+                    }
+                });
+                
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Bao_Cao_Ca_Truc_${month}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            // Xử lý nút Xuất PDF (Xem trước khi in)
+            document.getElementById('btnExportPDF').addEventListener('click', () => {
+                const rows = document.querySelectorAll('#reportTable tbody tr');
+                if (rows.length === 1 && rows[0].querySelector('.empty-state, .fa-spin')) {
+                    alert('Không có dữ liệu để xuất PDF/In!');
+                    return;
+                }
+
+                const pdfHeader = document.getElementById('pdfHeader');
+                
+                // Hiện header khi xuất PDF
+                pdfHeader.style.display = 'block';
+
+                // Gọi hộp thoại in của trình duyệt (cho phép xem trước giao diện và chọn Lưu dưới dạng PDF)
+                window.print();
+
+                // Ẩn lại header sau khi hộp thoại in đóng lại
+                pdfHeader.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

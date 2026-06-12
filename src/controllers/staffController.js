@@ -55,19 +55,23 @@ exports.getDashboard = async (req, res) => {
             staff: staffId, status: 'active', shiftDate: today
         }).lean();
 
-        const scheduledShift = !activeShift ? await StaffShift.findOne({
+        const upcomingShiftToday = !activeShift ? await StaffShift.findOne({
             staff: staffId, status: 'scheduled', shiftDate: today,
-            startMinute: { $lte: currentMinute + 30 }, endMinute: { $gt: currentMinute }
-        }).lean() : null;
+            endMinute: { $gt: currentMinute }
+        }).sort({ startMinute: 1 }).lean() : null;
 
         let shiftStatus = 'no_shift_today';
         let currentShift = null;
         if (activeShift) {
             shiftStatus = 'in_shift';
             currentShift = activeShift;
-        } else if (scheduledShift) {
-            shiftStatus = 'not_checked_in';
-            currentShift = scheduledShift;
+        } else if (upcomingShiftToday) {
+            if (upcomingShiftToday.startMinute <= currentMinute + 30) {
+                shiftStatus = 'not_checked_in';
+            } else {
+                shiftStatus = 'upcoming_shift_today';
+            }
+            currentShift = upcomingShiftToday;
         }
 
         // Thống kê đơn
@@ -464,7 +468,32 @@ exports.getProducts = async (req, res) => {
 exports.getCategories = async (req, res) => {
     try {
         const categories = await Category.find().sort({ name: 1 }).lean();
-        res.json({ categories });
+        const active = categories.filter(c => c.status === 'active').length;
+        const featured = categories.filter(c => c.isFeatured).length;
+        const hidden = categories.filter(c => c.status === 'hidden').length;
+
+        const categoryIds = categories.map(c => c._id);
+        const productCounts = await Product.aggregate([
+            { $match: { category: { $in: categoryIds }, status: { $ne: 'deleted' } } },
+            { $group: { _id: '$category', count: { $sum: 1 } } }
+        ]);
+        const productCountMap = Object.fromEntries(productCounts.map(item => [String(item._id), item.count]));
+
+        const categoriesWithCount = categories.map(cat => ({ ...cat, productCount: productCountMap[String(cat._id)] || 0 }));
+
+        res.json({ 
+            categories: categoriesWithCount,
+            total: categories.length,
+            page: 1,
+            pages: 1,
+            allCategories: categories.map(c => ({ _id: c._id, name: c.name, slug: c.slug, image: c.image })),
+            stats: {
+                total: categories.length,
+                active,
+                featured,
+                hidden
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -479,14 +508,25 @@ exports.getInventory = async (req, res) => {
             const regex = new RegExp(escapeRegex(req.query.q), 'i');
             filter.$or = [{ name: regex }, { sku: regex }];
         }
-        const [products, total] = await Promise.all([
+        const [products, total, allProducts] = await Promise.all([
             Product.find(filter)
-                .select('name sku stock images status category')
+                .select('name sku stock images status category price')
                 .populate('category', 'name')
                 .sort({ stock: 1 }).skip((page - 1) * limit).limit(limit).lean(),
-            Product.countDocuments(filter)
+            Product.countDocuments(filter),
+            Product.find({}).lean()
         ]);
-        res.json({ products, total, page, pages: Math.ceil(total / limit) || 1 });
+        const stats = {
+            totalSKU: allProducts.length,
+            totalValue: allProducts.reduce((sum, p) => sum + (p.stock * (p.price || 0)), 0),
+            lowStockCount: allProducts.filter(p => p.stock > 0 && p.stock <= 20).length,
+            outOfStockCount: allProducts.filter(p => p.stock === 0).length,
+            importQty: 0,
+            importValue: 0,
+            exportQty: 0,
+            exportValue: 0
+        };
+        res.json({ products, total, page, pages: Math.ceil(total / limit) || 1, stats });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -497,13 +537,35 @@ exports.getInventory = async (req, res) => {
 // ═══════════════════════════════════════════════════════════════
 exports.getPromotions = async (req, res) => {
     try {
-        const now = new Date();
-        const promotions = await Promotion.find({
-            status: 'active',
-            startDate: { $lte: now },
-            endDate: { $gte: now }
-        }).sort({ endDate: 1 }).lean();
-        res.json({ promotions });
+        const page = Math.max(parseInt(req.query.page) || 1, 1);
+        const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 5), 50);
+        const filter = {};
+        if (req.query.status && req.query.status !== 'all') {
+            filter.status = req.query.status;
+        }
+
+        const [promotions, total, statsRows] = await Promise.all([
+            Promotion.find(filter)
+                .sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+            Promotion.countDocuments(filter),
+            Promotion.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }])
+        ]);
+
+        const statsMap = Object.fromEntries(statsRows.map(item => [item._id, item.count]));
+        const totalCount = await Promotion.countDocuments();
+
+        res.json({ 
+            promotions,
+            total,
+            page,
+            pages: Math.max(Math.ceil(total / limit), 1),
+            stats: {
+                total: totalCount,
+                active: statsMap.active || 0,
+                expired: statsMap.expired || 0,
+                disabled: statsMap.disabled || 0
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -871,10 +933,22 @@ exports.getMySalary = async (req, res) => {
         const lastDay = new Date(Number(year), Number(m), 0).getDate();
         const toDate = `${year}-${m}-${String(lastDay).padStart(2, '0')}`;
 
-        const shifts = await StaffShift.find({
+        let shifts = await StaffShift.find({
             staff: req.user._id,
             shiftDate: { $gte: fromDate, $lte: toDate }
         }).sort({ shiftDate: 1, shiftOrder: 1 }).lean();
+
+        const todayDate = new Date();
+        const todayStr = todayDate.toISOString().split('T')[0];
+
+        shifts = shifts.map(s => {
+            if (s.status === 'scheduled') {
+                if (s.shiftDate < todayStr) s.status = 'absent';
+            } else if (s.status === 'absent') {
+                if (s.shiftDate > todayStr) s.status = 'scheduled';
+            }
+            return s;
+        });
 
         res.json({
             month,

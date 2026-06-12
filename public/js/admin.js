@@ -62,7 +62,9 @@ function pageFromPath() {
     if (path.endsWith('/profile.html')) return 'profile';
     if (path.endsWith('/inventory.html')) return 'inventory';
     if (path.endsWith('/schedule.html')) return 'schedule';
+    if (path.endsWith('/payroll.html')) return 'payroll';
     if (path.endsWith('/reports.html')) return 'reports';
+    if (path.endsWith('/staff-report.html')) return 'staff-report';
     if (path.endsWith('/settings.html')) return 'settings';
     return 'dashboard';
 }
@@ -144,7 +146,9 @@ const STAFF_HIDDEN_VIEWS = [
     'blog',         // Blog
     'reports',      // Báo cáo tổng hợp
     'settings',     // Cài đặt hệ thống
-    'payroll'       // Bảng lương tổng hợp
+    'payroll',      // Bảng lương tổng hợp
+    'schedule',     // Lịch chia ca (ẩn theo yêu cầu)
+    'profile'       // Hồ sơ cá nhân (ẩn theo yêu cầu)
 ];
 
 // Menu items mà STAFF ĐƯỢC THẤY
@@ -183,7 +187,7 @@ function applyPermissions() {
     document.querySelectorAll('.admin-menu a[href]').forEach(link => {
         const href = link.getAttribute('href') || '';
         for (const view of STAFF_HIDDEN_VIEWS) {
-            if (href.includes(`/${view}.html`)) {
+            if (href.includes(`/${view}.html`) || href.includes(`#${view}`)) {
                 link.style.display = 'none';
                 break;
             }
@@ -214,6 +218,10 @@ function applyPermissions() {
 
     const roleLabel = document.querySelector('#adminRole');
     if (roleLabel) roleLabel.textContent = 'Nhân viên bán hàng';
+
+    // Đổi tên menu "Tài khoản admin" thành "Hồ sơ cá nhân"
+    const profileMenu = document.querySelector('a[data-view="profile"]');
+    if (profileMenu) profileMenu.innerHTML = '<i class="fa-regular fa-id-card"></i> Hồ sơ cá nhân';
 
     // 4. Đổi text cổng auth
     const authTitle = document.querySelector('#authGate h1');
@@ -765,10 +773,12 @@ function renderCategoryManager(data) {
                 <td>
                     <div class="product-cell category-cell">
                         <img src="${escapeHtml(category.image || '/images/default-product.png')}" alt="Ảnh">
-                        <div><b>${escapeHtml(category.name)}</b></div>
+                        <div>
+                            <b>${escapeHtml(category.name)}</b>
+                            <small style="color: #64748b; font-size: 8.5px; display: block; margin-top: 2px;">Slug: ${escapeHtml(category.slug)}</small>
+                        </div>
                     </div>
                 </td>
-                <td style="color: #64748b;">${escapeHtml(category.slug)}</td>
                 <td style="max-width: 250px; font-size: 0.9rem; color: #64748b;">${escapeHtml(category.description || '')}</td>
                 <td style="text-align: center;"><b>${category.productCount || 0}</b></td>
                 <td>
@@ -830,6 +840,15 @@ function renderCategoryManager(data) {
 async function loadOrderManager(page = state.orders.page) {
     const orderView = document.querySelector('#orderManagerView');
     if (!orderView) return;
+    if (!state.orders.filter.q && window.location.search.includes('q=')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('q')) {
+            state.orders.filter.q = urlParams.get('q');
+            const searchInput = document.getElementById('orderSearchInput');
+            if (searchInput) searchInput.value = state.orders.filter.q;
+        }
+    }
+
     const params = new URLSearchParams({
         page: page,
         limit: state.orders.limit,
@@ -1242,6 +1261,7 @@ async function loadDashboard() {
 const SHIFT_STATUS_META = {
     in_shift:       { label: 'Đang trong ca', icon: 'fa-solid fa-circle-play', color: '#16a34a', tint: '#e5f5dd' },
     not_checked_in: { label: 'Chưa check-in', icon: 'fa-solid fa-door-open', color: '#dca941', tint: '#fff0d0' },
+    upcoming_shift_today: { label: 'Chưa tới giờ ca trực', icon: 'fa-regular fa-clock', color: '#3b82f6', tint: '#eff6ff' },
     no_shift_today: { label: 'Không có ca hôm nay', icon: 'fa-solid fa-moon', color: '#8b8b8b', tint: '#f0f0f0' }
 };
 
@@ -1297,9 +1317,9 @@ function renderStaffDashboard(data) {
                     <button onclick="staffCheckOut('${shift._id}')" class="staff-action-btn" style="background:#cf5148;">
                         <i class="fa-solid fa-right-from-bracket"></i> Check-out
                     </button>` : ''}
-                <a href="/management/schedule.html" class="staff-action-btn ghost" style="text-decoration:none; text-align:center;">
+                <button onclick="showStaffMyShiftsModal()" class="staff-action-btn ghost" style="text-align:center;">
                     <i class="fa-regular fa-calendar"></i> Xem lịch ca
-                </a>
+                </button>
             </div>
         </section>
 
@@ -1375,14 +1395,16 @@ function renderStaffDashboard(data) {
                     <div><h2>Ca sắp tới</h2><p>3 ca làm việc kế tiếp</p></div>
                 </div>
                 <div style="padding:16px;">
-                    ${upcoming.length > 0 ? upcoming.map(s => `
+                    ${upcoming.length > 0 ? upcoming.map(s => {
+                        const shiftDateFmt = s.shiftDate ? new Date(s.shiftDate + 'T00:00:00').toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }) : s.shiftDate;
+                        return `
                         <div class="staff-upcoming-shift">
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="background:#c48c7115; color:#c48c71; width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
                                     <i class="fa-regular fa-calendar-check"></i>
                                 </div>
                                 <div>
-                                    <strong>${s.shiftDate}</strong>
+                                    <strong>${shiftDateFmt}</strong>
                                     <small style="display:block; color:#888;">Ca ${s.shiftName || ''} · ${s.startTime} – ${s.endTime}</small>
                                 </div>
                             </div>
@@ -1390,11 +1412,63 @@ function renderStaffDashboard(data) {
                                 ${money(s.totalPay || 300000)}
                             </span>
                         </div>
-                    `).join('') : '<p style="color:#999; text-align:center; padding:30px 0;">Chưa có ca nào được phân công</p>'}
+                    `}).join('') : '<p style="color:#999; text-align:center; padding:30px 0;">Chưa có ca nào được phân công</p>'}
                 </div>
             </article>
         </section>
     `;
+}
+
+async function showStaffMyShiftsModal() {
+    try {
+        const shifts = await api('/staff/my-shifts');
+        let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
+        if (shifts.length === 0) {
+            html += '<p style="text-align:center; color:#888;">Bạn không có ca làm việc nào.</p>';
+        } else {
+            shifts.forEach(s => {
+                let statusColor = '#333';
+                let statusText = 'Sắp tới';
+                if (s.status === 'completed') { statusColor = '#16a34a'; statusText = 'Đã hoàn thành'; }
+                else if (s.status === 'active') { statusColor = '#2563eb'; statusText = 'Đang làm việc'; }
+                else if (s.status === 'cancelled') { statusColor = '#dc2626'; statusText = 'Đã hủy'; }
+                
+                html += `
+                <div style="border:1px solid #eee; padding:12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong style="display:block; font-size:1.1rem; color:#444;">${s.shiftDate} - Ca ${s.shiftName}</strong>
+                        <small style="color:#777;">${s.startTime} đến ${s.endTime}</small>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="display:inline-block; padding:4px 8px; border-radius:12px; font-size:0.8rem; font-weight:600; background:${statusColor}15; color:${statusColor};">
+                            ${statusText}
+                        </span>
+                    </div>
+                </div>`;
+            });
+        }
+        html += '</div>';
+
+        let modal = document.getElementById('staffMyShiftsModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'staffMyShiftsModal';
+            modal.className = 'custom-modal-overlay';
+            modal.innerHTML = `
+                <div class="custom-modal-card" style="max-width: 500px;">
+                    <button class="modal-close" onclick="document.getElementById('staffMyShiftsModal').hidden = true"><i class="fa-solid fa-xmark"></i></button>
+                    <h2 class="modal-title">Lịch phân ca của tôi</h2>
+                    <div id="staffMyShiftsContent" style="max-height: 400px; overflow-y: auto; margin-top:16px;"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        document.getElementById('staffMyShiftsContent').innerHTML = html;
+        modal.hidden = false;
+    } catch (e) {
+        showToast(e.message || 'Lỗi khi tải lịch ca', 'error');
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2430,7 +2504,7 @@ function renderCustomerManager(data) {
                 <td><span class="badge ${customer.status === 'active' ? 'success' : 'danger'}">${customer.status === 'active' ? 'Đang hoạt động' : 'Bị khóa'}</span></td>
                 <td>
                     <div class="product-actions">
-                        <button type="button" title="Xem lịch sử" onclick="state.orders.filter.q='${escapeHtml(customer.email)}'; window.location.href='/management/orders.html';"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                        <button type="button" title="Xem lịch sử" onclick="window.location.href='/management/orders.html?q=${encodeURIComponent(customer.email)}';"><i class="fa-solid fa-clock-rotate-left"></i></button>
                         <button class="${customer.status === 'active' ? 'danger' : ''}" type="button" title="${customer.status === 'active' ? 'Khóa tài khoản' : 'Mở khóa'}" onclick="toggleCustomerStatus('${escapeHtml(customer._id)}', '${customer.status === 'active' ? 'locked' : 'active'}')"><i class="fa-solid ${customer.status === 'active' ? 'fa-lock' : 'fa-lock-open'}"></i></button>
                     </div>
                 </td>
@@ -5732,12 +5806,14 @@ async function bootAdmin() {
     } else {
         try {
             await ensureAdminSession();
-            document.querySelector('#authGate').hidden = true;
+            const authGate = document.querySelector('#authGate');
+            if (authGate) authGate.hidden = true;
             setAdminSessionControls(true);
             applyPermissions();
             switchAdminView(state.currentView, false);
         } catch {
-            document.querySelector('#authGate').hidden = true;
+            const authGate = document.querySelector('#authGate');
+            if (authGate) authGate.hidden = true;
             setAdminSessionControls(false);
             showToast('Không thể tạo phiên admin.');
         }

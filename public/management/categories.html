@@ -47,6 +47,8 @@
             <a href="/management/index.html#inventory"><i class="fa-solid fa-warehouse"></i> Tồn kho</a>
             <a href="/management/index.html#schedule"><i class="fa-regular fa-calendar-check"></i> Lịch chia ca nhân viên</a>
 
+            <a href="/management/staff-report.html" data-view="staff-report"><i class="fa-solid fa-chart-pie"></i> Báo cáo ca trực</a>
+
             <p>Báo cáo & Thống kê</p>
             <a href="/management/index.html#reports"><i class="fa-solid fa-chart-column"></i> Báo cáo / Thống kê</a>
 
@@ -166,14 +168,13 @@
                         <table id="categoryTable" class="product-table">
                             <thead>
                                 <tr>
-                                    <th><input type="checkbox" aria-label="Chọn tất cả"></th>
-                                    <th>Danh mục</th>
-                                    <th>Slug</th>
-                                    <th>Mô tả</th>
-                                    <th style="text-align: center;">Số sản phẩm</th>
-                                    <th>Trạng thái</th>
-                                    <th>Cập nhật gần nhất</th>
-                                    <th>Thao tác</th>
+                                    <th style="width: 40px !important;"><input type="checkbox" aria-label="Chọn tất cả"></th>
+                                    <th style="width: 250px !important;">Danh mục</th>
+                                    <th style="width: auto !important;">Mô tả</th>
+                                    <th style="width: 100px !important; text-align: center;">Số sản phẩm</th>
+                                    <th style="width: 110px !important;">Trạng thái</th>
+                                    <th style="width: 130px !important;">Cập nhật gần nhất</th>
+                                    <th style="width: 130px !important;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="categoryRows"></tbody>

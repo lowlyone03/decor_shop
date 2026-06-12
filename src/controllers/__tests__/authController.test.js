@@ -30,6 +30,7 @@ jest.mock('../../utils/crypto', () => ({
 // Mock helpers
 jest.mock('../../utils/helpers', () => ({
     cleanText: jest.fn((val) => String(val || '').trim()),
+    sanitizeInput: jest.fn((val) => String(val || '').trim()),
     normalizePhone: jest.fn((val) => String(val || '').replace(/[^\d+]/g, '').trim()),
     isValidEmail: jest.fn((val) => val.includes('@')),
     isValidVietnamPhone: jest.fn((val) => val.length === 10),
@@ -187,7 +188,7 @@ describe('Auth Controller Module', () => {
 
             expect(mockUser.save).toHaveBeenCalled();
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-                message: 'Da tao lien ket dat lai mat khau.'
+                message: 'Đã gửi link đặt lại mật khẩu đến email của bạn. Vui lòng kiểm tra hộp thư đến (hoặc thư mục Spam).'
             }));
         });
     });

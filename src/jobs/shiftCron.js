@@ -66,16 +66,29 @@ async function runShiftCron(io) {
         }
 
         // ═══ 2. ĐÁNH VẮNG — scheduled quá startMinute + 30 phút ═══
-        const absentShifts = await StaffShift.find({
+        // 2a. Ca ngày hôm nay: chỉ đánh vắng nếu đã quá startMinute + 30 phút
+        const absentTodayShifts = await StaffShift.find({
             status: 'scheduled',
             shiftDate: today,
             startMinute: { $lte: currentMinute - 30 }
         });
 
-        for (const shift of absentShifts) {
+        for (const shift of absentTodayShifts) {
             shift.status = 'absent';
             await shift.save();
             console.log(`[CRON] Đánh vắng ca ${shift._id} (staff: ${shift.staff})`);
+        }
+
+        // 2b. Ca ngày trước đó vẫn còn 'scheduled' → đánh vắng hết
+        const absentPastShifts = await StaffShift.find({
+            status: 'scheduled',
+            shiftDate: { $lt: today }
+        });
+
+        for (const shift of absentPastShifts) {
+            shift.status = 'absent';
+            await shift.save();
+            console.log(`[CRON] Đánh vắng ca cũ ${shift._id} (staff: ${shift.staff}, date: ${shift.shiftDate})`);
         }
 
         // ═══ 3. CẢNH BÁO ĐƠN TREO — pending > 15 phút, chưa ai nhận ═══

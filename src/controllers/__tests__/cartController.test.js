@@ -41,7 +41,8 @@ describe('Cart Controller Module', () => {
         req = {
             user: { _id: 'user_123' },
             body: {},
-            params: {}
+            params: {},
+            app: { get: jest.fn().mockReturnValue({ to: jest.fn().mockReturnValue({ emit: jest.fn() }) }) }
         };
         res = {
             status: jest.fn().mockReturnThis(),
