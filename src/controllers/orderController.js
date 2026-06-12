@@ -120,7 +120,7 @@ exports.createOrder = async (req, res) => {
         req.app.get('io').to(String(req.user._id)).emit('cart_updated', 0);
 
         // Phát thông báo đơn hàng mới qua socket.io
-        req.app.get('io').emit('new_order', {
+        req.app.get('io').to('admin_room').emit('new_order', {
             _id: order._id,
             orderCode: order.orderCode,
             customerName: addressResult.address.fullName,
@@ -198,17 +198,7 @@ exports.cancelOrder = async (req, res) => {
         const order = await Order.findOne({ _id: req.params.id, customer: req.user._id });
         if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng.' });
 
-        const canCancelUnpaidVnpay = order.paymentMethod === 'vnpay'
-            && order.paymentStatus === 'unpaid'
-            && order.orderStatus === 'pending';
-
-        if (order.orderStatus === 'pending') {
-            const ageInMs = Date.now() - new Date(order.createdAt).getTime();
-            const ageInHours = ageInMs / (1000 * 60 * 60);
-            if (!canCancelUnpaidVnpay && ageInHours < 24) {
-                return res.status(400).json({ message: 'Đơn hàng mới đặt dưới 24h và đang chờ xác nhận, chưa thể tự hủy. Vui lòng liên hệ hotline nếu cần hỗ trợ gấp.' });
-            }
-        } else if (!['processing'].includes(order.orderStatus)) {
+        if (!['pending', 'processing'].includes(order.orderStatus)) {
             return res.status(400).json({ message: 'Đơn hàng không thể hủy ở trạng thái hiện tại.' });
         }
 
@@ -257,7 +247,7 @@ exports.returnOrder = async (req, res) => {
         await order.save();
 
         // Phát thông báo yêu cầu trả hàng qua socket.io cho admin
-        req.app.get('io').emit('return_requested', {
+        req.app.get('io').to('admin_room').emit('return_requested', {
             _id: order._id,
             orderCode: order.orderCode,
             customerName: req.user.name || req.user.email,

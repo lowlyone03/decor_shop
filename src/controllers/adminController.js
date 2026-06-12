@@ -310,6 +310,12 @@ exports.getOrders = async (req, res) => {
         if (req.query.q) {
             const regex = new RegExp(escapeRegex(req.query.q), 'i');
             filter.$or = [{ orderCode: regex }, { 'shippingInfo.fullName': regex }, { 'shippingInfo.phone': regex }];
+            const matchingUsers = await User.find({
+                $or: [{ name: regex }, { email: regex }, { phone: regex }]
+            }).select('_id').lean();
+            if (matchingUsers.length > 0) {
+                filter.$or.push({ customer: { $in: matchingUsers.map(u => u._id) } });
+            }
         }
         if (req.query.status && req.query.status !== 'all') {
             filter.orderStatus = req.query.status;

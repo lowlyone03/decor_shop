@@ -65,10 +65,7 @@ const requireActiveShift = async (req, res, next) => {
 
     const activeShift = await StaffShift.findOne({
         staff: req.user._id,
-        status: 'active',
-        shiftDate,
-        startMinute: { $lte: currentMinute },
-        endMinute: { $gt: currentMinute }
+        status: 'active'
     });
 
     if (!activeShift) {

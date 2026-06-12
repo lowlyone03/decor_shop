@@ -39,7 +39,7 @@ const STAFF_TRANSITIONS = {
     // completed, cancelled, refunding, refunded → không có transition
 };
 
-const HIGH_VALUE_THRESHOLD = 5000000;
+const HIGH_VALUE_THRESHOLD = 100000000;
 
 // ═══════════════════════════════════════════════════════════════
 // DASHBOARD
@@ -109,6 +109,7 @@ exports.getDashboard = async (req, res) => {
         }
 
         res.json({
+            admin: { name: req.user.name, role: req.user.role, avatar: req.user.avatar },
             shiftStatus,
             currentShift,
             shiftStats,
@@ -258,6 +259,12 @@ exports.getOrders = async (req, res) => {
         if (req.query.q) {
             const regex = new RegExp(escapeRegex(req.query.q), 'i');
             filter.$or = [{ orderCode: regex }, { 'shippingInfo.fullName': regex }, { 'shippingInfo.phone': regex }];
+            const matchingUsers = await User.find({
+                $or: [{ name: regex }, { email: regex }, { phone: regex }]
+            }).select('_id').lean();
+            if (matchingUsers.length > 0) {
+                filter.$or.push({ customer: { $in: matchingUsers.map(u => u._id) } });
+            }
         }
 
         const [orders, total] = await Promise.all([
@@ -334,7 +341,8 @@ exports.claimOrder = async (req, res) => {
 // Đổi trạng thái — optimistic lock + state machine + duyệt đơn cao
 exports.updateOrderStatus = async (req, res) => {
     try {
-        const { newStatus, expectedStatus, note } = req.body;
+        const newStatus = req.body.newStatus || req.body.status;
+        const { expectedStatus, note } = req.body;
         if (!newStatus) return res.status(400).json({ message: 'Thiếu trạng thái mới.' });
 
         const order = await Order.findById(req.params.id);

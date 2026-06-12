@@ -219,6 +219,9 @@ function applyPermissions() {
     const roleLabel = document.querySelector('#adminRole');
     if (roleLabel) roleLabel.textContent = 'Nhân viên bán hàng';
 
+    const adminNameLabel = document.querySelector('#adminName');
+    if (adminNameLabel) adminNameLabel.textContent = 'Nhân viên';
+
     // Đổi tên menu "Tài khoản admin" thành "Hồ sơ cá nhân"
     const profileMenu = document.querySelector('a[data-view="profile"]');
     if (profileMenu) profileMenu.innerHTML = '<i class="fa-regular fa-id-card"></i> Hồ sơ cá nhân';
@@ -1276,147 +1279,243 @@ function renderStaffDashboard(data) {
     const crm = data.crm || {};
     const upcoming = data.upcomingShifts || [];
 
+    const isDark = meta.color === '#8b8b8b';
+    const mainBg = isDark ? '#f8fafc' : meta.tint;
+    const textColor = isDark ? '#334155' : meta.color;
+
     root.innerHTML = `
-        <!-- HERO CA TRỰC -->
-        <section class="staff-hero" style="
-            background: linear-gradient(135deg, ${meta.tint} 0%, #fff 100%);
-            border: 2px solid ${meta.color}22;
-            border-radius: 16px; padding: 28px 32px; margin-bottom: 24px;
-            display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center;
-        ">
-            <div>
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
-                    <i class="${meta.icon}" style="font-size:1.6rem; color:${meta.color}"></i>
-                    <h2 style="margin:0; font-size:1.35rem; color:#333;">${meta.label}</h2>
-                    ${shift ? `<span style="background:${meta.color}15; color:${meta.color}; padding:4px 12px; border-radius:20px; font-size:0.82rem; font-weight:600;">
-                        Ca ${shift.shiftName || ''} · ${shift.startTime} – ${shift.endTime}
-                    </span>` : ''}
-                </div>
-                ${shift ? `
-                <div style="display:flex; gap:20px; flex-wrap:wrap;">
-                    <div class="staff-stat-card">
-                        <small>Đơn xử lý</small>
-                        <strong>${stats.ordersProcessed || 0}</strong>
-                    </div>
-                    <div class="staff-stat-card">
-                        <small>Doanh thu ca</small>
-                        <strong>${money(stats.revenueInShift || 0)}</strong>
-                    </div>
-                    <div class="staff-stat-card">
-                        <small>Lương ca</small>
-                        <strong>${money(shift.totalPay || 300000)}</strong>
-                    </div>
-                </div>` : `<p style="color:#888; margin:8px 0 0;">Bạn không có ca làm việc hôm nay. Kiểm tra lịch phân ca bên dưới.</p>`}
-            </div>
-            <div style="display:flex; flex-direction:column; gap:10px; min-width:160px;">
-                ${data.shiftStatus === 'not_checked_in' && shift ? `
-                    <button onclick="staffCheckIn('${shift._id}')" class="staff-action-btn" style="background:${meta.color};">
-                        <i class="fa-solid fa-right-to-bracket"></i> Check-in ngay
-                    </button>` : ''}
-                ${data.shiftStatus === 'in_shift' && shift ? `
-                    <button onclick="staffCheckOut('${shift._id}')" class="staff-action-btn" style="background:#cf5148;">
-                        <i class="fa-solid fa-right-from-bracket"></i> Check-out
-                    </button>` : ''}
-                <button onclick="showStaffMyShiftsModal()" class="staff-action-btn ghost" style="text-align:center;">
-                    <i class="fa-regular fa-calendar"></i> Xem lịch ca
-                </button>
-            </div>
-        </section>
+        <style>
+            .premium-staff-dashboard {
+                font-family: 'Be Vietnam Pro', sans-serif;
+                animation: fadeIn 0.4s ease-out;
+            }
+            .premium-hero {
+                position: relative;
+                background: linear-gradient(135deg, ${mainBg} 0%, #ffffff 100%);
+                border-radius: 20px;
+                padding: 32px 36px;
+                margin-bottom: 30px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255,255,255,0.6);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                overflow: hidden;
+            }
+            .premium-hero::before {
+                content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+                background: radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, transparent 60%);
+                opacity: 0.6; pointer-events: none;
+            }
+            .hero-stat-row { display: flex; gap: 20px; margin-top: 28px; position: relative; z-index: 1; flex-wrap: wrap; }
+            .hero-stat-card {
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,1);
+                border-radius: 16px;
+                padding: 18px 24px;
+                min-width: 150px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
+            }
+            .hero-stat-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+            .hero-stat-card small { display: block; color: #64748b; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+            .hero-stat-card strong { display: block; color: #0f172a; font-size: 1.6rem; font-weight: 800; line-height: 1.2; }
+            #liveStaffSalary {
+                background: linear-gradient(90deg, #dca941, #e67e22);
+                -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                font-family: 'Be Vietnam Pro', monospace; font-size: 1.7rem;
+            }
+            .staff-action-col { display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1; min-width: 180px; }
+            .premium-btn {
+                border: none; padding: 14px 20px; border-radius: 14px; font-weight: 600; font-size: 0.95rem;
+                cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+                transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            }
+            .premium-btn.primary { background: ${textColor}; color: white; }
+            .premium-btn.primary:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+            .premium-btn.secondary { background: white; color: #334155; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+            .premium-btn.secondary:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-2px); }
+            
+            .checklist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+            .checklist-card {
+                background: white; border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 16px;
+                text-decoration: none; border: 1px solid #f1f5f9; box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition: all 0.3s ease;
+            }
+            .checklist-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.06); border-color: #e2e8f0; }
+            .checklist-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+            .checklist-info strong { display: block; font-size: 1.4rem; font-weight: 800; color: #1e293b; line-height: 1.2; }
+            .checklist-info small { color: #64748b; font-size: 0.85rem; font-weight: 500; }
+            
+            .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+            .premium-panel {
+                background: white; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+                overflow: hidden; display: flex; flex-direction: column;
+            }
+            .premium-panel-header { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; background: #fafbfc; }
+            .premium-panel-header h2 { margin: 0; font-size: 1.15rem; color: #0f172a; font-weight: 700; }
+            .premium-panel-header p { margin: 4px 0 0; font-size: 0.85rem; color: #64748b; }
+            .premium-panel-body { padding: 24px; flex: 1; }
+            
+            .crm-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+            .crm-card {
+                background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px 20px; text-align: center;
+                cursor: pointer; transition: all 0.2s;
+            }
+            .crm-card:hover { background: white; border-color: #3d82c4; box-shadow: 0 8px 20px rgba(61,130,196,0.1); transform: translateY(-3px); }
+            .crm-card i { font-size: 2rem; margin-bottom: 16px; display: block; }
+            .crm-card strong { display: block; font-size: 1.6rem; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+            .crm-card small { color: #64748b; font-weight: 500; font-size: 0.9rem; }
+            
+            .upcoming-shift-item {
+                display: flex; align-items: center; justify-content: space-between; padding: 18px;
+                border-radius: 14px; background: #f8fafc; margin-bottom: 12px; border: 1px solid transparent; transition: all 0.2s;
+            }
+            .upcoming-shift-item:hover { background: white; border-color: #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.04); }
+            .upcoming-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; background: #c48c7115; color: #c48c71; }
+            .upcoming-info strong { display: block; color: #1e293b; font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
+            .upcoming-info small { color: #64748b; font-size: 0.85rem; }
+            .upcoming-pay { font-weight: 700; font-size: 0.95rem; padding: 8px 14px; border-radius: 10px; background: #f5f0ed; color: #9e6b50; }
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        </style>
 
-        <!-- CHECKLIST ĐỘNG -->
-        <section style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom:24px;">
-            <a href="/management/orders.html" class="staff-checklist-item" style="text-decoration:none;">
-                <div class="staff-checklist-icon" style="background:#dca94115; color:#dca941;">
-                    <i class="fa-regular fa-clock"></i>
-                </div>
+        <div class="premium-staff-dashboard">
+            <section class="premium-hero">
                 <div>
-                    <strong>${cl.pendingOrders || 0}</strong>
-                    <small>Đơn chờ xử lý</small>
-                </div>
-            </a>
-            <a href="/management/orders.html?mine=true" class="staff-checklist-item" style="text-decoration:none;">
-                <div class="staff-checklist-icon" style="background:#3d82c415; color:#3d82c4;">
-                    <i class="fa-solid fa-box-open"></i>
-                </div>
-                <div>
-                    <strong>${cl.myProcessingOrders || 0}</strong>
-                    <small>Đơn tôi đang xử lý</small>
-                </div>
-            </a>
-            <a href="/management/contacts.html" class="staff-checklist-item" style="text-decoration:none;">
-                <div class="staff-checklist-icon" style="background:#e67e2215; color:#e67e22;">
-                    <i class="fa-regular fa-message"></i>
-                </div>
-                <div>
-                    <strong>${cl.pendingContacts || 0}</strong>
-                    <small>Liên hệ chờ</small>
-                </div>
-            </a>
-            <a href="/management/reviews.html" class="staff-checklist-item" style="text-decoration:none;">
-                <div class="staff-checklist-icon" style="background:#16a34a15; color:#16a34a;">
-                    <i class="fa-regular fa-star"></i>
-                </div>
-                <div>
-                    <strong>${cl.pendingReviews || 0}</strong>
-                    <small>Đánh giá chờ duyệt</small>
-                </div>
-            </a>
-        </section>
-
-        <!-- ROW: CRM + CA SẮP TỚI -->
-        <section style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-            <!-- MINI CRM -->
-            <article class="panel" id="staffCrmPanel">
-                <div class="panel-head">
-                    <div><h2>CRM — Bán chủ động</h2><p>Giỏ bỏ quên & Follow-up</p></div>
-                </div>
-                <div class="staff-crm-body" style="padding:16px;">
-                    <div style="display:flex; gap:16px; margin-bottom:16px;">
-                        <div class="staff-crm-stat" style="flex:1; cursor:pointer;" onclick="loadStaffCRM('abandoned')">
-                            <i class="fa-solid fa-cart-shopping" style="color:#cf5148; font-size:1.4rem;"></i>
-                            <strong id="crmAbandoned">${crm.abandonedCartCount || 0}</strong>
-                            <small>Giỏ bỏ quên</small>
+                    <div style="display:flex; align-items:center; gap:16px;">
+                        <div style="width:48px; height:48px; border-radius:14px; background:white; display:flex; align-items:center; justify-content:center; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                            <i class="${meta.icon}" style="font-size:1.6rem; color:${textColor}"></i>
                         </div>
-                        <div class="staff-crm-stat" style="flex:1; cursor:pointer;" onclick="loadStaffCRM('followup')">
-                            <i class="fa-solid fa-phone-volume" style="color:#3d82c4; font-size:1.4rem;"></i>
-                            <strong>—</strong>
-                            <small>Follow-up khách cũ</small>
+                        <div>
+                            <h2 style="margin:0 0 4px 0; font-size:1.5rem; color:#1e293b; font-weight:800;">${meta.label}</h2>
+                            ${shift ? `<span style="display:inline-block; background:${textColor}15; color:${textColor}; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:700;">
+                                Ca ${shift.shiftName || ''} · ${shift.startTime} – ${shift.endTime}
+                            </span>` : '<span style="color:#64748b; font-size:0.9rem;">Chúc bạn một ngày làm việc hiệu quả!</span>'}
                         </div>
                     </div>
-                    <div id="staffCrmContent" style="min-height:100px;">
-                        <p style="color:#999; text-align:center; padding:20px 0;">Chọn mục bên trên để xem chi tiết</p>
-                    </div>
+                    ${shift ? `
+                    <div class="hero-stat-row">
+                        <div class="hero-stat-card">
+                            <small>Đơn xử lý</small>
+                            <strong>${stats.ordersProcessed || 0}</strong>
+                        </div>
+                        <div class="hero-stat-card">
+                            <small>Doanh thu ca</small>
+                            <strong>${money(stats.revenueInShift || 0)}</strong>
+                        </div>
+                        <div class="hero-stat-card" style="border: 1px solid #fde68a;">
+                            <small style="color:#b45309;">Lương ca dự kiến</small>
+                            <strong id="liveStaffSalary">${money(shift.totalPay || 300000)}</strong>
+                        </div>
+                    </div>` : ''}
                 </div>
-            </article>
+                <div class="staff-action-col">
+                    ${data.shiftStatus === 'not_checked_in' && shift ? `
+                        <button onclick="staffCheckIn('${shift._id}')" class="premium-btn primary">
+                            <i class="fa-solid fa-right-to-bracket"></i> Check-in ngay
+                        </button>` : ''}
+                    ${data.shiftStatus === 'in_shift' && shift ? `
+                        <button onclick="staffCheckOut('${shift._id}')" class="premium-btn primary" style="background:#cf5148;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Check-out ca này
+                        </button>` : ''}
+                    <button onclick="showStaffMyShiftsModal()" class="premium-btn secondary">
+                        <i class="fa-regular fa-calendar-alt"></i> Xem lịch ca
+                    </button>
+                </div>
+            </section>
 
-            <!-- CA SẮP TỚI -->
-            <article class="panel">
-                <div class="panel-head">
-                    <div><h2>Ca sắp tới</h2><p>3 ca làm việc kế tiếp</p></div>
-                </div>
-                <div style="padding:16px;">
-                    ${upcoming.length > 0 ? upcoming.map(s => {
-                        const shiftDateFmt = s.shiftDate ? new Date(s.shiftDate + 'T00:00:00').toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }) : s.shiftDate;
-                        return `
-                        <div class="staff-upcoming-shift">
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                <div style="background:#c48c7115; color:#c48c71; width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
-                                    <i class="fa-regular fa-calendar-check"></i>
-                                </div>
-                                <div>
-                                    <strong>${shiftDateFmt}</strong>
-                                    <small style="display:block; color:#888;">Ca ${s.shiftName || ''} · ${s.startTime} – ${s.endTime}</small>
-                                </div>
+            <section class="checklist-grid">
+                <a href="/management/orders.html" class="checklist-card">
+                    <div class="checklist-icon" style="background:#fff7ed; color:#ea580c;"><i class="fa-regular fa-clock"></i></div>
+                    <div class="checklist-info"><strong>${cl.pendingOrders || 0}</strong><small>Đơn chờ xử lý</small></div>
+                </a>
+                <a href="/management/orders.html?mine=true" class="checklist-card">
+                    <div class="checklist-icon" style="background:#eff6ff; color:#2563eb;"><i class="fa-solid fa-box-open"></i></div>
+                    <div class="checklist-info"><strong>${cl.myProcessingOrders || 0}</strong><small>Đơn tôi đang xử lý</small></div>
+                </a>
+                <a href="/management/contacts.html" class="checklist-card">
+                    <div class="checklist-icon" style="background:#fef2f2; color:#dc2626;"><i class="fa-regular fa-message"></i></div>
+                    <div class="checklist-info"><strong>${cl.pendingContacts || 0}</strong><small>Liên hệ chờ</small></div>
+                </a>
+                <a href="/management/reviews.html" class="checklist-card">
+                    <div class="checklist-icon" style="background:#f0fdf4; color:#16a34a;"><i class="fa-regular fa-star"></i></div>
+                    <div class="checklist-info"><strong>${cl.pendingReviews || 0}</strong><small>Đánh giá chờ duyệt</small></div>
+                </a>
+            </section>
+
+            <section class="bottom-grid">
+                <article class="premium-panel">
+                    <div class="premium-panel-header">
+                        <h2>CRM — Bán chủ động</h2><p>Giỏ bỏ quên & Chăm sóc khách hàng</p>
+                    </div>
+                    <div class="premium-panel-body">
+                        <div class="crm-action-grid">
+                            <div class="crm-card" onclick="loadStaffCRM('abandoned')">
+                                <i class="fa-solid fa-cart-shopping" style="color:#ef4444;"></i>
+                                <strong id="crmAbandoned">${crm.abandonedCartCount || 0}</strong>
+                                <small>Giỏ bỏ quên</small>
                             </div>
-                            <span style="background:#f5f0ed; color:#9e6b50; padding:4px 10px; border-radius:8px; font-size:0.8rem; font-weight:500;">
-                                ${money(s.totalPay || 300000)}
-                            </span>
+                            <div class="crm-card" onclick="loadStaffCRM('followup')">
+                                <i class="fa-solid fa-phone-volume" style="color:#3b82f6;"></i>
+                                <strong>—</strong>
+                                <small>Follow-up khách cũ</small>
+                            </div>
                         </div>
-                    `}).join('') : '<p style="color:#999; text-align:center; padding:30px 0;">Chưa có ca nào được phân công</p>'}
-                </div>
-            </article>
-        </section>
+                        <div id="staffCrmContent" style="min-height:100px; display:flex; align-items:center; justify-content:center; border: 2px dashed #e2e8f0; border-radius: 12px; background: #f8fafc;">
+                            <p style="color:#94a3b8; font-weight:500; font-size:0.95rem;">Chọn mục bên trên để xem chi tiết</p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="premium-panel">
+                    <div class="premium-panel-header">
+                        <h2>Ca sắp tới</h2><p>Các ca làm việc kế tiếp của bạn</p>
+                    </div>
+                    <div class="premium-panel-body" style="padding: 16px 24px;">
+                        ${upcoming.length > 0 ? upcoming.map(s => {
+                            const shiftDateFmt = s.shiftDate ? new Date(s.shiftDate + 'T00:00:00').toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }) : s.shiftDate;
+                            return `
+                            <div class="upcoming-shift-item">
+                                <div style="display:flex; align-items:center; gap:16px;">
+                                    <div class="upcoming-icon"><i class="fa-regular fa-calendar-check"></i></div>
+                                    <div class="upcoming-info">
+                                        <strong>${shiftDateFmt}</strong>
+                                        <small>Ca ${s.shiftName || ''} · ${s.startTime} – ${s.endTime}</small>
+                                    </div>
+                                </div>
+                                <span class="upcoming-pay">${money(s.totalPay || 300000)}</span>
+                            </div>`
+                        }).join('') : '<div style="text-align:center; padding:40px 0;"><i class="fa-regular fa-calendar-xmark" style="font-size:2.5rem; color:#cbd5e1; margin-bottom:12px; display:block;"></i><span style="color:#64748b; font-weight:500;">Chưa có ca nào được phân công</span></div>'}
+                    </div>
+                </article>
+            </section>
+        </div>
     `;
+
+    if (window.staffSalaryInterval) clearInterval(window.staffSalaryInterval);
+    if (data.shiftStatus === 'in_shift' && shift) {
+        const payRate = shift.payRate || 50000;
+        let startMs;
+        if (shift.checkInAt) {
+            startMs = new Date(shift.checkInAt).getTime();
+        } else {
+            const [h, m] = (shift.startTime || '18:00').split(':').map(Number);
+            const now = new Date();
+            startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0).getTime();
+        }
+        const maxPay = shift.totalPay || (shift.durationHours * payRate) || 300000;
+
+        function updateSalary() {
+            const el = document.getElementById('liveStaffSalary');
+            if (!el) return clearInterval(window.staffSalaryInterval);
+            let elapsedHours = (Date.now() - startMs) / (1000 * 60 * 60);
+            if (elapsedHours < 0) elapsedHours = 0;
+            let currentSalary = Math.floor(elapsedHours * payRate);
+            if (currentSalary > maxPay) currentSalary = maxPay;
+            el.innerText = money(currentSalary);
+        }
+        updateSalary();
+        window.staffSalaryInterval = setInterval(updateSalary, 1000);
+    }
 }
 
 async function showStaffMyShiftsModal() {
