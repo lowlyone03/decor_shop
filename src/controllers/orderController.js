@@ -120,7 +120,7 @@ exports.createOrder = async (req, res) => {
         req.app.get('io').to(String(req.user._id)).emit('cart_updated', 0);
 
         // Phát thông báo đơn hàng mới qua socket.io
-        req.app.get('io').to('admin_room').emit('new_order', {
+        req.app.get('io').to(['admin_room', 'staff_room']).emit('new_order', {
             _id: order._id,
             orderCode: order.orderCode,
             customerName: addressResult.address.fullName,

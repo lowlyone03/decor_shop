@@ -9,6 +9,7 @@ const Promotion = require('../models/Promotion');
 const StaffShift = require('../models/StaffShift');
 const StaffKPI = require('../models/StaffKPI');
 const Interaction = require('../models/Interaction');
+const Notification = require('../models/Notification');
 const { escapeRegex, sanitizeInput, cleanText } = require('../utils/helpers');
 
 // ── Helpers ──────────────────────────────────────
@@ -215,6 +216,11 @@ exports.checkOut = async (req, res) => {
 
         shift.status = 'completed';
         shift.checkOutAt = new Date();
+        
+        const durationMs = shift.checkOutAt - new Date(shift.checkInAt);
+        const hoursWorked = durationMs / (1000 * 60 * 60);
+        shift.totalPay = Math.round(Math.min(hoursWorked, shift.durationHours) * shift.payRate);
+
         shift.report = {
             content: sanitizeInput(content, 2000),
             incidents: incidents ? sanitizeInput(incidents, 1000) : undefined,
@@ -229,7 +235,7 @@ exports.checkOut = async (req, res) => {
             {
                 $inc: {
                     completedShifts: 1,
-                    totalHours: shift.durationHours,
+                    totalHours: hoursWorked,
                     totalSalary: shift.totalPay,
                     totalOrders: shift.stats?.ordersProcessed || 0,
                     totalRevenue: shift.stats?.revenueInShift || 0
@@ -324,13 +330,8 @@ exports.claimOrder = async (req, res) => {
             return res.status(409).json({ message: 'Đơn hàng đã được nhận bởi người khác hoặc không còn ở trạng thái chờ.' });
         }
 
-        // Cập nhật stats ca
-        if (req.activeShift) {
-            await StaffShift.updateOne(
-                { _id: req.activeShift._id },
-                { $inc: { 'stats.ordersProcessed': 1 } }
-            );
-        }
+        // Đã bỏ tính đơn xử lý ở bước này để chỉ tính khi giao thành công
+        // (để đồng bộ với Doanh thu)
 
         res.json({ message: 'Đã nhận đơn hàng thành công!', order: result });
     } catch (error) {
@@ -398,8 +399,34 @@ exports.updateOrderStatus = async (req, res) => {
         if (req.activeShift && newStatus === 'completed') {
             await StaffShift.updateOne(
                 { _id: req.activeShift._id },
-                { $inc: { 'stats.revenueInShift': order.totalAmount } }
+                { $inc: { 'stats.revenueInShift': order.totalAmount, 'stats.ordersProcessed': 1 } }
             );
+        }
+
+        const statusMap = {
+            processing: 'đã được xác nhận và đang xử lý',
+            shipping: 'đã được bàn giao cho đơn vị vận chuyển',
+            completed: 'đã giao thành công',
+            cancelled: 'đã bị hủy'
+        };
+
+        if (statusMap[newStatus]) {
+            const notif = await Notification.create({
+                recipient: order.customer,
+                title: 'Cập nhật đơn hàng',
+                message: `Đơn hàng ${order.orderCode} của bạn ${statusMap[newStatus]}.`,
+                type: 'order',
+                link: `/customers/profile.html?view=orders`
+            });
+
+            req.app.get('io')?.to(String(order.customer)).emit('customer_notification', {
+                _id: notif._id,
+                title: notif.title,
+                message: notif.message,
+                type: notif.type,
+                link: notif.link,
+                createdAt: notif.createdAt
+            });
         }
 
         res.json({ message: `Đã chuyển trạng thái đơn sang "${newStatus}".`, order });

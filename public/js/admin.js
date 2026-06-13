@@ -159,15 +159,15 @@ const STAFF_ALLOWED_VIEWS = [
 
 // Nút thao tác mà STAFF KHÔNG được dùng (CSS selectors)
 const STAFF_HIDDEN_ACTIONS = [
-    '[data-action="add-product"]',
-    '[data-action="edit-product"]',
-    '[data-action="delete-product"]',
-    '[data-action="add-category"]',
-    '[data-action="edit-category"]',
-    '[data-action="delete-category"]',
-    '[data-action="add-promotion"]',
-    '[data-action="edit-promotion"]',
-    '[data-action="delete-promotion"]',
+    '[data-action="product-add"]',
+    '[data-action="product-edit"]',
+    '[data-action="product-delete"]',
+    '[data-action="category-add"]',
+    '[data-action="category-edit"]',
+    '[data-action="category-delete"]',
+    '[data-action="promotion-add"]',
+    '[data-action="promotion-edit"]',
+    '[data-action="promotion-delete"]',
     '#quickAddBtn',               // Nút "Thêm nhanh"
     '.quick-add'                 // Quick add container
 ];
@@ -3863,6 +3863,15 @@ async function loadPromotionManager(page = state.promotions.page) {
 }
 
 function renderPromotionManager(data) {
+    const isStaff = getUserRole() === 'staff';
+    
+    // Ẩn nút tạo mới và cột thao tác nếu là staff
+    const createBtn = document.querySelector('.promo-create-btn');
+    if (createBtn) createBtn.style.display = isStaff ? 'none' : 'inline-flex';
+    
+    const thActions = document.querySelector('.promo-table th:nth-child(8)');
+    if (thActions) thActions.style.display = isStaff ? 'none' : 'table-cell';
+
     // Render KPI Cards
     document.getElementById('kpiTotalCampaigns').textContent = data.stats?.total || 0;
     document.getElementById('kpiActiveCampaigns').textContent = data.stats?.active || 0;
@@ -3927,7 +3936,7 @@ function renderPromotionManager(data) {
                         </div>
                     </td>
                     <td>${statusBadge}</td>
-                    <td>
+                    <td style="display: ${isStaff ? 'none' : 'table-cell'}">
                         <div class="promo-actions">
                             <button type="button" title="Sửa" data-action="promotion-edit" data-id="${escapeHtml(promo._id)}"><i class="fa-regular fa-pen-to-square"></i></button>
                             <button type="button" class="danger" title="Xóa" data-action="promotion-delete" data-id="${escapeHtml(promo._id)}"><i class="fa-regular fa-trash-can"></i></button>
@@ -5900,7 +5909,7 @@ async function bootAdmin() {
     setDefaultDates();
     setupEvents();
 
-    if (state.currentView === 'dashboard') {
+    if (state.currentView === 'dashboard' || state.currentView === 'profile') {
         await loadDashboard();
     } else {
         try {

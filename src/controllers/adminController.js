@@ -376,8 +376,27 @@ exports.updateOrderStatus = async (req, res) => {
         const previousStatus = order.orderStatus;
 
         if (req.body.status !== undefined) {
-            if (!allowedStatuses.includes(req.body.status)) return res.status(400).json({ message: 'Trạng thái đơn hàng không hợp lệ.' });
-            order.orderStatus = req.body.status;
+            const newStatus = req.body.status;
+            if (!allowedStatuses.includes(newStatus)) return res.status(400).json({ message: 'Trạng thái đơn hàng không hợp lệ.' });
+            
+            // Chặn lùi trạng thái
+            const statusWeights = {
+                'pending': 1, 'processing': 2, 'shipping': 3, 'completed': 4,
+                'cancellation_requested': 0, 'cancelled': -1, 'return_requested': -2, 'refunding': -3, 'refunded': -4
+            };
+            const oldWeight = statusWeights[previousStatus];
+            const newWeight = statusWeights[newStatus];
+            
+            if (previousStatus !== newStatus) {
+                if (oldWeight > 0 && newWeight > 0 && newWeight < oldWeight) {
+                    return res.status(400).json({ message: `Không thể lùi trạng thái đơn hàng (từ "${previousStatus}" về "${newStatus}").` });
+                }
+                if (oldWeight <= 0 && newWeight > 0) {
+                    return res.status(400).json({ message: `Không thể khôi phục đơn hàng đã bị hủy hoặc hoàn trả.` });
+                }
+            }
+
+            order.orderStatus = newStatus;
             if (!order.statusHistory) order.statusHistory = [];
             order.statusHistory.push({
                 status: req.body.status,
@@ -2207,6 +2226,24 @@ exports.assignOrder = async (req, res) => {
             changedBy: req.user._id
         });
         await order.save();
+
+        const Notification = require('../models/Notification');
+        const notif = await Notification.create({
+            recipient: staffId,
+            title: 'Phân công đơn hàng',
+            message: `Admin đã phân công đơn hàng ${order.orderCode} cho bạn.`,
+            type: 'order',
+            link: `/management/orders.html`
+        });
+
+        req.app.get('io')?.to(String(staffId)).emit('staff_notification', {
+            _id: notif._id,
+            title: notif.title,
+            message: notif.message,
+            type: notif.type,
+            link: notif.link,
+            createdAt: notif.createdAt
+        });
 
         res.json({ message: `Đã gán đơn cho ${staff.name}.`, order });
     } catch (error) {

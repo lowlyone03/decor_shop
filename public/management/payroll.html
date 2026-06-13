@@ -9,49 +9,71 @@
     <link rel="stylesheet" href="/css/admin.css?v=1780630161587">
     <style>
         .payroll-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 25px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 28px;
         }
         .stat-card {
-            background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-            display: flex; flex-direction: column; gap: 8px; border: 1px solid #f0f0f0; position: relative; overflow: hidden;
+            background: linear-gradient(145deg, #ffffff, #fdfdfd);
+            border-radius: 16px; padding: 28px 24px;
+            display: flex; flex-direction: column; gap: 10px; 
+            border: 1px solid rgba(255,255,255,0.6);
+            position: relative; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03), inset 0 2px 0 rgba(255,255,255,1);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,0,0,0.06); }
         .stat-card::after {
-            content: ''; position: absolute; top: 0; right: 0; width: 80px; height: 80px; background: rgba(196, 140, 113, 0.05);
-            border-radius: 0 0 0 100%; pointer-events: none;
+            content: ''; position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; 
+            background: radial-gradient(circle, rgba(196,140,113,0.12) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%; pointer-events: none;
         }
-        .stat-card h3 { font-size: 0.95rem; color: #666; margin: 0; font-weight: 500; }
-        .stat-card .stat-value { font-size: 2rem; font-weight: 700; color: #222; }
-        .stat-card i { position: absolute; top: 24px; right: 24px; font-size: 1.5rem; color: #c48c71; opacity: 0.5; }
+        .stat-card h3 { font-size: 0.95rem; color: #64748b; margin: 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .stat-value { font-size: 2.25rem; font-weight: 800; color: #1e293b; letter-spacing: -1px; }
+        .stat-card i { position: absolute; top: 28px; right: 28px; font-size: 1.8rem; color: #c48c71; opacity: 0.8; }
 
         .payroll-filters {
-            display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;
-            background: #fff; padding: 15px 20px; border-radius: 8px; border: 1px solid #eee; align-items: center; justify-content: space-between;
+            display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 24px;
+            background: #ffffff; padding: 18px 24px; border-radius: 12px; border: 1px solid #e2e8f0; 
+            align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
-        .payroll-filters label { display: flex; align-items: center; gap: 10px; font-weight: 500; color: #444; }
+        .payroll-filters label { display: flex; align-items: center; gap: 12px; font-weight: 600; color: #334155; }
         .payroll-filters input[type="month"] {
-            padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; font-family: inherit; color: #333; outline: none; transition: border-color 0.2s;
+            padding: 10px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-family: inherit; color: #1e293b; font-weight: 500; outline: none; transition: all 0.2s;
         }
-        .payroll-filters input[type="month"]:focus { border-color: #c48c71; }
+        .payroll-filters input[type="month"]:focus { border-color: #c48c71; box-shadow: 0 0 0 3px rgba(196,140,113,0.2); }
 
-        .payroll-table-wrap { overflow-x: auto; background: #fff; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
-        .payroll-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        .payroll-table th, .payroll-table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid #f5f5f5; }
-        .payroll-table th { background: #fafafa; font-weight: 600; font-size: 0.85rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
-        .payroll-table tbody tr:hover { background: #fafdfc; }
-        .staff-info-col { display: flex; align-items: center; gap: 15px; }
-        .staff-info-col img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .staff-info-col div { display: flex; flex-direction: column; gap: 2px; }
-        .staff-info-col b { font-size: 1rem; color: #222; }
-        .staff-info-col small { font-size: 0.8rem; color: #888; }
+        .payroll-table-wrap { overflow-x: auto; background: #fff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+        .payroll-table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1000px; }
+        .payroll-table th, .payroll-table td { padding: 20px 24px; text-align: left; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        .payroll-table th { background: #f8fafc; font-weight: 700; font-size: 0.85rem; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; }
+        .payroll-table th:first-child { border-top-left-radius: 16px; }
+        .payroll-table th:last-child { border-top-right-radius: 16px; }
         
-        .stat-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.9rem; color: #555; }
-        .stat-item i { width: 16px; text-align: center; color: #aaa; }
-        .salary-amount { font-weight: 700; color: #059669; font-size: 1.15rem; background: #e5f5f0; padding: 6px 12px; border-radius: 6px; display: inline-block;}
-        .empty-state { text-align: center; padding: 60px 20px; color: #888; }
-        .empty-state i { font-size: 3rem; color: #ddd; margin-bottom: 15px; }
+        .payroll-table tbody tr { transition: background-color 0.2s ease, box-shadow 0.2s ease; }
+        .payroll-table tbody tr:hover { background: #f8fafc; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05); position: relative; z-index: 10; }
+        .payroll-table tbody tr:last-child td { border-bottom: none; }
+        
+        .staff-info-col { display: flex; align-items: center; gap: 16px; }
+        .staff-info-col img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .staff-info-col div { display: flex; flex-direction: column; gap: 4px; }
+        .staff-info-col b { font-size: 1.05rem; color: #0f172a; font-weight: 700; }
+        .staff-info-col small { font-size: 0.85rem; color: #64748b; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; display: inline-block; font-weight: 500; }
+        
+        .stat-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.95rem; color: #475569; }
+        .stat-item i { width: 20px; text-align: center; color: #94a3b8; font-size: 1rem; }
+        .stat-item b { color: #1e293b; font-weight: 600; }
+        
+        .salary-amount { 
+            font-weight: 800; color: #059669; font-size: 1.25rem; 
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5); 
+            padding: 10px 16px; border-radius: 10px; 
+            display: inline-block;
+            border: 1px solid #a7f3d0;
+            box-shadow: 0 4px 10px rgba(5, 150, 105, 0.1);
+        }
+        .empty-state { text-align: center; padding: 80px 20px; color: #94a3b8; }
+        .empty-state i { font-size: 3.5rem; color: #e2e8f0; margin-bottom: 16px; }
+        .empty-state div { font-size: 1.1rem; font-weight: 500; color: #64748b; }
     </style>
 </head>
 <body class="admin-page">
@@ -231,7 +253,7 @@
                                 </td>
                                 <td>
                                     <div class="stat-item"><i class="fa-solid fa-check-double"></i> Đã hoàn thành: <b>${p.completedShifts || 0} ca</b></div>
-                                    <div class="stat-item"><i class="fa-regular fa-clock"></i> Số giờ công: <b>${p.totalHours || 0}h</b></div>
+                                    <div class="stat-item"><i class="fa-regular fa-clock"></i> Số giờ công: <b>${Number(p.totalHours || 0).toFixed(2).replace(/\.00$/, '')}h</b></div>
                                     ${(p.lateCount > 0) ? `<div class="stat-item" style="color:#dc2626;"><i class="fa-solid fa-triangle-exclamation"></i> Đi muộn: <b>${p.lateCount} lần</b></div>` : ''}
                                 </td>
                                 <td>
