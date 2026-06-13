@@ -128,6 +128,8 @@ const forgotForm = document.querySelector('#forgotForm');
 if (forgotForm) {
     forgotForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+        const btn = forgotForm.querySelector('button[type="submit"]');
+        if (btn) btn.disabled = true;
         const values = formData(forgotForm);
         try {
             const data = await request('/auth/forgot-password', {
@@ -137,6 +139,8 @@ if (forgotForm) {
             setMessage(data.message, true);
         } catch (error) {
             setMessage(error.message);
+        } finally {
+            if (btn) btn.disabled = false;
         }
     });
 }
@@ -148,9 +152,12 @@ if (resetForm) {
     resetForm.elements.token.value = params.get('token') || '';
     resetForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+        const btn = resetForm.querySelector('button[type="submit"]');
+        if (btn) btn.disabled = true;
         const values = formData(resetForm);
         if (values.password !== values.confirmPassword) {
             setMessage('Mat khau xac nhan khong khop.');
+            if (btn) btn.disabled = false;
             return;
         }
         try {
@@ -162,6 +169,7 @@ if (resetForm) {
             setTimeout(() => window.location.href = '/customers/login.html', 700);
         } catch (error) {
             setMessage(error.message);
+            if (btn) btn.disabled = false;
         }
     });
 }
