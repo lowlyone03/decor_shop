@@ -43,8 +43,14 @@ exports.createReview = async (req, res) => {
     try {
         const { product, order, rating, comment } = req.body;
         let images = [];
-        if (req.files && req.files.length > 0) {
-            images = req.files.map(file => `/images/reviews/${file.filename}`);
+        let video = undefined;
+        if (req.files) {
+            if (req.files['images'] && req.files['images'].length > 0) {
+                images = req.files['images'].map(file => `/images/reviews/${file.filename}`);
+            }
+            if (req.files['video'] && req.files['video'].length > 0) {
+                video = `/images/reviews/${req.files['video'][0].filename}`;
+            }
         } else if (req.body.images) {
             images = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
         }
@@ -64,6 +70,7 @@ exports.createReview = async (req, res) => {
             rating,
             comment,
             images,
+            video,
             customer: req.user._id,
             status: 'active'
         });

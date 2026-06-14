@@ -591,6 +591,18 @@ exports.updateReviewStatus = async (req, res) => {
     }
 };
 
+exports.updateReviewVideoStatus = async (req, res) => {
+    try {
+        const allowedStatuses = ['active', 'hidden'];
+        if (!allowedStatuses.includes(req.body.videoStatus)) return res.status(400).json({ message: 'Trạng thái video không hợp lệ.' });
+        const review = await Review.findByIdAndUpdate(req.params.id, { videoStatus: req.body.videoStatus }, { returnDocument: 'after' });
+        if (!review) return res.status(404).json({ message: 'Không tìm thấy đánh giá.' });
+        res.json({ review });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Contacts
 exports.getContacts = async (req, res) => {
     try {

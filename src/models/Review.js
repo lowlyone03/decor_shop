@@ -7,6 +7,8 @@ const reviewSchema = new mongoose.Schema({
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, trim: true },
     images: [{ type: String }],
+    video: { type: String },
+    videoStatus: { type: String, enum: ['active', 'hidden'], default: 'active' },
     status: { type: String, enum: ['active', 'hidden', 'pending'], default: 'pending' }
 }, { timestamps: true });
 

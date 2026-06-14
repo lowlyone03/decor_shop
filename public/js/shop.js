@@ -1233,7 +1233,12 @@ async function renderDetail() {
                     </div>
                 </div>
                 <div class="tstars" style="margin-bottom: 8px;">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
-                <p>${r.comment || ''}</p>
+                ${r.comment || ''}</p>
+                ${(r.video && r.videoStatus !== 'hidden') ? `
+                    <div class="review-video" style="margin-top: 12px;">
+                        <video src="${r.video}" controls style="max-height: 200px; border-radius: 8px; border: 1px solid #eee;"></video>
+                    </div>
+                ` : ''}
                 ${r.images && r.images.length ? `
                     <div class="review-images" style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto;">
                         ${r.images.map(img => `<img src="${img}" alt="Review image" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;">`).join('')}
@@ -2452,15 +2457,25 @@ async function renderReviewPage() {
             zone.addEventListener('click', () => input.click());
             input.addEventListener('change', async () => {
                 for (const file of input.files) {
+                    if (file.size > 100 * 1024 * 1024) {
+                        toast('File quá lớn! Vui lòng chọn file dưới 100MB.');
+                        continue;
+                    }
                     const url = await fileToDataUrl(file);
                     const item = document.createElement('div');
                     item.className = 'image-preview-item-pro';
-                    item.innerHTML = `<img src="${url}" alt=""><button type="button" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>`;
-                    // Store the actual file object for FormData
+                    
+                    if (file.type.startsWith('video/')) {
+                        item.innerHTML = `<video src="${url}" autoplay muted loop style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></video><button type="button" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>`;
+                        item.isVideo = true;
+                    } else {
+                        item.innerHTML = `<img src="${url}" alt=""><button type="button" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>`;
+                        item.isVideo = false;
+                    }
                     item.fileData = file;
                     preview.appendChild(item);
                 }
-                input.value = ''; // Reset input to allow selecting same file again
+                input.value = ''; 
             });
         });
 
@@ -2490,9 +2505,21 @@ async function renderReviewPage() {
                 formData.append('comment', `${comment} [Đặc điểm: ${tags.join(', ')}]`);
                 
                 const imageItems = Array.from(form.querySelectorAll('.image-preview-item-pro'));
+                let imageCount = 0;
+                let hasVideo = false;
                 imageItems.forEach(item => {
                     if (item.fileData) {
-                        formData.append('images', item.fileData);
+                        if (item.isVideo) {
+                            if (!hasVideo) {
+                                formData.append('video', item.fileData);
+                                hasVideo = true;
+                            }
+                        } else {
+                            if (imageCount < 5) {
+                                formData.append('images', item.fileData);
+                                imageCount++;
+                            }
+                        }
                     }
                 });
                 

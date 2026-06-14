@@ -4,7 +4,7 @@ const otherController = require('../controllers/otherController');
 const { authRequired } = require('../middlewares/auth');
 const upload = require('../middlewares/upload');
 
-router.post('/reviews', authRequired, upload.array('images', 5), otherController.createReview);
+router.post('/reviews', authRequired, upload.fields([{ name: 'images', maxCount: 5 }, { name: 'video', maxCount: 1 }]), otherController.createReview);
 
 router.get('/wishlist', authRequired, otherController.getWishlist);
 router.post('/wishlist/:productId', authRequired, otherController.addWishlist);

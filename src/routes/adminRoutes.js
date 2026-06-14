@@ -50,6 +50,7 @@ router.patch('/customers/:id/status', validateId, adminController.updateCustomer
 // Reviews
 router.get('/reviews', adminController.getReviews);
 router.patch('/reviews/:id/status', validateId, adminController.updateReviewStatus);
+router.patch('/reviews/:id/video-status', validateId, adminController.updateReviewVideoStatus);
 
 // Contacts
 router.get('/contacts', adminController.getContacts);

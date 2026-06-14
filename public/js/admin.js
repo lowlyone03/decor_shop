@@ -4403,7 +4403,11 @@ function renderReviewManager(data) {
                         <div style="display: flex; gap: 4px; margin-top: 6px;">
                             ${review.images.slice(0, 3).map(img => `<img src="${escapeHtml(img)}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; cursor: pointer;" onclick="window.open('${escapeHtml(img)}', '_blank')" alt="Ảnh đánh giá">`).join('')}
                             ${review.images.length > 3 ? `<div style="width: 36px; height: 36px; border-radius: 4px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #666; border: 1px solid #eee;">+${review.images.length - 3}</div>` : ''}
-                        </div>` : ''}
+                            ${review.video ? `<div style="width: 36px; height: 36px; border-radius: 4px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; border: 1px solid #bae6fd;" title="Có video"><i class="fa-solid fa-video"></i></div>` : ''}
+                        </div>` : (review.video ? `
+                        <div style="display: flex; gap: 4px; margin-top: 6px;">
+                            <div style="width: 36px; height: 36px; border-radius: 4px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; border: 1px solid #bae6fd;" title="Có video"><i class="fa-solid fa-video"></i></div>
+                        </div>` : '')}
                     </td>
                     <td style="color: var(--admin-muted); font-size: 0.9rem;">${dateText(review.createdAt)}</td>
                     <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
@@ -4500,6 +4504,22 @@ async function showReviewDetail(reviewId) {
                     </div>
                 </div>
             ` : ''}
+            ${review.video ? `
+                <div style="margin-top: 24px;">
+                    <h4 style="margin: 0 0 12px 0; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--admin-muted);">Video đính kèm</h4>
+                    <div style="padding: 20px; background: #fafafa; border-radius: 12px; border: 1px solid #eee;">
+                        <video src="${escapeHtml(review.video)}" controls style="max-height: 200px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 12px;"></video>
+                        <div style="margin-top: 12px; display: flex; align-items: center;">
+                            <label style="font-size: 0.9rem; font-weight: 500; margin-right: 12px;">Trạng thái Video:</label>
+                            <select id="reviewModalVideoStatusUpdate" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #ddd; outline: none;">
+                                <option value="active" ${review.videoStatus !== 'hidden' ? 'selected' : ''}>Hiển thị</option>
+                                <option value="hidden" ${review.videoStatus === 'hidden' ? 'selected' : ''}>Đã ẩn</option>
+                            </select>
+                            <button type="button" class="btn btn-primary" onclick="submitVideoStatus('${review._id}')" style="padding: 6px 12px; margin-left: 8px; height: 32px; display: flex; align-items: center; justify-content: center;">Lưu Video</button>
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
         `;
         
         document.getElementById('reviewDetailModal').showModal();
@@ -4524,6 +4544,28 @@ async function submitReviewStatus() {
         });
         
         showToast('Đã cập nhật trạng thái đánh giá');
+        document.getElementById('reviewDetailModal').close();
+        loadReviewManager();
+    } catch (error) {
+        showToast(error.message);
+    }
+}
+
+async function submitVideoStatus(reviewId) {
+    const newStatus = document.getElementById('reviewModalVideoStatusUpdate').value;
+    
+    if (!reviewId || !newStatus) {
+        showToast('Dữ liệu không hợp lệ');
+        return;
+    }
+    
+    try {
+        await api(`/admin/reviews/${reviewId}/video-status`, {
+            method: 'PATCH',
+            body: JSON.stringify({ videoStatus: newStatus })
+        });
+        
+        showToast('Đã cập nhật trạng thái video');
         document.getElementById('reviewDetailModal').close();
         loadReviewManager();
     } catch (error) {
