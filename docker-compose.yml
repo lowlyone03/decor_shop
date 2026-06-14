@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: casadecor_app
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      # Ghi đè biến MONGO_URI để trỏ vào container mongodb thay vì localhost
+      - MONGO_URI=mongodb://mongodb:27017/decor_shop
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:latest
+    container_name: casadecor_db
+    ports:
+      # Ánh xạ ra ngoài cổng 27018 để không bị trùng với MongoDB đang cài trên máy bạn
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:

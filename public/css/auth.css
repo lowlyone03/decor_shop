@@ -456,6 +456,41 @@ body {
     outline-offset: 4px;
 }
 
+/* Tooltip label for Zalo float */
+.zalo-float-label {
+    position: absolute;
+    right: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%) translateX(6px);
+    white-space: nowrap;
+    background: #0068ff;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    box-shadow: 0 6px 16px rgba(0, 68, 210, .28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    letter-spacing: .2px;
+}
+
+.zalo-float-label::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+    border: 5px solid transparent;
+    border-left-color: #0068ff;
+}
+
+.zalo-float:hover .zalo-float-label {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}
+
 @keyframes authIn {
     from {
         opacity: 0;

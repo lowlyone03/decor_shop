@@ -1101,10 +1101,12 @@ tbody tr:hover {
 }
 
 th {
-    color: var(--admin-muted);
+    color: var(--admin-text);
     background: #fbf7f2;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 td {

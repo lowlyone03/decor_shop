@@ -170,7 +170,7 @@ exports.getDashboard = async (req, res) => {
             Product.find({ status: 'active' }).sort({ sold: -1, rating: -1 }).limit(4).lean(),
             Review.find({ status: 'pending' }).populate('customer', 'name avatar').populate('product', 'name images slug').sort({ createdAt: -1 }).limit(4).lean(),
             Review.find({}).populate('customer', 'name avatar').populate('product', 'name images slug').sort({ createdAt: -1 }).limit(4).lean(),
-            Contact.find({}).sort({ createdAt: -1 }).limit(4).lean(),
+            Contact.find({}).sort({ updatedAt: -1 }).limit(4).lean(),
             Order.aggregate([
                 { $match: orderRevenueMatch({ ...rangeMatch, promotionCode: { $exists: true, $ne: null } }) },
                 { $group: { _id: null, revenue: { $sum: '$totalAmount' }, orders: { $sum: 1 }, discount: { $sum: '$discountAmount' } } }
@@ -836,6 +836,16 @@ exports.getProducts = async (req, res) => {
     }
 };
 
+exports.getProductById = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id).populate('category', 'name slug').lean();
+        if (!product) return res.status(404).json({ message: 'Không tìm thấy sản phẩm.' });
+        res.json({ product });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 exports.createProduct = async (req, res) => {
     try {
         const name = cleanText(req.body.name, 120);
@@ -849,6 +859,21 @@ exports.createProduct = async (req, res) => {
             slug = `${slugify(name)}-${suffix}`;
             suffix += 1;
         }
+        const images = [];
+        if (req.body.image) {
+            images.push({ url: req.body.image, alt: name, isPrimary: true });
+        }
+        if (req.body.galleryImages) {
+            try {
+                const gallery = JSON.parse(req.body.galleryImages);
+                if (Array.isArray(gallery)) {
+                    gallery.forEach(url => {
+                        if (url) images.push({ url, alt: name, isPrimary: false });
+                    });
+                }
+            } catch (e) { }
+        }
+
         const product = await Product.create({
             name,
             slug,
@@ -857,7 +882,7 @@ exports.createProduct = async (req, res) => {
             salePrice: req.body.salePrice ? Math.max(Number(req.body.salePrice), 0) : undefined,
             stock: Math.max(parseInt(req.body.stock, 10) || 0, 0),
             status: ['active', 'hidden', 'out_of_stock'].includes(req.body.status) ? req.body.status : 'active',
-            images: req.body.image ? [{ url: req.body.image, alt: name, isPrimary: true }] : [],
+            images,
             shortDescription: cleanText(req.body.shortDescription, 220),
             description: req.body.description,
             material: req.body.material,
@@ -886,7 +911,24 @@ exports.updateProduct = async (req, res) => {
             if (!['active', 'hidden', 'out_of_stock'].includes(req.body.status)) return res.status(400).json({ message: 'Trạng thái sản phẩm không hợp lệ.' });
             update.status = req.body.status;
         }
-        if (req.body.image !== undefined) update.images = req.body.image ? [{ url: req.body.image, alt: update.name || 'San pham', isPrimary: true }] : [];
+        if (req.body.image !== undefined || req.body.galleryImages !== undefined) {
+            const images = [];
+            const productName = update.name || req.body.name || 'San pham';
+            if (req.body.image) {
+                images.push({ url: req.body.image, alt: productName, isPrimary: true });
+            }
+            if (req.body.galleryImages) {
+                try {
+                    const gallery = JSON.parse(req.body.galleryImages);
+                    if (Array.isArray(gallery)) {
+                        gallery.forEach(url => {
+                            if (url) images.push({ url, alt: productName, isPrimary: false });
+                        });
+                    }
+                } catch (e) { }
+            }
+            update.images = images;
+        }
         if (req.body.shortDescription !== undefined) update.shortDescription = cleanText(req.body.shortDescription, 220);
         if (req.body.description !== undefined) update.description = req.body.description;
         if (req.body.material !== undefined) update.material = req.body.material;
@@ -2502,8 +2544,52 @@ exports.restoreBackup = async (req, res) => {
     try {
         const filePath = path.join(BACKUP_DIR, req.params.filename);
         if (!fs.existsSync(filePath)) return res.status(404).json({ message: 'File backup không tồn tại.' });
-        // NOTE: In a real system we would wipe collections and insertMany. 
-        // For now, this just sends success to make the UI happy.
+        
+        const backupData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        const { collections } = backupData;
+        
+        if (!collections) return res.status(400).json({ message: 'File backup không hợp lệ.' });
+
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+            await Promise.all([
+                Product.deleteMany({}).session(session),
+                Category.deleteMany({}).session(session),
+                Order.deleteMany({}).session(session),
+                User.deleteMany({}).session(session),
+                Review.deleteMany({}).session(session),
+                Contact.deleteMany({}).session(session),
+                Promotion.deleteMany({}).session(session),
+                Banner.deleteMany({}).session(session),
+                Blog.deleteMany({}).session(session),
+                Notification.deleteMany({}).session(session),
+                StaffShift.deleteMany({}).session(session),
+                InventoryTransaction.deleteMany({}).session(session)
+            ]);
+
+            if (collections.products?.length) await Product.insertMany(collections.products, { session });
+            if (collections.categories?.length) await Category.insertMany(collections.categories, { session });
+            if (collections.orders?.length) await Order.insertMany(collections.orders, { session });
+            if (collections.users?.length) await User.insertMany(collections.users, { session });
+            if (collections.reviews?.length) await Review.insertMany(collections.reviews, { session });
+            if (collections.contacts?.length) await Contact.insertMany(collections.contacts, { session });
+            if (collections.promotions?.length) await Promotion.insertMany(collections.promotions, { session });
+            if (collections.banners?.length) await Banner.insertMany(collections.banners, { session });
+            if (collections.blogs?.length) await Blog.insertMany(collections.blogs, { session });
+            if (collections.notifications?.length) await Notification.insertMany(collections.notifications, { session });
+            if (collections.staffShifts?.length) await StaffShift.insertMany(collections.staffShifts, { session });
+            if (collections.inventoryTransactions?.length) await InventoryTransaction.insertMany(collections.inventoryTransactions, { session });
+
+            await session.commitTransaction();
+            session.endSession();
+        } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }
+
         res.json({ message: 'Khôi phục bản sao lưu thành công.' });
     } catch (error) { res.status(500).json({ message: error.message }); }
 };

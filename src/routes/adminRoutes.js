@@ -64,6 +64,7 @@ router.get('/inventory/transactions', adminController.getInventoryTransactions);
 router.put('/inventory/product/:id', validateId, adminController.updateInventoryProduct);
 router.get('/products', adminController.getProducts);
 router.post('/products', adminController.createProduct);
+router.get('/products/:id', validateId, adminController.getProductById);
 router.patch('/products/:id', validateId, adminController.updateProduct);
 router.delete('/products/:id', validateId, adminController.deleteProduct);
 

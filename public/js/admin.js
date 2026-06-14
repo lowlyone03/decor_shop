@@ -692,7 +692,7 @@ function renderContacts(data) {
         <div class="contact-row" data-search="${escapeHtml(`${contact.fullName} ${contact.email} ${contact.message}`.toLowerCase())}">
             <div>
                 <b>${escapeHtml(contact.fullName)}</b>
-                <small>${dateText(contact.createdAt)} · ${escapeHtml(contact.message || '').slice(0, 84)}</small>
+                <small>${dateText(contact.updatedAt)} · ${escapeHtml(contact.message || '').slice(0, 84)}</small>
             </div>
             <button class="badge ${escapeHtml(contact.status)}" type="button" data-action="contact-status" data-id="${escapeHtml(contact._id)}" data-status="${escapeHtml(contact.status)}">
                 ${contact.status === 'resolved' ? 'Đã phản hồi' : contact.status === 'processing' ? 'Đang xử lý' : 'Mới'}
@@ -701,18 +701,26 @@ function renderContacts(data) {
     `).join('');
 }
 
+function compactMoney(value) {
+    const num = Number(value || 0);
+    if (num >= 1000000000) return (num / 1000000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' tỷ';
+    if (num >= 1000000) return (num / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' tr';
+    if (num >= 1000) return (num / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' k';
+    return num.toLocaleString('vi-VN') + 'đ';
+}
+
 function renderPromotions(data) {
     const promo = data.promotions;
     document.querySelector('#promoSummary').innerHTML = `
         <div class="promo-dashboard">
-            <div class="promo-focus">
+            <div class="promo-focus" data-action="view-promotions" style="cursor: pointer;" title="Xem quản lý khuyến mãi">
                 <span>Doanh thu từ KM</span>
-                <b>${money(promo.revenue)}</b>
+                <b title="${money(promo.revenue)}">${compactMoney(promo.revenue)}</b>
                 <small>${promo.conversionRate}% chuyển đổi</small>
             </div>
             <div class="promo-bars">
-                <p><span>Đơn hàng từ KM</span><b>${number(promo.orders)}</b></p>
-                <p><span>Giá trị ưu đãi</span><b>${money(promo.discount)}</b></p>
+                <p data-action="view-promotions" style="cursor: pointer;" title="Xem chi tiết"><span>Đơn hàng từ KM</span><b>${number(promo.orders)}</b></p>
+                <p><span>Giá trị ưu đãi</span><b title="${money(promo.discount)}">${compactMoney(promo.discount)}</b></p>
                 <p><span>Mã đang hoạt động</span><b>${number((promo.active || []).length)}</b></p>
             </div>
         </div>
@@ -2007,7 +2015,8 @@ async function saveProductForm() {
         price: form.elements['price']?.value ? Number(form.elements['price'].value) : undefined,
         salePrice: form.elements['salePrice']?.value ? Number(form.elements['salePrice'].value) : undefined,
         stock: form.elements['stock']?.value ? Number(form.elements['stock'].value) : undefined,
-        image: document.getElementById('primaryImageInput')?.value.trim()
+        image: document.getElementById('primaryImageInput')?.value.trim(),
+        galleryImages: document.getElementById('galleryImagesInput')?.value.trim()
     };
 
     if (!id && (!payload.name || !payload.category || payload.price === undefined || payload.price < 0)) {
@@ -2045,9 +2054,21 @@ async function addProductPrompt() {
 }
 
 async function editProductPrompt(id) {
-    const product = state.products.data?.products?.find((item) => String(item._id) === String(id));
-    if (!product) return;
-    openProductForm(product);
+    const btn = document.querySelector(`[data-action="edit-product"][data-id="${id}"]`);
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+    try {
+        const data = await api(`/admin/products/${id}`);
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
+        if (data.product) {
+            openProductForm(data.product);
+        } else {
+            showToast('Không tìm thấy sản phẩm.');
+        }
+    } catch (error) {
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
+        showToast('Lỗi tải thông tin sản phẩm: ' + error.message);
+    }
 }
 
 async function toggleProductStatus(id, currentStatus) {
@@ -2450,6 +2471,10 @@ async function handleClick(event) {
     }
     if (action === 'save-product') {
         await saveProductForm();
+        return;
+    }
+    if (action === 'view-promotions') {
+        window.location.href = '/management/promotions.html';
         return;
     }
     if (action === 'contact-status') {
@@ -5305,7 +5330,7 @@ function drawCategoryDonutChart(data) {
             ctx.textAlign = 'center';
             ctx.fillStyle = '#999';
             ctx.font = '500 10px Inter, sans-serif';
-            ctx.fillText('Tổng doanh thu', centerX, centerY - 14);
+            ctx.fillText('Tổng giá trị SP', centerX, centerY - 14);
             ctx.fillStyle = '#2f2925';
             ctx.font = '800 18px Inter, sans-serif';
             ctx.fillText(money(total), centerX, centerY + 6);
@@ -5628,7 +5653,7 @@ function exportReportsCSV() {
 function getDefaultSettings() {
     return {
         store: { name: 'Casa Decor', hotline: '1900 1234', email: 'support@casadecor.vn', address: '' },
-        payment: { cod: true, bank: true, ewallet: false, vnpay: false, paypal: false, installment: false },
+        payment: { cod: true, bank: true, vnpay: false },
         notify: { adminEmail: true, newOrder: true, newContact: true, lowStock: true, sms: false, push: false },
         security: { sessionTimeout: 4, logRetention: 90, maxLoginAttempts: 5, twoFactor: false, loginLimit: true, activityLog: true },
         backup: { schedule: 'off', maxBackups: 7, maintenanceDays: 30 }
@@ -5649,7 +5674,7 @@ function loadSettings() {
     if (storeAddress) storeAddress.value = settings.store?.address || '';
 
     // Payment methods
-    const payFields = { settingPayCod: 'cod', settingPayBank: 'bank', settingPayEwallet: 'ewallet', settingPayVnpay: 'vnpay', settingPayPaypal: 'paypal', settingPayInstallment: 'installment' };
+    const payFields = { settingPayCod: 'cod', settingPayBank: 'bank', settingPayVnpay: 'vnpay' };
     Object.entries(payFields).forEach(([id, key]) => {
         const el = document.getElementById(id);
         if (el) el.checked = settings.payment?.[key] ?? false;
@@ -5699,10 +5724,7 @@ function collectSettings() {
         payment: {
             cod: document.getElementById('settingPayCod')?.checked ?? false,
             bank: document.getElementById('settingPayBank')?.checked ?? false,
-            ewallet: document.getElementById('settingPayEwallet')?.checked ?? false,
-            vnpay: document.getElementById('settingPayVnpay')?.checked ?? false,
-            paypal: document.getElementById('settingPayPaypal')?.checked ?? false,
-            installment: document.getElementById('settingPayInstallment')?.checked ?? false
+            vnpay: document.getElementById('settingPayVnpay')?.checked ?? false
         },
         notify: {
             adminEmail: document.getElementById('settingNotifyAdminEmail')?.checked ?? false,
@@ -5827,6 +5849,9 @@ function exportSettingsConfig() {
     showToast('Đã xuất cấu hình thành công.');
 }
 
+let allBackups = [];
+let backupPage = 1;
+
 async function loadBackupList() {
     const tbody = document.getElementById('backupList');
     const countEl = document.getElementById('backupCount');
@@ -5835,45 +5860,77 @@ async function loadBackupList() {
 
     try {
         const data = await api('/admin/backups');
-        const backups = data.backups || [];
+        allBackups = data.backups || [];
 
-        if (countEl) countEl.textContent = `${backups.length} bản`;
+        if (countEl) countEl.textContent = `${allBackups.length} bản`;
 
-        if (!backups.length) {
+        if (!allBackups.length) {
             tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Chưa có bản sao lưu nào.</td></tr>';
+            const pager = document.getElementById('backupPagination');
+            if (pager) pager.innerHTML = '';
             return;
         }
 
-        tbody.innerHTML = backups.map((b) => {
-            const sizeText = b.size >= 1048576
-                ? `${(b.size / 1048576).toFixed(1)} MB`
-                : `${(b.size / 1024).toFixed(1)} KB`;
-            return `
-            <tr>
-                <td><i class="fa-solid fa-file-zipper" style="color:#bd7654; margin-right:6px;"></i>${escapeHtml(b.name)}</td>
-                <td>${sizeText}</td>
-                <td>${dateText(b.createdAt)}</td>
-                <td>
-                    <div class="product-actions">
-                        <button type="button" title="Tải về" onclick="downloadBackup('${escapeHtml(b.name)}')"><i class="fa-solid fa-download"></i></button>
-                        <button type="button" title="Phục hồi" onclick="restoreFromServer('${escapeHtml(b.name)}')"><i class="fa-solid fa-clock-rotate-left"></i></button>
-                        <button type="button" title="Xóa" onclick="deleteBackup('${escapeHtml(b.name)}')"><i class="fa-regular fa-trash-can"></i></button>
-                    </div>
-                </td>
-            </tr>
-        `}).join('');
-
         // Update status card
-        if (backups.length) {
-            const lastBackup = document.getElementById('lastBackupTime');
-            const backupTime = document.getElementById('statusBackupTime');
-            const timeText = dateText(backups[0].createdAt);
-            if (lastBackup) lastBackup.textContent = timeText;
-            if (backupTime) backupTime.textContent = timeText;
-        }
+        const lastBackup = document.getElementById('lastBackupTime');
+        const backupTime = document.getElementById('statusBackupTime');
+        const timeText = dateText(allBackups[0].createdAt);
+        if (lastBackup) lastBackup.textContent = timeText;
+        if (backupTime) backupTime.textContent = timeText;
+
+        backupPage = 1;
+        renderBackupPage();
     } catch (error) {
         if (countEl) countEl.textContent = '0 bản';
         tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Không thể tải danh sách sao lưu.</td></tr>';
+    }
+}
+
+function renderBackupPage(page = backupPage) {
+    backupPage = page;
+    const limit = 5;
+    const totalPages = Math.ceil(allBackups.length / limit);
+    if (backupPage < 1) backupPage = 1;
+    if (backupPage > totalPages) backupPage = totalPages;
+
+    const start = (backupPage - 1) * limit;
+    const end = start + limit;
+    const paginatedItems = allBackups.slice(start, end);
+
+    const tbody = document.getElementById('backupList');
+    if (!tbody) return;
+
+    tbody.innerHTML = paginatedItems.map((b) => {
+        const sizeText = b.size >= 1048576
+            ? `${(b.size / 1048576).toFixed(1)} MB`
+            : `${(b.size / 1024).toFixed(1)} KB`;
+        return `
+        <tr>
+            <td><i class="fa-solid fa-file-zipper" style="color:#bd7654; margin-right:6px;"></i>${escapeHtml(b.name || b.filename)}</td>
+            <td>${sizeText}</td>
+            <td>${dateText(b.createdAt)}</td>
+            <td>
+                <div class="product-actions">
+                    <button type="button" title="Tải về" onclick="downloadBackup('${escapeHtml(b.name || b.filename)}')"><i class="fa-solid fa-download"></i></button>
+                    <button type="button" title="Phục hồi" onclick="restoreFromServer('${escapeHtml(b.name || b.filename)}')"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                    <button type="button" title="Xóa" onclick="deleteBackup('${escapeHtml(b.name || b.filename)}')"><i class="fa-regular fa-trash-can"></i></button>
+                </div>
+            </td>
+        </tr>
+    `}).join('');
+
+    const pager = document.getElementById('backupPagination');
+    if (pager) {
+        if (totalPages <= 1) {
+            pager.innerHTML = '';
+        } else {
+            let pagerHtml = `<button type="button" ${backupPage === 1 ? 'disabled' : ''} onclick="renderBackupPage(${backupPage - 1})"><i class="fa-solid fa-chevron-left"></i></button>`;
+            for (let i = 1; i <= totalPages; i++) {
+                pagerHtml += `<button type="button" class="${i === backupPage ? 'active' : ''}" onclick="renderBackupPage(${i})">${i}</button>`;
+            }
+            pagerHtml += `<button type="button" ${backupPage === totalPages ? 'disabled' : ''} onclick="renderBackupPage(${backupPage + 1})"><i class="fa-solid fa-chevron-right"></i></button>`;
+            pager.innerHTML = pagerHtml;
+        }
     }
 }
 

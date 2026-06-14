@@ -176,3 +176,44 @@ Nếu bạn có bất kỳ đóng góp nào hoặc cần hỗ trợ trong quá t
 <div align="center">
   <i>Cảm ơn bạn đã xem qua dự án! ❤️ Nếu thấy hữu ích hãy cho repo một ⭐ nhé!</i>
 </div>
+
+
+---
+
+## 🐳 Hướng dẫn chạy dự án bằng Docker
+
+Dự án đã được cấu hình sẵn để chạy trơn tru với Docker & Docker Compose, giúp bạn không cần cài đặt Node.js hay MongoDB trực tiếp lên máy.
+
+### 1. Yêu cầu hệ thống
+- Đã cài đặt **Docker** và **Docker Compose** (hoặc Docker Desktop đối với Windows/Mac).
+
+### 2. Khởi động dự án
+Mở Terminal tại thư mục gốc của dự án và chạy:
+```bash
+docker-compose up -d --build
+```
+- Lệnh này sẽ tự động tải image MongoDB, cài đặt các thư viện Node.js và chạy ứng dụng ở chế độ ngầm (detach).
+- Sau khi khởi động xong, truy cập vào trang chủ: **http://localhost:5000**
+
+### 3. Đồng bộ Code (Hot-reload)
+Hệ thống đã được thiết lập volume đồng bộ mã nguồn:
+- **Thay đổi giao diện (HTML/CSS/JS Frontend):** Chỉ cần lưu file trong VSCode và F5 trình duyệt.
+- **Thay đổi Logic (JS Backend):** Server Node.js (chạy bằng `nodemon`) sẽ tự động restart ngay khi file được lưu.
+- *Lưu ý:* Chỉ cần chạy lại lệnh `docker-compose up -d --build` nếu bạn cài thêm package mới qua `npm install` hoặc thay đổi file `.env`.
+
+### 4. Sao lưu & Phục hồi cơ sở dữ liệu vào Docker
+Mặc định MongoDB trong Docker sẽ là một database trống. Để khôi phục dữ liệu:
+**Backup dữ liệu (từ máy cũ):**
+```bash
+mongodump --uri="mongodb://localhost:27017/decor_shop"
+```
+**Phục hồi vào Docker (Khi đang chạy docker-compose):**
+```bash
+mongorestore --uri="mongodb://localhost:27017/decor_shop" --drop dump/decor_shop
+```
+
+### 5. Tắt dự án
+Để dừng và dọn dẹp các container (dữ liệu DB vẫn được giữ lại an toàn trong volume):
+```bash
+docker-compose down
+```
