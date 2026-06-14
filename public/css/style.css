@@ -5561,7 +5561,8 @@ nav,
 .quick-actions {
     display: flex;
     gap: 12px;
-    margin-top: auto;
+    margin-top: 24px;
+    flex-shrink: 0;
 }
 
 .quick-actions .hbtn,

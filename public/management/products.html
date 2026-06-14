@@ -248,6 +248,19 @@
                         <input type="hidden" name="galleryImages" id="galleryImagesInput">
                         <input type="file" id="galleryImageFile" accept="image/*" multiple hidden>
                     </article>
+                    <article class="panel">
+                        <div class="panel-head"><h2><i class="fa-solid fa-video"></i> Video giới thiệu</h2></div>
+                        <p class="img-label-text">Video sản phẩm (Tùy chọn)</p>
+                        <div class="image-upload-box primary-upload" id="videoUploadBox" onclick="document.getElementById('productVideoFile').click()" style="margin-bottom: 10px;">
+                            <video id="productVideoPreview" src="" controls hidden style="width: 100%; border-radius: 8px; max-height: 200px; object-fit: cover;"></video>
+                            <div class="upload-placeholder" id="videoPlaceholder">
+                                <i class="fa-solid fa-upload"></i><br>Tải lên video (.mp4, .webm)
+                            </div>
+                        </div>
+                        <button type="button" class="replace-btn" id="removeVideoBtn" hidden style="background: #fff1f0; color: #ff4d4f; border: 1px solid #ffccc7; width: 100%;"><i class="fa-solid fa-trash"></i> Xóa video</button>
+                        <input type="hidden" name="videoUrl" id="videoUrlInput">
+                        <input type="file" id="productVideoFile" accept="video/mp4,video/webm" hidden>
+                    </article>
                 </div>
             </form>
             <div class="form-footer-actions">

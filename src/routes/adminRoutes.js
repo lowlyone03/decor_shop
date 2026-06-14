@@ -17,7 +17,35 @@ router.use(authRequired, adminOnlyStrict);
 
 
 // Upload
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const videoStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = path.join(__dirname, '..', '..', 'public', 'uploads', 'videos');
+        fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'product-video-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const uploadVideo = multer({ 
+    storage: videoStorage,
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'video/mp4' || file.mimetype === 'video/webm') {
+            cb(null, true);
+        } else {
+            cb(new Error('Chỉ chấp nhận định dạng MP4 hoặc WEBM.'));
+        }
+    }
+});
+
 router.post('/upload/product-image', adminController.uploadProductImage);
+router.post('/upload/product-video', uploadVideo.single('video'), adminController.uploadProductVideo);
 
 // Dashboard
 router.get('/dashboard', adminController.getDashboard);

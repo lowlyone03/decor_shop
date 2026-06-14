@@ -13,6 +13,7 @@ const productSchema = new mongoose.Schema({
     price: { type: Number, required: true, min: 0 },
     salePrice: { type: Number, min: 0 },
     images: [productImageSchema],
+    videoUrl: { type: String, trim: true },
     shortDescription: { type: String, trim: true },
     description: { type: String },
     material: { type: String, trim: true },

@@ -1603,6 +1603,19 @@ exports.uploadProductImage = async (req, res) => {
     }
 };
 
+// Upload video sản phẩm
+exports.uploadProductVideo = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'Không tìm thấy file video.' });
+        }
+        const videoUrl = `/uploads/videos/${req.file.filename}`;
+        res.status(201).json({ url: videoUrl, message: 'Tải video lên thành công.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Lấy danh sách nhân viên
 exports.createStaff = async (req, res) => {
     try {

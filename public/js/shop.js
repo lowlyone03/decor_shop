@@ -1207,7 +1207,14 @@ async function renderDetail() {
     root.innerHTML = `
         <nav class="breadcrumb"><a href="/customers/index.html">Trang chu</a><span>/</span><a href="/customers/products.html">San pham</a><span>/</span><b>${escapeHtml(product.name)}</b></nav>
         <section class="detail-grid">
-            <div class="detail-image"><img src="${imageOf(product)}" alt="${product.name}"></div>
+            <div class="detail-image" style="display: flex; flex-direction: column; width: fit-content; margin: 0 auto; justify-content: center;">
+                <img src="${imageOf(product)}" alt="${product.name}" style="max-width: 100%; max-height: 520px; margin: 0 auto;">
+                ${product.videoUrl ? `
+                <div style="width: 0; min-width: 100%;">
+                    <video src="${product.videoUrl}" controls style="width: 100%; max-height: 300px; background: #000; object-fit: contain; border-top: 1px solid #eadfd6; display: block;"></video>
+                </div>
+                ` : ''}
+            </div>
             <div class="detail-info">
                 <p class="crumb">${product.category.name}</p>
                 <h1>${product.name}</h1>

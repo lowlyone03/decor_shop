@@ -2016,7 +2016,8 @@ async function saveProductForm() {
         salePrice: form.elements['salePrice']?.value ? Number(form.elements['salePrice'].value) : undefined,
         stock: form.elements['stock']?.value ? Number(form.elements['stock'].value) : undefined,
         image: document.getElementById('primaryImageInput')?.value.trim(),
-        galleryImages: document.getElementById('galleryImagesInput')?.value.trim()
+        galleryImages: document.getElementById('galleryImagesInput')?.value.trim(),
+        videoUrl: document.getElementById('videoUrlInput')?.value.trim()
     };
 
     if (!id && (!payload.name || !payload.category || payload.price === undefined || payload.price < 0)) {
@@ -4646,6 +4647,46 @@ async function handlePrimaryImageUpload(event) {
     event.target.value = '';
 }
 
+async function handleProductVideoUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const preview = document.getElementById('productVideoPreview');
+    const placeholder = document.getElementById('videoPlaceholder');
+    const removeBtn = document.getElementById('removeVideoBtn');
+    const input = document.getElementById('videoUrlInput');
+
+    try {
+        showToast('Đang tải video lên...');
+        const formData = new FormData();
+        formData.append('video', file);
+
+        const response = await fetch('/api/admin/upload/product-video', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${session()?.token}` },
+            body: formData
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Lỗi tải video');
+
+        if (preview && placeholder && removeBtn) {
+            preview.src = result.url;
+            preview.hidden = false;
+            placeholder.hidden = true;
+            removeBtn.hidden = false;
+        }
+        if (input) input.value = result.url;
+        showToast('Đã tải video lên thành công.');
+    } catch (error) {
+        showToast(error.message || 'Lỗi khi tải video lên.');
+        if (preview) { preview.hidden = true; preview.src = ''; }
+        if (placeholder) placeholder.hidden = false;
+        if (removeBtn) removeBtn.hidden = true;
+        if (input) input.value = '';
+    }
+    event.target.value = '';
+}
+
 function previewCategoryImage(input) {
     if (input.files && input.files[0]) {
         const file = input.files[0];
@@ -4817,6 +4858,21 @@ async function loadProductForm(productId) {
             }
         }
         
+        // Load video
+        if (product.videoUrl) {
+            const preview = document.getElementById('productVideoPreview');
+            const placeholder = document.getElementById('videoPlaceholder');
+            const removeBtn = document.getElementById('removeVideoBtn');
+            const input = document.getElementById('videoUrlInput');
+            if (preview && placeholder && removeBtn && input) {
+                preview.src = product.videoUrl;
+                preview.hidden = false;
+                placeholder.hidden = true;
+                removeBtn.hidden = false;
+                input.value = product.videoUrl;
+            }
+        }
+        
     } catch (error) {
         showToast(error.message);
     }
@@ -4854,6 +4910,21 @@ if (pageFromPath() === 'products') {
     const galleryImageFile = document.getElementById('galleryImageFile');
     if (galleryImageFile) {
         galleryImageFile.addEventListener('change', handleGalleryImageUpload);
+    }
+    
+    const productVideoFile = document.getElementById('productVideoFile');
+    if (productVideoFile) {
+        productVideoFile.addEventListener('change', handleProductVideoUpload);
+    }
+    const removeVideoBtn = document.getElementById('removeVideoBtn');
+    if (removeVideoBtn) {
+        removeVideoBtn.addEventListener('click', () => {
+            document.getElementById('productVideoPreview').hidden = true;
+            document.getElementById('productVideoPreview').src = '';
+            document.getElementById('videoPlaceholder').hidden = false;
+            document.getElementById('videoUrlInput').value = '';
+            removeVideoBtn.hidden = true;
+        });
     }
     
     // Check if editing existing product
