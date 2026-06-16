@@ -1203,7 +1203,17 @@ async function renderDetail() {
     if (!root) return;
     setLoading(root, 'Dang tai chi tiet san pham...');
     try {
-    const { product, related, reviews } = await api(`/products/${qs('slug')}`);
+        let product, related = [], reviews = [];
+        if (qs('preview') === 'true') {
+            const previewData = JSON.parse(sessionStorage.getItem('casaPreviewProduct'));
+            if (!previewData) throw new Error('Không tìm thấy dữ liệu xem trước.');
+            product = previewData;
+        } else {
+            const res = await api(`/products/${qs('slug')}`);
+            product = res.product;
+            related = res.related || [];
+            reviews = res.reviews || [];
+        }
     root.innerHTML = `
         <nav class="breadcrumb"><a href="/customers/index.html">Trang chu</a><span>/</span><a href="/customers/products.html">San pham</a><span>/</span><b>${escapeHtml(product.name)}</b></nav>
         <section class="detail-grid">

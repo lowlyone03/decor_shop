@@ -895,6 +895,7 @@ exports.createProduct = async (req, res) => {
             stock: Math.max(parseInt(req.body.stock, 10) || 0, 0),
             status: ['active', 'hidden', 'out_of_stock'].includes(req.body.status) ? req.body.status : 'active',
             images,
+            videoUrl: req.body.videoUrl,
             shortDescription: cleanText(req.body.shortDescription, 220),
             description: req.body.description,
             material: req.body.material,
@@ -941,6 +942,7 @@ exports.updateProduct = async (req, res) => {
             }
             update.images = images;
         }
+        if (req.body.videoUrl !== undefined) update.videoUrl = req.body.videoUrl;
         if (req.body.shortDescription !== undefined) update.shortDescription = cleanText(req.body.shortDescription, 220);
         if (req.body.description !== undefined) update.description = req.body.description;
         if (req.body.material !== undefined) update.material = req.body.material;

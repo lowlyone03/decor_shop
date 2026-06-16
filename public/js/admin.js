@@ -1991,6 +1991,41 @@ function openProductForm(product = null) {
     }
 }
 
+function previewProduct() {
+    const form = document.getElementById('productMainForm');
+    const payload = {
+        name: form.elements['name']?.value.trim() || 'Tên sản phẩm',
+        category: { name: form.elements['category']?.options[form.elements['category'].selectedIndex]?.text || 'Danh mục' },
+        price: Number(form.elements['price']?.value) || 0,
+        salePrice: Number(form.elements['salePrice']?.value) || undefined,
+        images: [],
+        videoUrl: document.getElementById('videoUrlInput')?.value.trim(),
+        shortDescription: form.elements['shortDescription']?.value.trim() || 'Mô tả ngắn...',
+        description: form.elements['description']?.value.trim() || 'Mô tả chi tiết...',
+        material: form.elements['material']?.value,
+        dimensions: form.elements['dimensions']?.value.trim(),
+        color: form.elements['color']?.value.trim(),
+        style: form.elements['brand']?.value.trim(),
+        numReviews: 0,
+        _id: document.getElementById('productId')?.value || 'preview'
+    };
+    
+    const primaryImg = document.getElementById('primaryImageInput')?.value.trim();
+    if (primaryImg) payload.images.push({ url: primaryImg, isPrimary: true });
+    else payload.images.push({ url: '/images/banner1png.png', isPrimary: true });
+    
+    try {
+        const galleryRaw = document.getElementById('galleryImagesInput')?.value.trim();
+        if (galleryRaw) {
+            const parsed = JSON.parse(galleryRaw);
+            if (Array.isArray(parsed)) parsed.forEach(url => payload.images.push({ url, isPrimary: false }));
+        }
+    } catch(e){}
+
+    sessionStorage.setItem('casaPreviewProduct', JSON.stringify(payload));
+    window.open('/customers/product-detail.html?preview=true', '_blank');
+}
+
 async function saveProductForm() {
     const form = document.getElementById('productMainForm');
     const id = document.getElementById('productId').value;
@@ -2483,6 +2518,10 @@ async function handleClick(event) {
         await api(`/admin/contacts/${button.dataset.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: next }) });
         showToast('Đã cập nhật trạng thái phản hồi.');
         await loadDashboard();
+    }
+    if (action === 'preview-product') {
+        previewProduct();
+        return;
     }
 }
 
