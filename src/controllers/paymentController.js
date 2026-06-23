@@ -30,8 +30,9 @@ exports.vnpayReturn = async (req, res) => {
             });
             await order.save();
 
+            // Tạo thông báo cho admin và staff
             try {
-                const admins = await User.find({ role: 'admin' }).select('_id').lean();
+                const admins = await User.find({ role: { $in: ['admin', 'staff'] } }).select('_id').lean();
                 await Notification.insertMany(admins.map((admin) => ({
                     recipient: admin._id,
                     title: `VNPay da thanh toan: ${order.orderCode}`,

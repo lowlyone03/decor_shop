@@ -36,6 +36,7 @@ router.get('/customers/:id', validateId, staffController.getCustomerDetail);
 // Sản phẩm / Danh mục / Tồn kho (Staff có thể thêm sửa theo yêu cầu)
 router.post('/upload/product-image', adminController.uploadProductImage);
 router.get('/products', adminController.getProducts);
+router.get('/products/:id', validateId, adminController.getProductById);
 router.post('/products', adminController.createProduct);
 router.patch('/products/:id', validateId, adminController.updateProduct);
 router.delete('/products/:id', validateId, adminController.deleteProduct);

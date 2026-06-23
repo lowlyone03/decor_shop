@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sơ đồ Cấu trúc Dữ liệu - Casa Decor</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background: #ffffff;
+        padding: 0;
+        margin: 0;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .page {
+        width: 1160px;
+        margin: 0 auto;
+        padding: 28px 32px 24px;
+        background: #fff;
+      }
+
+      /* ========== HEADER ========== */
+      .header {
+        text-align: center;
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+        border-bottom: 3px solid #1a365d;
+        position: relative;
+      }
+      .header::after {
+        content: "";
+        position: absolute;
+        bottom: -3px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 3px;
+        background: #c9956a;
+      }
+      .brand {
+        font-size: 11px;
+        font-weight: 800;
+        color: #c9956a;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .header h1 {
+        font-size: 22px;
+        font-weight: 900;
+        color: #1a365d;
+        letter-spacing: 0.5px;
+        margin-bottom: 3px;
+      }
+      .header .sub {
+        font-size: 11px;
+        color: #8896ab;
+        font-weight: 500;
+      }
+
+      /* ========== MAIN GRID: 3 COLUMNS ========== */
+      .grid3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      /* ========== SECTION ========== */
+      .sec {
+        border-radius: 10px;
+        padding: 0;
+        overflow: hidden;
+        border: 1.5px solid transparent;
+      }
+      .sec-head {
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .sec-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 800;
+        color: #fff;
+        flex-shrink: 0;
+      }
+      .sec-head h2 {
+        font-size: 11.5px;
+        font-weight: 800;
+        color: #fff;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+      }
+      .sec-body {
+        background: #fff;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      /* Section Colors */
+      .s1 .sec-head {
+        background: linear-gradient(135deg, #1a365d, #2c5282);
+      }
+      .s1 {
+        border-color: #2c5282;
+      }
+      .s2 .sec-head {
+        background: linear-gradient(135deg, #065f46, #059669);
+      }
+      .s2 {
+        border-color: #059669;
+      }
+      .s3 .sec-head {
+        background: linear-gradient(135deg, #92400e, #c9956a);
+      }
+      .s3 {
+        border-color: #c9956a;
+      }
+      .s4 .sec-head {
+        background: linear-gradient(135deg, #5b21b6, #7c3aed);
+      }
+      .s4 {
+        border-color: #7c3aed;
+      }
+      .s5 .sec-head {
+        background: linear-gradient(135deg, #b91c1c, #ef4444);
+      }
+      .s5 {
+        border-color: #ef4444;
+      }
+      .s6 .sec-head {
+        background: linear-gradient(135deg, #0369a1, #0ea5e9);
+      }
+      .s6 {
+        border-color: #0ea5e9;
+      }
+
+      /* ========== ENTITY ROW ========== */
+      .e-row {
+        display: flex;
+        align-items: stretch;
+        gap: 6px;
+      }
+
+      /* ========== ENTITY CARD ========== */
+      .e {
+        flex: 1;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 7px;
+        padding: 8px 9px 7px;
+        display: flex;
+        gap: 7px;
+        align-items: flex-start;
+        min-width: 0;
+        transition: all 0.15s;
+      }
+      .e:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+      }
+      .e-icon {
+        font-size: 20px;
+        line-height: 1;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .e-info {
+        min-width: 0;
+        flex: 1;
+      }
+      .e-name {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1.25;
+        margin-bottom: 2px;
+      }
+      .e-desc {
+        font-size: 9px;
+        color: #64748b;
+        line-height: 1.35;
+        margin-bottom: 3px;
+      }
+      .e-tbl {
+        font-size: 8px;
+        color: #94a3b8;
+        font-family: "Consolas", "Courier New", monospace;
+        font-weight: 600;
+        background: #e2e8f0;
+        padding: 1px 5px;
+        border-radius: 3px;
+        display: inline-block;
+        letter-spacing: 0.3px;
+      }
+
+      /* Arrow between cards */
+      .arr {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 14px;
+      }
+      .arr svg {
+        width: 12px;
+        height: 12px;
+      }
+
+      /* S1 color arrows */
+      .s1 .arr svg {
+        fill: #2c5282;
+      }
+      .s2 .arr svg {
+        fill: #059669;
+      }
+      .s3 .arr svg {
+        fill: #c9956a;
+      }
+      .s4 .arr svg {
+        fill: #7c3aed;
+      }
+      .s5 .arr svg {
+        fill: #ef4444;
+      }
+      .s6 .arr svg {
+        fill: #0ea5e9;
+      }
+
+      /* ========== RELATIONSHIP STRIP ========== */
+      .rel-strip {
+        margin: 10px 0;
+        padding: 10px 16px;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .rel-strip .ri {
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .rel-strip .rt {
+        font-size: 9.5px;
+        color: #78350f;
+        line-height: 1.55;
+        font-weight: 500;
+      }
+      .rel-strip .rt b {
+        font-weight: 700;
+        color: #92400e;
+      }
+
+      /* ========== BOTTOM FLOW ========== */
+      .flow-bar {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        border-radius: 10px;
+        padding: 14px 20px 16px;
+        margin-top: 2px;
+      }
+      .flow-title {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #fbbf24;
+        margin-bottom: 12px;
+      }
+      .flow-steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+      }
+      .f-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        width: 100px;
+      }
+      .f-circle {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      }
+      .f-label {
+        font-size: 9px;
+        font-weight: 600;
+        color: #e2e8f0;
+        text-align: center;
+        line-height: 1.35;
+      }
+      .f-sub {
+        font-size: 7.5px;
+        color: #64748b;
+        font-family: "Consolas", monospace;
+        text-align: center;
+        font-weight: 500;
+      }
+      .f-arr {
+        color: #fbbf24;
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0 -4px;
+        margin-top: -14px;
+      }
+
+      .fc1 {
+        background: linear-gradient(135deg, #1a365d, #3b82f6);
+      }
+      .fc2 {
+        background: linear-gradient(135deg, #065f46, #10b981);
+      }
+      .fc3 {
+        background: linear-gradient(135deg, #92400e, #d4a574);
+      }
+      .fc4 {
+        background: linear-gradient(135deg, #5b21b6, #a78bfa);
+      }
+      .fc5 {
+        background: linear-gradient(135deg, #b91c1c, #f87171);
+      }
+      .fc6 {
+        background: linear-gradient(135deg, #0369a1, #38bdf8);
+      }
+      .fc7 {
+        background: linear-gradient(135deg, #d97706, #fbbf24);
+      }
+
+      /* ========== FOOTER ========== */
+      .footer {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 14px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+      }
+      .legend {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .lg-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 8.5px;
+        color: #475569;
+        font-weight: 600;
+      }
+      .lg-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        flex-shrink: 0;
+      }
+      .f-info {
+        font-size: 8.5px;
+        color: #94a3b8;
+        text-align: right;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+      .f-info strong {
+        color: #64748b;
+      }
+
+      /* ========== ROLE TAGS ========== */
+      .tags {
+        display: flex;
+        gap: 3px;
+        margin-top: 3px;
+      }
+      .tag {
+        font-size: 7px;
+        font-weight: 700;
+        padding: 1px 5px;
+        border-radius: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+      .tag-a {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .tag-s {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+      .tag-c {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      /* ========== SVG Arrow Def ========== */
+      .arrow-svg {
+        fill: currentColor;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- HEADER -->
+      <div class="header">
+        <div class="brand">🏠 Casa Decor</div>
+        <h1>SƠ ĐỒ CẤU TRÚC DỮ LIỆU HỆ THỐNG THƯƠNG MẠI ĐIỆN TỬ</h1>
+        <div class="sub">
+          Mô phỏng dễ hiểu cho khách hàng không chuyên kỹ thuật &nbsp;•&nbsp; Hệ
+          thống Nội Thất & Trang Trí
+        </div>
+      </div>
+
+      <!-- ========== ROW 1 ========== -->
+      <div class="grid3">
+        <!-- 1. HỒ SƠ & TÀI KHOẢN -->
+        <div class="sec s1">
+          <div class="sec-head">
+            <div class="sec-num">1</div>
+            <h2>Hồ sơ & Tài khoản</h2>
+          </div>
+          <div class="sec-body">
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">👤</span>
+                <div class="e-info">
+                  <div class="e-name">Khách hàng</div>
+                  <div class="e-desc">Tên, email, SĐT, mật khẩu mã hóa</div>
+                  <span class="e-tbl">users</span>
+                  <div class="tags"><span class="tag tag-c">KH</span></div>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">📍</span>
+                <div class="e-info">
+                  <div class="e-name">Sổ địa chỉ</div>
+                  <div class="e-desc">Đường, phường, quận, TP</div>
+                  <span class="e-tbl">users.addresses</span>
+                </div>
+              </div>
+            </div>
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">👔</span>
+                <div class="e-info">
+                  <div class="e-name">Nhân viên (NV)</div>
+                  <div class="e-desc">Mã NV, lương/giờ, phân quyền</div>
+                  <span class="e-tbl">users (staff)</span>
+                  <div class="tags"><span class="tag tag-s">NV</span></div>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">🔑</span>
+                <div class="e-info">
+                  <div class="e-name">Quản trị viên</div>
+                  <div class="e-desc">Quyền cao nhất hệ thống</div>
+                  <span class="e-tbl">users (admin)</span>
+                  <div class="tags"><span class="tag tag-a">Admin</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. SẢN PHẨM & DANH MỤC -->
+        <div class="sec s2">
+          <div class="sec-head">
+            <div class="sec-num">2</div>
+            <h2>Sản phẩm & Danh mục</h2>
+          </div>
+          <div class="sec-body">
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">📂</span>
+                <div class="e-info">
+                  <div class="e-name">Danh mục</div>
+                  <div class="e-desc">Tên, mô tả, ảnh, trạng thái</div>
+                  <span class="e-tbl">categories</span>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">🪑</span>
+                <div class="e-info">
+                  <div class="e-name">Sản phẩm</div>
+                  <div class="e-desc">Giá, chất liệu, KT, tồn kho</div>
+                  <span class="e-tbl">products</span>
+                </div>
+              </div>
+            </div>
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">🖼️</span>
+                <div class="e-info">
+                  <div class="e-name">Ảnh & Video SP</div>
+                  <div class="e-desc">Nhiều ảnh, ảnh chính/phụ</div>
+                  <span class="e-tbl">products.images</span>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">📦</span>
+                <div class="e-info">
+                  <div class="e-name">Kho hàng</div>
+                  <div class="e-desc">Nhập / Xuất / Kiểm kho</div>
+                  <span class="e-tbl">inventory_transactions</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. MUA SẮM & THANH TOÁN -->
+        <div class="sec s3">
+          <div class="sec-head">
+            <div class="sec-num">3</div>
+            <h2>Mua sắm & Thanh toán</h2>
+          </div>
+          <div class="sec-body">
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">🛒</span>
+                <div class="e-info">
+                  <div class="e-name">Giỏ hàng</div>
+                  <div class="e-desc">SP, số lượng, giá tạm tính</div>
+                  <span class="e-tbl">carts</span>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">📋</span>
+                <div class="e-info">
+                  <div class="e-name">Đơn hàng</div>
+                  <div class="e-desc">Mã ĐH, SP, tổng tiền, TT</div>
+                  <span class="e-tbl">orders</span>
+                </div>
+              </div>
+            </div>
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">❤️</span>
+                <div class="e-info">
+                  <div class="e-name">Yêu thích</div>
+                  <div class="e-desc">DS SP yêu thích của KH</div>
+                  <span class="e-tbl">wishlists</span>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">💳</span>
+                <div class="e-info">
+                  <div class="e-name">Thanh toán</div>
+                  <div class="e-desc">COD / VNPAY / CK</div>
+                  <span class="e-tbl">orders.payment</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== ROW 2 ========== -->
+      <div class="grid3">
+        <!-- 4. KHUYẾN MÃI & MARKETING -->
+        <div class="sec s4">
+          <div class="sec-head">
+            <div class="sec-num">4</div>
+            <h2>Khuyến mãi & Marketing</h2>
+          </div>
+          <div class="sec-body">
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">🎫</span>
+                <div class="e-info">
+                  <div class="e-name">Mã giảm giá</div>
+                  <div class="e-desc">Code, loại (%/VND), thời hạn</div>
+                  <span class="e-tbl">promotions</span>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">🖥️</span>
+                <div class="e-info">
+                  <div class="e-name">Banner quảng cáo</div>
+                  <div class="e-desc">Hero / Sale / Lookbook</div>
+                  <span class="e-tbl">banners</span>
+                </div>
+              </div>
+            </div>
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">📰</span>
+                <div class="e-info">
+                  <div class="e-name">Bài viết Blog</div>
+                  <div class="e-desc">Tiêu đề, nội dung, tác giả</div>
+                  <span class="e-tbl">blogs</span>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">📧</span>
+                <div class="e-info">
+                  <div class="e-name">Đăng ký nhận tin</div>
+                  <div class="e-desc">Email subscriber</div>
+                  <span class="e-tbl">subscribers</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. CSKH & TƯƠNG TÁC -->
+        <div class="sec s5">
+          <div class="sec-head">
+            <div class="sec-num">5</div>
+            <h2>CSKH & Tương tác</h2>
+          </div>
+          <div class="sec-body">
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">⭐</span>
+                <div class="e-info">
+                  <div class="e-name">Đánh giá SP</div>
+                  <div class="e-desc">Sao 1-5, bình luận, ảnh</div>
+                  <span class="e-tbl">reviews</span>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">📞</span>
+                <div class="e-info">
+                  <div class="e-name">Liên hệ hỗ trợ</div>
+                  <div class="e-desc">Chat 2 chiều, phân loại</div>
+                  <span class="e-tbl">contacts</span>
+                </div>
+              </div>
+            </div>
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">🤝</span>
+                <div class="e-info">
+                  <div class="e-name">CRM - Tương tác</div>
+                  <div class="e-desc">Gọi, Zalo, Email, ghi chú</div>
+                  <span class="e-tbl">interactions</span>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">🔔</span>
+                <div class="e-info">
+                  <div class="e-name">Thông báo</div>
+                  <div class="e-desc">Real-time, ĐH, KM, hệ thống</div>
+                  <span class="e-tbl">notifications</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. NHÂN SỰ & VẬN HÀNH -->
+        <div class="sec s6">
+          <div class="sec-head">
+            <div class="sec-num">6</div>
+            <h2>Nhân sự & Vận hành</h2>
+          </div>
+          <div class="sec-body">
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">📅</span>
+                <div class="e-info">
+                  <div class="e-name">Ca làm việc</div>
+                  <div class="e-desc">Sáng/Chiều/Tối, chấm công</div>
+                  <span class="e-tbl">staff_shifts</span>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">📊</span>
+                <div class="e-info">
+                  <div class="e-name">KPI & Lương</div>
+                  <div class="e-desc">Giờ công, đơn, tính lương TĐ</div>
+                  <span class="e-tbl">staff_kpis</span>
+                </div>
+              </div>
+            </div>
+            <div class="e-row">
+              <div class="e">
+                <span class="e-icon">🔄</span>
+                <div class="e-info">
+                  <div class="e-name">Luân phiên ca</div>
+                  <div class="e-desc">Round-robin tự động</div>
+                  <span class="e-tbl">schedule_rotations</span>
+                </div>
+              </div>
+              <div class="arr">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <div class="e">
+                <span class="e-icon">⚙️</span>
+                <div class="e-info">
+                  <div class="e-name">Cấu hình hệ thống</div>
+                  <div class="e-desc">Shop, ship, bảo mật, UI</div>
+                  <span class="e-tbl">settings</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== RELATIONSHIP NOTE ========== -->
+      <div class="rel-strip">
+        <span class="ri">🔗</span>
+        <div class="rt">
+          <b>Mối quan hệ chính:</b>
+          <b>Khách hàng</b> → nhiều <b>Đơn hàng</b>, nhiều <b>Đánh giá</b>, 1
+          <b>Giỏ hàng</b>, nhiều <b>SP yêu thích</b> &nbsp;│&nbsp;
+          <b>Sản phẩm</b> → thuộc 1 <b>Danh mục</b>, liên kết <b>Kho</b>, có
+          nhiều <b>Đánh giá</b> &nbsp;│&nbsp; <b>Đơn hàng</b> → <b>NV</b> xử lý,
+          ghi nhận <b>Ca trực</b>, tính <b>KPI</b> &nbsp;│&nbsp;
+          <b>Mã giảm giá</b> áp dụng khi <b>Đặt hàng</b> &nbsp;│&nbsp;
+          <b>Liên hệ</b> gắn mã đơn để hỗ trợ nhanh
+        </div>
+      </div>
+
+      <!-- ========== BOTTOM FLOW ========== -->
+      <div class="flow-bar">
+        <div class="flow-title">⚡ Luồng hoạt động tổng quát</div>
+        <div class="flow-steps">
+          <div class="f-step">
+            <div class="f-circle fc1">👤</div>
+            <div class="f-label">Đăng ký<br />Đăng nhập</div>
+            <div class="f-sub">users</div>
+          </div>
+          <div class="f-arr">➜</div>
+          <div class="f-step">
+            <div class="f-circle fc2">🪑</div>
+            <div class="f-label">Duyệt SP<br />Lọc danh mục</div>
+            <div class="f-sub">products</div>
+          </div>
+          <div class="f-arr">➜</div>
+          <div class="f-step">
+            <div class="f-circle fc3">🛒</div>
+            <div class="f-label">Thêm giỏ<br />Mã giảm giá</div>
+            <div class="f-sub">carts</div>
+          </div>
+          <div class="f-arr">➜</div>
+          <div class="f-step">
+            <div class="f-circle fc4">💳</div>
+            <div class="f-label">Đặt hàng<br />Thanh toán</div>
+            <div class="f-sub">orders</div>
+          </div>
+          <div class="f-arr">➜</div>
+          <div class="f-step">
+            <div class="f-circle fc5">👔</div>
+            <div class="f-label">NV xử lý<br />Giao hàng</div>
+            <div class="f-sub">staff_shifts</div>
+          </div>
+          <div class="f-arr">➜</div>
+          <div class="f-step">
+            <div class="f-circle fc6">⭐</div>
+            <div class="f-label">Đánh giá<br />CSKH</div>
+            <div class="f-sub">reviews</div>
+          </div>
+          <div class="f-arr">➜</div>
+          <div class="f-step">
+            <div class="f-circle fc7">📊</div>
+            <div class="f-label">Báo cáo &<br />Vận hành</div>
+            <div class="f-sub">staff_kpis</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== FOOTER ========== -->
+      <div class="footer">
+        <div class="legend">
+          <div class="lg-item">
+            <div class="lg-dot" style="background: #2c5282"></div>
+            Hồ sơ
+          </div>
+          <div class="lg-item">
+            <div class="lg-dot" style="background: #059669"></div>
+            Sản phẩm
+          </div>
+          <div class="lg-item">
+            <div class="lg-dot" style="background: #c9956a"></div>
+            Mua sắm
+          </div>
+          <div class="lg-item">
+            <div class="lg-dot" style="background: #7c3aed"></div>
+            Marketing
+          </div>
+          <div class="lg-item">
+            <div class="lg-dot" style="background: #ef4444"></div>
+            CSKH
+          </div>
+          <div class="lg-item">
+            <div class="lg-dot" style="background: #0ea5e9"></div>
+            Nhân sự
+          </div>
+        </div>
+        <div class="f-info">
+          <strong>Casa Decor</strong> — Hệ thống TMĐT Nội Thất<br />
+          19 bảng dữ liệu &nbsp;•&nbsp; MongoDB &nbsp;•&nbsp; Node.js + Express
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

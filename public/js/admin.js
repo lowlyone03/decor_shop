@@ -3051,6 +3051,37 @@ function filterStaffTable() {
     }
     renderStaffManager(filtered);
 }
+window.viewShiftReport = function(shiftId) {
+    const shift = (state.staff?.shifts || []).find(s => String(s._id) === String(shiftId));
+    if (!shift || !shift.report) {
+        return showToast('Không tìm thấy báo cáo cho ca này.');
+    }
+    
+    const content = escapeHtml(shift.report.content || 'Không có nội dung');
+    const incidents = escapeHtml(shift.report.incidents || 'Không có sự cố');
+    const handover = escapeHtml(shift.report.handover || 'Không có bàn giao');
+
+    const bodyHtml = `
+        <div style="display:flex; flex-direction:column; gap:14px; text-align: left;">
+            <div>
+                <label style="font-weight:600; color:#333; font-size:14px;"><i class="fa-solid fa-list-check" style="color:#059669; margin-right:6px;"></i>Tóm tắt công việc</label>
+                <div style="padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; margin-top:6px; font-size:14px; white-space: pre-wrap; color:#334155; line-height:1.5;">${content}</div>
+            </div>
+            <div>
+                <label style="font-weight:600; color:#333; font-size:14px;"><i class="fa-solid fa-triangle-exclamation" style="color:#dc2626; margin-right:6px;"></i>Sự cố phát sinh</label>
+                <div style="padding:12px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; margin-top:6px; font-size:14px; white-space: pre-wrap; color:#991b1b; line-height:1.5;">${incidents}</div>
+            </div>
+            <div>
+                <label style="font-weight:600; color:#333; font-size:14px;"><i class="fa-solid fa-handshake" style="color:#2563eb; margin-right:6px;"></i>Ghi chú bàn giao</label>
+                <div style="padding:12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; margin-top:6px; font-size:14px; white-space: pre-wrap; color:#1e40af; line-height:1.5;">${handover}</div>
+            </div>
+        </div>
+    `;
+    
+    document.querySelector('#adminModalTitle').textContent = 'Báo cáo ca trực';
+    document.querySelector('#adminModalBody').innerHTML = bodyHtml;
+    document.querySelector('#adminModal').hidden = false;
+};
 
 function renderScheduleMatrix() {
     const tbody = document.getElementById('scheduleRows');
@@ -3074,7 +3105,11 @@ function renderScheduleMatrix() {
                 if (!shifts.length) return '<td><span class="shift-empty">Nghỉ</span></td>';
                 return `<td>${shifts.map((shift) => {
                     const type = getShiftType(shift);
-                    return `<button class="shift-block ${getShiftClass(type)}" type="button" onclick="openShiftModal('${escapeHtml(user._id)}','${escapeHtml(shift._id)}')"><b>${shiftTypeLabel(type)}</b><small>${shift.startTime} - ${shift.endTime}</small></button>`;
+                    let reportBtn = '';
+                    if (shift.status === 'completed' && shift.report) {
+                        reportBtn = `<button type="button" title="Xem báo cáo" class="icon-btn" style="position:absolute; top:4px; right:4px; width:22px; height:22px; display:flex; align-items:center; justify-content:center; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:4px; color:#16a34a; font-size:10px; cursor:pointer; z-index:10;" onclick="event.stopPropagation(); window.viewShiftReport('${escapeHtml(shift._id)}')"><i class="fa-solid fa-file-lines"></i></button>`;
+                    }
+                    return `<button class="shift-block ${getShiftClass(type)}" style="position:relative;" type="button" onclick="openShiftModal('${escapeHtml(user._id)}','${escapeHtml(shift._id)}')"><b>${shiftTypeLabel(type)}</b><small>${shift.startTime} - ${shift.endTime}</small>${reportBtn}</button>`;
                 }).join('')}</td>`;
             }).join('')}
             <td><button class="icon-btn staff-add-shift" type="button" title="Thêm ca" onclick="openShiftModal('${escapeHtml(user._id)}')"><i class="fa-solid fa-plus"></i></button></td>
@@ -3293,123 +3328,6 @@ async function loadReviewManager(page = state.reviews.page) {
         state.reviews.page = data.page;
         state.reviews.data = data;
         renderReviewManager(data);
-    } catch (error) {
-        showToast(error.message);
-    }
-}
-
-function renderReviewManager(data) {
-    document.getElementById('statTotalReviews').textContent = number(data.stats.total);
-    document.getElementById('statAvgRating').textContent = data.stats.avgRating;
-    document.getElementById('statPendingReviews').textContent = number(data.stats.pending);
-    document.getElementById('statHiddenReviews').textContent = number(data.stats.hidden);
-
-    const tbody = document.getElementById('reviewRows');
-    if (!data.reviews || !data.reviews.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Không có đánh giá nào</td></tr>';
-    } else {
-        tbody.innerHTML = data.reviews.map(review => {
-            let starsHtml = '';
-            for (let i = 1; i <= 5; i++) {
-                starsHtml += `<i class="fa-solid fa-star" style="color: ${i <= review.rating ? '#f39c12' : '#e2e8f0'}; font-size: 0.8rem;"></i>`;
-            }
-
-            return `
-            <tr>
-                <td><input type="checkbox"></td>
-                <td>
-                    <div class="product-cell category-cell" style="max-width: 200px;">
-                        <img src="${escapeHtml(review.product?.image || '/images/default-product.png')}" alt="">
-                        <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(review.product?.name || '')}">
-                            <b>${escapeHtml(review.product?.name || 'Sản phẩm đã xóa')}</b>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div style="font-weight: 500; color: var(--admin-text);">${escapeHtml(review.customer?.name || 'Khách hàng ẩn')}</div>
-                    <small style="color: var(--admin-muted);">${escapeHtml(review.customer?.email || '')}</small>
-                </td>
-                <td>
-                    <div style="margin-bottom: 4px;">${starsHtml}</div>
-                    <div style="font-size: 0.9rem; color: var(--admin-text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(review.comment || 'Không có bình luận')}</div>
-                    ${review.images && review.images.length ? `<div style="margin-top: 4px; color: var(--admin-muted); font-size: 0.8rem;"><i class="fa-regular fa-image"></i> Đính kèm ${review.images.length} ảnh</div>` : ''}
-                </td>
-                <td style="color: var(--admin-muted); font-size: 0.9rem;">${dateText(review.createdAt)}</td>
-                <td><span class="badge ${review.status === 'active' ? 'success' : (review.status === 'hidden' ? 'danger' : 'warning')}">${review.status === 'active' ? 'Hiển thị' : (review.status === 'hidden' ? 'Đã ẩn' : 'Chờ duyệt')}</span></td>
-                <td>
-                    <div class="product-actions">
-                        <button type="button" title="Xem chi tiết" onclick="showReviewDetail('${escapeHtml(review._id)}')"><i class="fa-regular fa-eye"></i></button>
-                    </div>
-                </td>
-            </tr>
-            `;
-        }).join('');
-    }
-
-    const start = (data.page - 1) * state.reviews.limit + 1;
-    const end = Math.min(data.page * state.reviews.limit, data.total);
-    document.getElementById('reviewPageText').textContent = data.total > 0 ? `${start} - ${end} của ${data.total} đánh giá` : '0 đánh giá';
-}
-
-function showReviewDetail(reviewId) {
-    const review = state.reviews.data.reviews.find(r => r._id === reviewId);
-    if (!review) return;
-
-    document.getElementById('reviewModalId').value = review._id;
-    document.getElementById('reviewModalStatusUpdate').value = review.status;
-
-    let starsHtml = '';
-    for (let i = 1; i <= 5; i++) {
-        starsHtml += `<i class="fa-solid fa-star" style="color: ${i <= review.rating ? '#f39c12' : '#e2e8f0'};"></i>`;
-    }
-
-    let imagesHtml = '';
-    if (review.images && review.images.length > 0) {
-        imagesHtml = `
-            <div style="margin-top: 16px;">
-                <b style="display: block; margin-bottom: 8px;">Ảnh đính kèm:</b>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    ${review.images.map(img => `<img src="${escapeHtml(img)}" alt="Review image" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">`).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    document.getElementById('reviewModalBody').innerHTML = `
-        <div style="display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #eee;">
-            <img src="${escapeHtml(review.product?.image || '/images/default-product.png')}" style="width: 64px; height: 64px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">
-            <div>
-                <b style="display: block; font-size: 1.1rem;">${escapeHtml(review.product?.name || 'Sản phẩm đã xóa')}</b>
-                <div style="color: var(--admin-muted); font-size: 0.9rem;">Khách hàng: ${escapeHtml(review.customer?.name || 'Ẩn')} - ${escapeHtml(review.customer?.email || '')}</div>
-                <div style="color: var(--admin-muted); font-size: 0.9rem;">Thời gian: ${dateText(review.createdAt, true)}</div>
-            </div>
-        </div>
-        <div style="margin-bottom: 12px;">
-            <span style="font-size: 1.2rem; margin-right: 8px;">${starsHtml}</span>
-            <b>${review.rating}/5 Sao</b>
-        </div>
-        <div style="padding: 16px; background: #fafafa; border-radius: 4px; color: var(--admin-text); line-height: 1.5;">
-            ${escapeHtml(review.comment || 'Khách hàng không để lại bình luận.')}
-        </div>
-        ${imagesHtml}
-    `;
-
-    document.getElementById('reviewDetailModal').showModal();
-}
-
-async function submitReviewStatus() {
-    const id = document.getElementById('reviewModalId').value;
-    const status = document.getElementById('reviewModalStatusUpdate').value;
-
-    try {
-        await api(`/admin/reviews/${id}/status`, {
-            method: 'PATCH',
-            body: JSON.stringify({ status })
-        });
-        showToast('Đã cập nhật trạng thái đánh giá', 'success');
-        const modal = document.getElementById('reviewDetailModal');
-        if (modal && typeof modal.close === 'function') modal.close();
-        loadReviewManager();
     } catch (error) {
         showToast(error.message);
     }
@@ -3809,11 +3727,18 @@ function initAdminSocket() {
     document.head.appendChild(script);
 }
 
+let sharedAdminAudioCtx;
 function playTingTing(messageToRead = '') {
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (AudioContext) {
-            const ctx = new AudioContext();
+            if (!sharedAdminAudioCtx) {
+                sharedAdminAudioCtx = new AudioContext();
+            }
+            if (sharedAdminAudioCtx.state === 'suspended') {
+                sharedAdminAudioCtx.resume();
+            }
+            const ctx = sharedAdminAudioCtx;
             const playTone = (freq, startTime, duration) => {
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -4561,6 +4486,20 @@ async function showReviewDetail(reviewId) {
                 </div>
             ` : ''}
         `;
+        
+        // Phân quyền UI cho Staff: Chỉ được xem, không được cập nhật trạng thái
+        const isStaff = getUserRole() === 'staff';
+        const mainStatusSelect = document.getElementById('reviewModalStatusUpdate');
+        if (mainStatusSelect) mainStatusSelect.disabled = isStaff;
+        
+        const updateBtn = document.querySelector('#reviewDetailModal .primary-action');
+        if (updateBtn) updateBtn.style.display = isStaff ? 'none' : 'block';
+        
+        const videoStatusSelect = document.getElementById('reviewModalVideoStatusUpdate');
+        if (videoStatusSelect) videoStatusSelect.disabled = isStaff;
+        
+        const saveVideoBtn = document.querySelector('button[onclick^="submitVideoStatus"]');
+        if (saveVideoBtn) saveVideoBtn.style.display = isStaff ? 'none' : 'flex';
         
         document.getElementById('reviewDetailModal').showModal();
     } catch (error) {

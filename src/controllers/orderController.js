@@ -128,9 +128,9 @@ exports.createOrder = async (req, res) => {
             createdAt: order.createdAt
         });
 
-        // Tạo thông báo trong CSDL cho admin
+        // Tạo thông báo trong CSDL cho admin và staff
         try {
-            const admins = await User.find({ role: 'admin' });
+            const admins = await User.find({ role: { $in: ['admin', 'staff'] } });
             const notifications = admins.map((admin) => ({
                 recipient: admin._id,
                 title: `Đơn hàng mới: ${order.orderCode}`,
@@ -255,9 +255,9 @@ exports.returnOrder = async (req, res) => {
             createdAt: new Date()
         });
 
-        // Tạo thông báo trong CSDL cho tất cả admin
+        // Tạo thông báo trong CSDL cho admin và staff
         try {
-            const admins = await User.find({ role: 'admin' });
+            const admins = await User.find({ role: { $in: ['admin', 'staff'] } });
             const notifications = admins.map((admin) => ({
                 recipient: admin._id,
                 title: `Yêu cầu trả hàng: ${order.orderCode}`,

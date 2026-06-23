@@ -26,7 +26,7 @@ const { hydrateContactsWithCustomers, hydrateContactWithCustomer } = require('..
 
 async function notifyAdminsAboutContact(req, contact, title, message, eventName) {
     const hydrated = await hydrateContactWithCustomer(contact);
-    const admins = await User.find({ role: 'admin', status: 'active' }).select('_id').lean();
+    const admins = await User.find({ role: { $in: ['admin', 'staff'] }, status: 'active' }).select('_id').lean();
     await Promise.all(admins.map((admin) => Notification.create({
         recipient: admin._id,
         title,
