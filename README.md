@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://placehold.co/1200x300/e2e8f0/1e293b?text=Casa+Decor+-+Noi+That+Hien+Dai" alt="Casa Decor Banner" />
+  <img src="public/images/hero-banner.png" alt="Casa Decor Banner" width="100%" />
 
   <h1>Casa Decor E-Commerce Platform</h1>
   
