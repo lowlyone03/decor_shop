@@ -76,7 +76,7 @@ Dự án được phát triển với tiêu chí **Tốc độ**, **Bảo mật*
 ### 2. Clone dự án và Cài đặt
 Mở Terminal/Command Prompt và chạy các lệnh:
 ```bash
-git clone https://github.com/your-username/decor_shop.git
+git clone https://github.com/lowlyone03/decor_shop.git
 cd decor_shop
 npm install
 ```
