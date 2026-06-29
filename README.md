@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://via.placeholder.com/1200x300.png?text=Casa+Decor+-+N%E1%BB%99i+th%E1%BA%A5t+hi%E1%BB%87n+%C4%91%E1%BA%A1i" alt="Casa Decor Banner" />
+  <img src="https://placehold.co/1200x300/e2e8f0/1e293b?text=Casa+Decor+-+Noi+That+Hien+Dai" alt="Casa Decor Banner" />
 
   <h1>Casa Decor E-Commerce Platform</h1>
   
@@ -217,3 +217,10 @@ mongorestore --uri="mongodb://localhost:27017/decor_shop" --drop dump/decor_shop
 ```bash
 docker-compose down
 ```
+
+---
+
+## ⚠️ Tuyên bố miễn trừ trách nhiệm (Disclaimer)
+
+Sản phẩm dựa trên nguồn tư liệu ảnh tổng hợp để làm dự án cá nhân, hoàn toàn không có mục đích thương mại và không có ý đánh cắp bản quyền của các shop hay của cá nhân, doanh nghiệp nào.
+
